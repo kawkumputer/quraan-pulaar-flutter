@@ -67,6 +67,10 @@ jobs:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
           IPHONEOS_DEPLOYMENT_TARGET: '12.0'
         run: |
+          # Debug: Print Flutter and environment info
+          flutter doctor -v
+          flutter --version
+          
           # Clean Flutter and get dependencies
           flutter clean
           flutter pub get
@@ -77,21 +81,40 @@ jobs:
           rm -rf .symlinks/plugins/*
           cd ..
           
+          # Generate project files
+          flutter create . --platforms=ios
+          
           # Ensure Flutter is properly set up
           flutter precache --ios
           flutter pub get
           
           # Build Flutter module
-          flutter build ios --release --no-codesign
-          
           cd ios
+          
+          # Debug: Check Flutter framework location
+          ls -la Flutter/
+          ls -la Pods/Flutter/ || echo "Flutter pod not found"
           
           # Clean and reinstall pods with verbose logging
           pod cache clean --all
           pod install --repo-update --verbose
           
-          # Build the app
-          xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -archivePath build/Runner.xcarchive archive CODE_SIGN_STYLE=Manual CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          # Debug: Verify framework paths
+          find . -name "Flutter.framework"
+          
+          # Build using xcodebuild
+          xcodebuild \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            ARCHS="arm64" \
+            -verbose
 
       - name: Upload to App Store Connect
         env:
