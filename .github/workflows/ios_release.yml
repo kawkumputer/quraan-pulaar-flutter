@@ -67,42 +67,60 @@ jobs:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
           IPHONEOS_DEPLOYMENT_TARGET: '12.0'
         run: |
-          # Debug: Print Flutter and environment info
-          flutter doctor -v
-          flutter --version
-          
-          # Clean Flutter and get dependencies
+          # Clean everything first
           flutter clean
-          flutter pub get
-          
-          # Prepare iOS build environment
           cd ios
           rm -rf Pods Podfile.lock
           rm -rf .symlinks/plugins/*
           cd ..
           
-          # Generate project files
-          flutter create . --platforms=ios
-          
-          # Ensure Flutter is properly set up
-          flutter precache --ios
+          # Get dependencies and prepare
           flutter pub get
           
-          # Build Flutter module
+          # Create fresh iOS setup
           cd ios
+          rm -rf Flutter/Flutter.framework Flutter/Flutter.podspec
+          flutter precache --ios
+          cd ..
           
-          # Debug: Check Flutter framework location
-          ls -la Flutter/
-          ls -la Pods/Flutter/ || echo "Flutter pod not found"
+          # Build Flutter module first
+          flutter build ios-framework --no-debug --no-profile --release
           
-          # Clean and reinstall pods with verbose logging
-          pod cache clean --all
-          pod install --repo-update --verbose
+          # Copy the framework to the correct location
+          cd ios
+          mkdir -p Frameworks
+          cp -R ../build/ios/framework/Release/Flutter.framework Frameworks/
           
-          # Debug: Verify framework paths
-          find . -name "Flutter.framework"
+          # Update Podfile to use local Flutter framework
+          cat > Podfile << EOL
+          platform :ios, '12.0'
           
-          # Build using xcodebuild
+          flutter_application_path = '..'
+          load File.join(flutter_application_path, '.ios', 'Flutter', 'podhelper.rb')
+          
+          target 'Runner' do
+            use_frameworks!
+            use_modular_headers!
+            
+            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+            
+            post_install do |installer|
+              installer.pods_project.targets.each do |target|
+                flutter_additional_ios_build_settings(target)
+                target.build_configurations.each do |config|
+                  config.build_settings['ENABLE_BITCODE'] = 'NO'
+                  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+                  config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+                end
+              end
+            end
+          end
+          EOL
+          
+          # Install pods with verbose output
+          pod install --verbose
+          
+          # Build the app
           xcodebuild \
             -workspace Runner.xcworkspace \
             -scheme Runner \
@@ -114,6 +132,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=NO \
             ARCHS="arm64" \
+            FRAMEWORK_SEARCH_PATHS="$(pwd)/Frameworks $(inherited)" \
             -verbose
 
       - name: Upload to App Store Connect
