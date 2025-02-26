@@ -1,0 +1,114 @@
+{
+  "surahs": [
+    {
+      "number": 1,
+      "name": {
+        "arabic": "الفاتحة",
+        "pulaar": "Al-Fatiha",
+        "translation": "The Opening"
+      },
+      "total_verses": 7,
+      "verses": [
+        {
+          "number": 1,
+          "text": {
+            "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+          },
+          "translation": {
+            "english": "In the name of Allah, the Entirely Merciful, the Especially Merciful",
+            "pulaar": "E innde alla Jurumdeero Jurmotooɗo"
+          },
+          "audio": "assets/audio/1/1.mp3"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "name": {
+        "arabic": "البقرة",
+        "pulaar": "Al-Baqara",
+        "translation": "The Cow"
+      },
+      "total_verses": 286,
+      "verses": [
+        {
+          "number": 1,
+          "text": {
+            "arabic": "الم"
+          },
+          "translation": {
+            "english": "Alif, Lam, Meem",
+            "pulaar": "Alif Laam Miim"
+          },
+          "audio": "assets/audio/2/1.mp3"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "name": {
+        "arabic": "آل عمران",
+        "pulaar": "Aali-Imraan",
+        "translation": "The Family of Imran"
+      },
+      "total_verses": 200,
+      "verses": [
+        {
+          "number": 1,
+          "text": {
+            "arabic": "الم"
+          },
+          "translation": {
+            "english": "Alif, Lam, Meem",
+            "pulaar": "Alif Laam Miim"
+          },
+          "audio": "assets/audio/3/1.mp3"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "name": {
+        "arabic": "النساء",
+        "pulaar": "An-Nisaa",
+        "translation": "The Women"
+      },
+      "total_verses": 176,
+      "verses": [
+        {
+          "number": 1,
+          "text": {
+            "arabic": "يَا أَيُّهَا النَّاسُ اتَّقُوا رَبَّكُمُ"
+          },
+          "translation": {
+            "english": "O mankind, fear your Lord",
+            "pulaar": "Hey onon yimɓe, kulee joomi mon"
+          },
+          "audio": "assets/audio/4/1.mp3"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "name": {
+        "arabic": "المائدة",
+        "pulaar": "Al-Maaida",
+        "translation": "The Table Spread"
+      },
+      "total_verses": 120,
+      "verses": [
+        {
+          "number": 1,
+          "text": {
+            "arabic": "يَا أَيُّهَا الَّذِينَ آمَنُوا أَوْفُوا بِالْعُقُودِ"
+          },
+          "translation": {
+            "english": "O you who have believed, fulfill [all] contracts",
+            "pulaar": "Hey onon goongɗinɓe, timminee amaanaaji"
+          },
+          "audio": "assets/audio/5/1.mp3"
+        }
+      ]
+    }
+  ]
+}
