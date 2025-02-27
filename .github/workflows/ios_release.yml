@@ -124,10 +124,6 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
           BUILD_RESULT=$?
           
-          # Always show the full log for debugging
-          echo "Full build log:"
-          cat build.log
-          
           # Check if archive was successful
           if [ $BUILD_RESULT -ne 0 ] || [ ! -d "build/Runner.xcarchive" ]; then
             echo "Archive failed with exit code: $BUILD_RESULT"
