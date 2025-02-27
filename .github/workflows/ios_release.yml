@@ -130,8 +130,19 @@ jobs:
             exit 1
           fi
 
+      - name: Clean Derived Data
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          flutter clean
+          cd ios
+          rm -rf build
+    
+
       - name: Export IPA
         run: |
+          # Disable forking safety and increase process limits
+          export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+          export MAX_LAUNCHING_PROCESSES=2000
           cd ios
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
