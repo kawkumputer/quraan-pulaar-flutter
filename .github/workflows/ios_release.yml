@@ -61,29 +61,6 @@ jobs:
           cp provisioning.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
           rm provisioning.mobileprovision
 
-      - name: Update Xcode project settings
-        run: |
-          cd ios
-          /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier mr.quraanpulaar" Runner/Info.plist
-
-          ruby -e '
-            require "xcodeproj"
-            project_path = "Runner.xcodeproj"
-            project = Xcodeproj::Project.open(project_path)
-          
-            project.targets.each do |target|
-              next if target.name.start_with?("Pods_")
-          
-              target.build_configurations.each do |config|
-                config.build_settings["CODE_SIGN_STYLE"] = "Manual"
-                config.build_settings["DEVELOPMENT_TEAM"] = "94VW99RYDQ"
-                config.build_settings["PROVISIONING_PROFILE_SPECIFIER"] = "Quraan Pulaar App Store"
-                config.build_settings["CODE_SIGN_IDENTITY"] = "iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)"
-              end
-            end
-            project.save
-          '
-
       - name: Clean and update dependencies
         run: |
           cd ios
@@ -92,28 +69,70 @@ jobs:
           pod repo update
           pod install --repo-update --verbose
 
+      - name: Configure Xcode project
+        run: |
+          cd ios
+          ruby -e '
+            require "xcodeproj"
+            project_path = "Runner.xcodeproj"
+            project = Xcodeproj::Project.open(project_path)
+          
+            # Set manual signing for Runner target only
+            project.targets.each do |target|
+              if target.name == "Runner"
+                target.build_configurations.each do |config|
+                  config.build_settings["CODE_SIGN_STYLE"] = "Manual"
+                  config.build_settings["DEVELOPMENT_TEAM"] = "94VW99RYDQ"
+                  config.build_settings["PROVISIONING_PROFILE_SPECIFIER"] = "Quraan Pulaar App2"
+                  config.build_settings["CODE_SIGN_IDENTITY"] = "iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)"
+                end
+              end
+            end
+            project.save
+          '
+
       - name: Build iOS app
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
           IPHONEOS_DEPLOYMENT_TARGET: '12.0'
         run: |
           flutter build ios --release --no-codesign
-          
           cd ios
-          xcodebuild -workspace Runner.xcworkspace \
+          
+          # Clean the build directory
+          xcodebuild clean -workspace Runner.xcworkspace -scheme Runner \
+            -destination "generic/platform=iOS"
+          
+          # Archive with explicit build settings
+          xcodebuild archive \
+            -workspace Runner.xcworkspace \
             -scheme Runner \
-            -sdk iphoneos \
             -configuration Release \
-            -archivePath build/Runner.xcarchive \
-            clean archive \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=94VW99RYDQ \
-            PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App Store" \
+            -destination "generic/platform=iOS" \
+            -sdk iphoneos \
+            -archivePath "build/Runner.xcarchive" \
+            -allowProvisioningUpdates \
+            -allowProvisioningDeviceRegistration \
+            DEVELOPMENT_TEAM="94VW99RYDQ" \
+            PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App2" \
             CODE_SIGN_IDENTITY="iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)" \
-            OTHER_CODE_SIGN_FLAGS="--preserve-metadata=identifier,entitlements" \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            GCC_OPTIMIZATION_LEVEL=0 \
-            ONLY_ACTIVE_ARCH=NO
+            CODE_SIGN_STYLE=Manual \
+            PRODUCT_BUNDLE_IDENTIFIER="mr.quraanpulaar" \
+            ENABLE_BITCODE=NO \
+            DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" \
+            ARCHS="arm64" \
+            ONLY_ACTIVE_ARCH=NO \
+          BUILD_RESULT=$?
+          
+          # Always show the full log for debugging
+          echo "Full build log:"
+          cat build.log
+          
+          # Check if archive was successful
+          if [ $BUILD_RESULT -ne 0 ] || [ ! -d "build/Runner.xcarchive" ]; then
+            echo "Archive failed with exit code: $BUILD_RESULT"
+            exit 1
+          fi
 
       - name: Export IPA
         run: |
@@ -121,7 +140,19 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
             -exportOptionsPlist exportOptions.plist \
-            -exportPath build/Runner.ipa
+            -exportPath build/Runner.ipa \
+            -allowProvisioningUpdates \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build
+          path: |
+            ios/build/Runner.xcarchive
+            ios/build/Runner.ipa
+          retention-days: 5
 
       - name: Upload to App Store Connect
         env:

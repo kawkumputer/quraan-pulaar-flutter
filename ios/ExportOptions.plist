@@ -6,22 +6,14 @@
     <string>app-store</string>
     <key>teamID</key>
     <string>94VW99RYDQ</string>
-    <key>destination</key>
-    <string>export</string>
-    <key>uploadSymbols</key>
-    <true/>
-    <key>uploadBitcode</key>
-    <false/>
-    <key>compileBitcode</key>
-    <false/>
     <key>signingStyle</key>
     <string>manual</string>
-    <key>signingCertificate</key>
-    <string>iPhone Distribution</string>
     <key>provisioningProfiles</key>
     <dict>
         <key>mr.quraanpulaar</key>
-        <string>Quraan Pulaar App2</string>
+        <string>Quraan Pulaar App Store2</string>
     </dict>
+    <key>signingCertificate</key>
+    <string>iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)</string>
 </dict>
 </plist>
