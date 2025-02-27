@@ -129,13 +129,6 @@ jobs:
             echo "Archive failed with exit code: $BUILD_RESULT"
             exit 1
           fi
-
-      - name: Clean Derived Data
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          flutter clean
-          cd ios
-          rm -rf build
     
 
       - name: Export IPA
