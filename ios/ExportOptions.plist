@@ -3,23 +3,20 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>app-store</string>
+    <string>app-store-connect</string>
     <key>teamID</key>
     <string>94VW99RYDQ</string>
     <key>signingStyle</key>
     <string>manual</string>
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>mr.quraanpulaar</key>
-        <string>Quraan Pulaar App2</string>
-    </dict>
-    <key>signingCertificate</key>
-    <string>iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)</string>
+    <key>uploadSymbols</key>
+    <true/>
+    <key>uploadBitcode</key>
+    <false/>
     <key>compileBitcode</key>
     <false/>
     <key>stripSwiftSymbols</key>
     <true/>
-    <key>thinning</key>
-    <string>&lt;none&gt;</string>
+    <key>manageAppVersionAndBuildNumber</key>
+    <true/>
 </dict>
 </plist>
