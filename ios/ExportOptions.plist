@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>app-store</string>
+    <string>app-store-connect</string>
     <key>teamID</key>
     <string>94VW99RYDQ</string>
     <key>signingStyle</key>
@@ -15,5 +15,9 @@
         <key>mr.quraanpulaar</key>
         <string>Quraan Pulaar App2</string>
     </dict>
+    <key>compileBitcode</key>
+    <false/>
+    <key>stripSwiftSymbols</key>
+    <true/>
 </dict>
 </plist>
