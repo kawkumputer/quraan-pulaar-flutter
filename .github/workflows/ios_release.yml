@@ -132,6 +132,8 @@ jobs:
     
 
       - name: Export IPA
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
         run: |
           # Disable forking safety and increase processes
           export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
@@ -143,6 +145,7 @@ jobs:
             -exportOptionsPlist exportOptions.plist \
             -exportPath build/Runner.ipa \
             -allowProvisioningUpdates \
+            -allowAutomaticSigning \
             || exit 1
 
       - name: Upload build artifacts
