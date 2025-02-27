@@ -28,12 +28,12 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  # Removed use_modular_headers!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
-  # Fix for Firebase (ensure correct version)
-  pod 'FirebaseFirestore'
+  # Fix for Firebase - use the same version as in your Flutter dependencies
+  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '10.25.0'
 end
 
 post_install do |installer|
@@ -47,6 +47,11 @@ post_install do |installer|
       # Fix for all C++ related issues
       config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
       config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+
+      # Fix for BoringSSL-GRPC
+      if target.name == 'BoringSSL-GRPC'
+        config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '0'
+      end
 
       # Fix for arm64 architecture
       if target.name == 'Runner'
