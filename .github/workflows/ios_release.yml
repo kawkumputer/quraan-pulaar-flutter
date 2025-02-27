@@ -136,13 +136,17 @@ jobs:
           # Disable forking safety and increase process limits
           export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
           export MAX_LAUNCHING_PROCESSES=2000
+          # Increase memory limits
+          ulimit -n 524288
+          ulimit -u 2048
           cd ios
+          # Export archive with xcpretty disabled for better error reporting
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
             -exportOptionsPlist exportOptions.plist \
             -exportPath build/Runner.ipa \
             -allowProvisioningUpdates \
-            | xcpretty && exit ${PIPESTATUS[0]}
+            || exit 1
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
