@@ -96,6 +96,7 @@ jobs:
           cd ios
           find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' {} +
           find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' {} +
+          find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGNING_ALLOWED = YES;/CODE_SIGNING_ALLOWED = NO;/g' {} +
 
       - name: Clean Derived Data
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
@@ -139,7 +140,7 @@ jobs:
             echo "Archive failed with exit code: $BUILD_RESULT"
             exit 1
           fi
-    
+
 
       - name: Export IPA
         env:
