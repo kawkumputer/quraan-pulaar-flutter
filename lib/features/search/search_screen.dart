@@ -132,11 +132,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     onTap: () {
                       Get.toNamed(
                         AppRoutes.surah,
-                        arguments: {
-                          'surahNumber': surah.number,
-                          'title': surah.namePulaar,
-                          'audioUrl': surah.audioUrl,
-                        },
+                        arguments: surah,
                       );
                     },
                   );
