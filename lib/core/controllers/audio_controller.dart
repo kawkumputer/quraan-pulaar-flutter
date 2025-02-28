@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class AudioController extends GetxController {
   final audioPlayer = AudioPlayer();  // Made public for AudioControls widget
@@ -14,11 +15,19 @@ class AudioController extends GetxController {
         _resetState();
       }
       isPlaying.value = state.playing;
+      
+      // Enable wakelock when playing, disable when stopped
+      if (state.playing) {
+        WakelockPlus.enable();
+      } else {
+        WakelockPlus.disable();
+      }
     });
   }
 
   @override
   void onClose() {
+    WakelockPlus.disable();  // Make sure to disable wakelock when disposing
     audioPlayer.dispose();
     super.onClose();
   }
@@ -27,6 +36,7 @@ class AudioController extends GetxController {
     currentlyPlayingId.value = -1;
     isPlaying.value = false;
     isLoading.value = false;
+    WakelockPlus.disable();  // Disable wakelock when playback is reset
   }
 
   Future<void> togglePlay(int id, String url) async {

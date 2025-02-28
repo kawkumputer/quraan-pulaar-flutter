@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../core/widgets/audio_controls.dart';
 import '../../core/services/bookmark_service.dart';
 import 'models/surah.dart';
@@ -39,6 +40,13 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
       setState(() {
         _isPlaying = state.playing;
       });
+
+      // Enable wakelock when playing, disable when stopped
+      if (state.playing) {
+        WakelockPlus.enable();
+      } else {
+        WakelockPlus.disable();
+      }
 
       if (state.processingState == ProcessingState.completed) {
         setState(() {
@@ -79,6 +87,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();  // Make sure to disable wakelock when disposing
     _audioPlayer.dispose();
     _scrollController.dispose();
     super.dispose();
