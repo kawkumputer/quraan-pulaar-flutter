@@ -1,10 +1,11 @@
 name: iOS Release
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+# Commenting out the triggers to disable the workflow
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
 
 jobs:
   build:
