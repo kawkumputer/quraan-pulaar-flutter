@@ -165,7 +165,7 @@ jobs:
           name: ios-build
           path: |
             ios/build/Runner.xcarchive
-            ios/build/Runner.ipa/Runner.ipa
+            ios/build/Runner.ipa
           retention-days: 5
 
       - name: Upload to App Store Connect
@@ -175,7 +175,7 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         uses: apple-actions/upload-testflight-build@v1
         with:
-          app-path: ios/build/Runner.ipa/Runner.ipa
+          app-path: ios/build/Runner.ipa
           issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
