@@ -41,7 +41,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
           surahs = allSurahs;
         }
       }
-      
+
       if (surahs.isNotEmpty) {
         _getDailyVerse(surahs);
       }
@@ -62,14 +62,14 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
 
     // First, randomly select a surah
     final surah = surahs[random.nextInt(surahs.length)];
-    
+
     // Then, randomly select a verse from that surah
     if (surah.verses.isEmpty) {
       return;
     }
 
     final verse = surah.verses[random.nextInt(surah.verses.length)];
-    
+
     final verseData = {
       'verse': verse.arabic,
       'translation': verse.pulaar,
@@ -104,7 +104,7 @@ Shared from Quraan Pulaar App''';
 
   void _navigateToSurah(Map<String, dynamic> verse) {
     if (verse['surahNumber'] == null) return;
-    
+
     final surah = _cacheService.getCachedSurahs().firstWhere(
       (s) => s.number == verse['surahNumber'],
       orElse: () => Surah(
@@ -119,7 +119,7 @@ Shared from Quraan Pulaar App''';
     );
 
     if (surah.number == 0) return;
-    
+
     Get.toNamed(
       AppRoutes.surah,
       arguments: surah,
@@ -140,7 +140,7 @@ Shared from Quraan Pulaar App''';
     }
 
     await _bookmarkService.toggleBookmark(surahNumber);
-    
+
     final isBookmarked = _bookmarkService.isBookmarked(surahNumber);
     Get.snackbar(
       isBookmarked ? 'Bookmarked' : 'Bookmark Removed',
@@ -263,7 +263,7 @@ Shared from Quraan Pulaar App''';
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 22,
                         height: 1.5,
                       ),
                     ),
@@ -273,7 +273,7 @@ Shared from Quraan Pulaar App''';
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
+                        fontSize: 17,
                         height: 1.5,
                       ),
                     ),
