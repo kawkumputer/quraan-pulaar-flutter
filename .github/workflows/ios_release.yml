@@ -97,6 +97,9 @@ jobs:
           find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' {} +
           find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' {} +
 
+      - name: Clean Derived Data
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
       - name: Build iOS app
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
@@ -128,6 +131,7 @@ jobs:
             DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" \
             ARCHS="arm64" \
             ONLY_ACTIVE_ARCH=NO \
+            archive CODE_SIGNING_ALLOWED=NO \
           BUILD_RESULT=$?
           
           # Check if archive was successful
