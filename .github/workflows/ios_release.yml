@@ -91,6 +91,12 @@ jobs:
             project.save
           '
 
+      - name: Disable code signing for third-party frameworks
+        run: |
+          cd ios
+          find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "";/g' {} +
+          find Pods -name "*.xcconfig" -exec sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' {} +
+
       - name: Build iOS app
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer

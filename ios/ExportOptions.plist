@@ -15,6 +15,8 @@
     </dict>
     <key>compileBitcode</key>
     <false/>
+    <key>thinning</key>
+    <string>&lt;none&gt;</string>
     <key>stripSwiftSymbols</key>
     <true/>
 </dict>
