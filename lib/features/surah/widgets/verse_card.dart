@@ -63,7 +63,7 @@ class VerseCard extends StatelessWidget {
             verse.arabic,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 22,
               height: 1.5,
               fontFamily: 'Uthmani',
             ),
@@ -74,9 +74,10 @@ class VerseCard extends StatelessWidget {
               verse.pulaar,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 15,
-                height: 1.3,
+                fontSize: 17,
+                height: 1.5,
                 color: Colors.black87,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
