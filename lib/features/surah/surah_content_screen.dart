@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../core/widgets/audio_controls.dart';
+import '../../core/services/bookmark_service.dart';
 import 'models/surah.dart';
 import 'widgets/verse_card.dart';
 
@@ -19,6 +20,7 @@ class SurahContentScreen extends StatefulWidget {
 
 class _SurahContentScreenState extends State<SurahContentScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final BookmarkService _bookmarkService = Get.find<BookmarkService>();
   bool _isPlaying = false;
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
@@ -153,6 +155,16 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
               ),
             ],
           ),
+          actions: [
+            Obx(() => IconButton(
+              icon: Icon(
+                _bookmarkService.isBookmarked(widget.surah.number) 
+                  ? Icons.bookmark 
+                  : Icons.bookmark_border
+              ),
+              onPressed: () => _bookmarkService.toggleBookmark(widget.surah.number),
+            )),
+          ],
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
