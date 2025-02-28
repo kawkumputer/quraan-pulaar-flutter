@@ -150,6 +150,11 @@ jobs:
           export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
           export MAX_LAUNCHING_PROCESSES=2000
           cd ios
+          
+          # Debug: Print current directory and list build directory contents
+          pwd
+          ls -la build/
+          
           # Export archive with xcpretty disabled for better error reporting
           xcodebuild -exportArchive \
             -archivePath build/Runner.xcarchive \
@@ -157,6 +162,10 @@ jobs:
             -exportPath build \
             -allowProvisioningUpdates \
             || exit 1
+            
+          # Debug: List contents after export
+          echo "Contents of build directory after export:"
+          ls -la build/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -164,8 +173,8 @@ jobs:
         with:
           name: ios-build
           path: |
+            ios/build/**/*.ipa
             ios/build/Runner.xcarchive
-            ios/build/Runner.ipa
           retention-days: 5
 
       - name: Upload to App Store Connect
@@ -173,9 +182,21 @@ jobs:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-        uses: apple-actions/upload-testflight-build@v1
-        with:
-          app-path: ios/build/Runner.ipa
-          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          cd ios
+          # Debug: Find IPA file
+          echo "Looking for IPA file:"
+          find . -name "*.ipa" -type f
+          
+          # Get the actual IPA path
+          IPA_PATH=$(find . -name "*.ipa" -type f | head -n 1)
+          echo "Found IPA at: $IPA_PATH"
+          
+          if [ -z "$IPA_PATH" ]; then
+            echo "No IPA file found!"
+            exit 1
+          fi
+          
+          xcrun altool --output-format xml --upload-app --file "$IPA_PATH" --type ios \
+            --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
+            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
