@@ -66,6 +66,10 @@ post_install do |installer|
         config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
         config.build_settings['DEVELOPMENT_TEAM'] = ''
       end
+      # Explicitly prevent GoogleUtilities from requiring code signing
+      if target.name == 'GoogleUtilities'
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+      end
     end
   end
 end
