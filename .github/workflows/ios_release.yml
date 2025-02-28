@@ -184,6 +184,13 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           cd ios
+          
+          # Create private keys directory
+          mkdir -p ~/.appstoreconnect/private_keys
+          
+          # Create the auth key file from secret
+          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
+          
           # Debug: Find IPA file
           echo "Looking for IPA file:"
           find . -name "*.ipa" -type f
@@ -198,5 +205,8 @@ jobs:
           fi
           
           xcrun altool --output-format xml --upload-app --file "$IPA_PATH" --type ios \
-            --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" \
-            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+            
+          # Clean up the key file
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
