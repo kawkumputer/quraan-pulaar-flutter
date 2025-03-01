@@ -91,21 +91,7 @@ class SettingsScreen extends GetView<SettingsService> {
                   title: const Text('Baɗte'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    showAboutDialog(
-                      context: context,
-                      applicationName: 'Quraan Pulaar',
-                      applicationVersion: '1.0.0',
-                      applicationIcon: Image.asset(
-                        'assets/icon/icon.png',
-                        width: 48,
-                        height: 48,
-                      ),
-                      children: [
-                        const Text(
-                          'Jaaɓngal Quraan e firo Pulaar',
-                        ),
-                      ],
-                    );
+                    // TODO: Implement about
                   },
                 ),
                 const Divider(),
