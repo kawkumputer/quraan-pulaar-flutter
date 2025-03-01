@@ -6,6 +6,7 @@ import '../../features/bookmarks/bookmarks_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/hadith/hadith_screen.dart';
+import '../../features/activation/activation_screen.dart';
 
 class AppRoutes {
   static const String home = '/';
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String search = '/search';
   static const String hadith = '/hadith';
+  static const String activation = '/activation';
 
   static final List<GetPage> pages = [
     GetPage(
@@ -49,6 +51,11 @@ class AppRoutes {
     GetPage(
       name: hadith,
       page: () => const HadithScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: activation,
+      page: () => const ActivationScreen(),
       transition: Transition.rightToLeft,
     ),
   ];

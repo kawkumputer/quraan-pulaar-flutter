@@ -2,83 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/routes/app_routes.dart';
 
-class SettingsScreen extends GetView<SettingsService> {
-  const SettingsScreen({super.key});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final settingsService = Get.find<SettingsService>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Teelte'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         children: [
           Card(
             child: Column(
               children: [
-                Obx(() => ListTile(
-                      leading: const Icon(Icons.dark_mode),
-                      title: const Text('Goobu'),
-                      trailing: DropdownButton<ThemeMode>(
-                        value: controller.themeMode,
-                        items: ThemeMode.values
-                            .map((mode) => DropdownMenuItem(
-                                  value: mode,
-                                  child: Text(mode.toString().split('.').last),
-                                ))
-                            .toList(),
-                        onChanged: (mode) {
+                ListTile(
+                  leading: const Icon(Icons.dark_mode),
+                  title: const Text('Goobu'),
+                  trailing: Obx(() => DropdownButton<ThemeMode>(
+                        value: settingsService.themeMode,
+                        items: const [
+                          DropdownMenuItem(
+                            value: ThemeMode.system,
+                            child: Text('System'),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.light,
+                            child: Text('Light'),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.dark,
+                            child: Text('Dark'),
+                          ),
+                        ],
+                        onChanged: (ThemeMode? mode) {
                           if (mode != null) {
-                            controller.setThemeMode(mode);
+                            settingsService.setThemeMode(mode);
                           }
                         },
-                      ),
-                    )),
-                const Divider(),
-                Obx(() => ListTile(
-                      leading: const Icon(Icons.text_fields),
-                      title: const Text('Ɓeydugol binndi'),
-                      subtitle: Slider(
-                        value: controller.fontSize,
-                        min: 14.0,
-                        max: 24.0,
-                        divisions: 5,
-                        label: controller.fontSize.toStringAsFixed(1),
-                        onChanged: (value) {
-                          controller.setFontSize(value);
-                        },
-                      ),
-                    )),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.translate),
-                  title: const Text('Firo'),
-                  subtitle: const Text('Pulaar'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Show translation options
-                  },
+                      )),
                 ),
                 const Divider(),
-                Obx(() => ListTile(
-                      leading: const Icon(Icons.notifications),
-                      title: const Text('Tintine'),
-                      subtitle: const Text('Tintine maande ñalnde'),
-                      trailing: Switch(
-                        value: controller.notificationsEnabled,
+                ListTile(
+                  leading: const Icon(Icons.text_fields),
+                  title: const Text('Ɓeydugol binndi'),
+                  subtitle: Obx(() => Slider(
+                        value: settingsService.fontSize,
+                        min: 14,
+                        max: 30,
+                        divisions: 8,
+                        label: settingsService.fontSize.round().toString(),
                         onChanged: (value) {
-                          controller.setNotificationsEnabled(value);
+                          settingsService.setFontSize(value);
                         },
-                      ),
-                    )),
+                      )),
+                ),
               ],
             ),
           ),
@@ -89,19 +72,42 @@ class SettingsScreen extends GetView<SettingsService> {
                 ListTile(
                   leading: const Icon(Icons.info),
                   title: const Text('Baɗte'),
-                  trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    // TODO: Implement about
+                    // TODO: Implement about page
                   },
                 ),
                 const Divider(),
                 ListTile(
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('Tintine'),
+                  subtitle: const Text('Tintine maande ñalnde'),
+                  trailing: Obx(() => Switch(
+                        value: settingsService.notificationsEnabled,
+                        onChanged: (value) {
+                          settingsService.setNotificationsEnabled(value);
+                        },
+                      )),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
                   leading: const Icon(Icons.share),
-                  title: const Text('Sar jaaɓngal ngal'),
-                  trailing: const Icon(Icons.chevron_right),
+                  title: const Text('Yaltinde'),
                   onTap: () {
                     // TODO: Implement app sharing
                   },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.device_unknown),
+                  title: const Text('Device Activation'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Get.toNamed(AppRoutes.activation),
                 ),
               ],
             ),

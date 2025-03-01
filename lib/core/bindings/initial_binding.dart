@@ -6,6 +6,9 @@ import '../services/settings_service.dart';
 import '../services/audio_service.dart';
 import '../services/quran_service.dart';
 import '../services/cache_service.dart';
+import '../services/api_service.dart';
+import '../services/device_service.dart';
+import '../controllers/activation_controller.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -18,5 +21,8 @@ class InitialBinding extends Bindings {
     Get.put<SettingsService>(SettingsService(), permanent: true);
     Get.put<AudioService>(AudioService());
     Get.put<QuranService>(QuranService(), permanent: true);
+    Get.put<ApiService>(ApiService(), permanent: true);
+    Get.put<DeviceService>(DeviceService(), permanent: true);
+    Get.put<ActivationController>(ActivationController(), permanent: true);
   }
 }
