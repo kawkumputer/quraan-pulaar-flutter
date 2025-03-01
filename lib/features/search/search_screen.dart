@@ -32,19 +32,19 @@ class _SearchScreenState extends State<SearchScreen> {
 
   List<Surah> _searchSurahs(String query) {
     if (query.isEmpty) return _allSurahs;
-    
+
     final lowercaseQuery = query.toLowerCase();
     return _allSurahs.where((surah) {
       final numberMatch = surah.number.toString().contains(query);
       final nameMatch = surah.namePulaar.toLowerCase().contains(lowercaseQuery) ||
                        surah.nameArabic.contains(query);
-      
+
       // Also search in verses if there's a match in the text or translation
       final versesMatch = surah.verses.any((verse) =>
         verse.pulaar.toLowerCase().contains(lowercaseQuery) ||
         verse.arabic.contains(query)
       );
-      
+
       return numberMatch || nameMatch || versesMatch;
     }).toList();
   }
@@ -53,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Surahs'),
+        title: const Text('Yiylo cimooje'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -66,7 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: TextField(
               onChanged: (value) => _searchQuery.value = value,
               decoration: InputDecoration(
-                hintText: 'Search by surah name, number or verse',
+                hintText: 'Yiylo innde simoore, tongoode walla maande',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -83,16 +83,16 @@ class _SearchScreenState extends State<SearchScreen> {
               }
 
               final results = _searchSurahs(_searchQuery.value);
-              
+
               if (_allSurahs.isEmpty) {
                 return const Center(
-                  child: Text('Failed to load surahs'),
+                  child: Text('Waawaa heɓde cimooje'),
                 );
               }
 
               if (results.isEmpty && _searchQuery.value.isNotEmpty) {
                 return const Center(
-                  child: Text('No results found'),
+                  child: Text('Alaa ko heɓaa'),
                 );
               }
 

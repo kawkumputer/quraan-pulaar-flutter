@@ -25,36 +25,36 @@ class HomeScreen extends StatelessWidget {
           children: [
             // Daily Verse Section
             DailyVerseWidget(),
-            
+
             // Navigation Cards
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   _buildNavigationCard(
-                    title: 'All Surahs',
-                    subtitle: 'Browse all surahs of the Quran',
+                    title: 'Cimooje',
+                    subtitle: 'Yiy cimooje ɗe fof',
                     icon: Icons.menu_book,
                     onTap: () => Get.toNamed(AppRoutes.allSurahs),
                   ),
                   const SizedBox(height: 16),
                   _buildNavigationCard(
-                    title: 'Hadiths',
-                    subtitle: 'Listen to Prophetic traditions',
+                    title: 'Njangtuuji (Hadiisaaji)',
+                    subtitle: 'Heɗto njangtuuji nulaaɗo',
                     icon: Icons.record_voice_over,
                     onTap: () => Get.toNamed(AppRoutes.hadith),
                   ),
                   const SizedBox(height: 16),
                   _buildNavigationCard(
-                    title: 'Bookmarks',
-                    subtitle: 'Access your saved surahs',
+                    title: 'Maantore',
+                    subtitle: 'Yiy cimooje ɗe maanitiɗa',
                     icon: Icons.bookmark,
                     onTap: () => Get.toNamed(AppRoutes.bookmarks),
                   ),
                   const SizedBox(height: 16),
                   _buildNavigationCard(
-                    title: 'Search',
-                    subtitle: 'Search for verses and surahs',
+                    title: 'Yiylo',
+                    subtitle: 'Yiylo cimooje walla maandeeji',
                     icon: Icons.search,
                     onTap: () => Get.toNamed(AppRoutes.search),
                   ),

@@ -163,7 +163,7 @@ Shared from Quraan Pulaar App''';
               const Icon(Icons.wb_sunny),
               const SizedBox(width: 8),
               const Text(
-                'Daily Verse',
+                'Maande hande ko',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

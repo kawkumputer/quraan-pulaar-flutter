@@ -10,7 +10,7 @@ class SettingsScreen extends GetView<SettingsService> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Teelte'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -20,7 +20,7 @@ class SettingsScreen extends GetView<SettingsService> {
               children: [
                 Obx(() => ListTile(
                       leading: const Icon(Icons.dark_mode),
-                      title: const Text('Theme'),
+                      title: const Text('Goobu'),
                       trailing: DropdownButton<ThemeMode>(
                         value: controller.themeMode,
                         items: ThemeMode.values
@@ -39,7 +39,7 @@ class SettingsScreen extends GetView<SettingsService> {
                 const Divider(),
                 Obx(() => ListTile(
                       leading: const Icon(Icons.text_fields),
-                      title: const Text('Font Size'),
+                      title: const Text('Ɓeydugol binndi'),
                       subtitle: Slider(
                         value: controller.fontSize,
                         min: 14.0,
@@ -60,7 +60,7 @@ class SettingsScreen extends GetView<SettingsService> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.translate),
-                  title: const Text('Translation'),
+                  title: const Text('Firo'),
                   subtitle: const Text('Pulaar'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
@@ -70,8 +70,8 @@ class SettingsScreen extends GetView<SettingsService> {
                 const Divider(),
                 Obx(() => ListTile(
                       leading: const Icon(Icons.notifications),
-                      title: const Text('Notifications'),
-                      subtitle: const Text('Daily verse reminders'),
+                      title: const Text('Tintine'),
+                      subtitle: const Text('Tintine maande ñalnde'),
                       trailing: Switch(
                         value: controller.notificationsEnabled,
                         onChanged: (value) {
@@ -88,7 +88,7 @@ class SettingsScreen extends GetView<SettingsService> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.info),
-                  title: const Text('About'),
+                  title: const Text('Baɗte'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     showAboutDialog(
@@ -102,7 +102,7 @@ class SettingsScreen extends GetView<SettingsService> {
                       ),
                       children: [
                         const Text(
-                          'A beautiful Quran app with Pulaar translation.',
+                          'Jaaɓngal Quraan e firo Pulaar',
                         ),
                       ],
                     );
@@ -111,7 +111,7 @@ class SettingsScreen extends GetView<SettingsService> {
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.share),
-                  title: const Text('Share App'),
+                  title: const Text('Sar jaaɓngal ngal'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     // TODO: Implement app sharing
