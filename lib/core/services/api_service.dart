@@ -120,7 +120,15 @@ class ApiService extends GetxService {
   // Check device validity using saved code
   Future<bool> checkDeviceValidity(String deviceId) async {
     try {
-      await _findWorkingUrl();
+      // If we can't find a working URL, consider it a connection error
+      if (!await _findWorkingUrl()) {
+        throw DioException(
+          requestOptions: RequestOptions(path: ''),
+          error: 'No working URL found',
+          type: DioExceptionType.connectionError
+        );
+      }
+
       print('Checking device validity for ID: $deviceId');
 
       final response = await _dio.get('ventes/getCodebyPhoneUID/$deviceId');
@@ -135,9 +143,20 @@ class ApiService extends GetxService {
 
       print('Device validity check failed');
       return false;
+    } on DioException catch (e) {
+      print('DioError checking device validity:');
+      print('  Type: ${e.type}');
+      print('  Message: ${e.message}');
+      // For connection errors, throw the exception to be handled by caller
+      if (e.type == DioExceptionType.connectionError || 
+          e.type == DioExceptionType.connectionTimeout) {
+        throw e;
+      }
+      return false;
     } catch (e) {
       print('Error checking device validity: $e');
-      return false;
+      // For unexpected errors, throw to be handled by caller
+      throw e;
     }
   }
 }

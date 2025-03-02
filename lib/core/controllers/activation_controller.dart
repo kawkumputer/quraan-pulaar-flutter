@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import '../services/api_service.dart';
 import '../services/settings_service.dart';
 import '../services/device_service.dart';
@@ -33,7 +34,7 @@ class ActivationController extends GetxController {
       // If already activated, verify with backend
       if (_settingsService.isActivated) {
         // Check if we need to validate
-       /* if (!_settingsService.needsValidation) {
+        /*if (!_settingsService.needsValidation) {
           print('Skipping backend validation - last validation was recent');
           return;
         }*/
@@ -45,21 +46,35 @@ class ActivationController extends GetxController {
         final hasInternet = connectivityResult != ConnectivityResult.none;
 
         if (!hasInternet) {
-          print('No internet connection, skipping backend validation');
+          print('No internet connection, trusting existing activation');
           return;
         }
 
-        final deviceInfo = await _deviceService.getDeviceInfo();
-        final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+        try {
+          final deviceInfo = await _deviceService.getDeviceInfo();
+          final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
 
-        if (!isValid) {
-          print('Device activation is no longer valid');
-          await _settingsService.clearActivation();
-          showActivationDialog();
-        } else {
-          print('Device activation is valid');
-          // Update last validation time in settings service
-          await _settingsService.setActivated(true, code: _settingsService.activationCode);
+          if (isValid) {
+            print('Device activation is valid');
+            // Update last validation time in settings service
+            await _settingsService.setActivated(true, code: _settingsService.activationCode);
+          } else {
+            print('Device activation is no longer valid');
+            await _settingsService.clearActivation();
+            showActivationDialog();
+          }
+        } on DioException catch (e) {
+          if (e.type == DioExceptionType.connectionError || 
+              e.type == DioExceptionType.connectionTimeout) {
+            print('Connection error checking validity: ${e.message}');
+            print('Trusting existing activation due to connection error');
+            return;
+          }
+          throw e;
+        } catch (e) {
+          print('Error checking validity with backend: $e');
+          print('Trusting existing activation due to backend error');
+          return;
         }
       } else {
         print('Device is not activated');
