@@ -18,73 +18,65 @@ class ActivationScreen extends GetView<ActivationController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Obx(() {
-              if (controller.isWebPlatform.value) {
-                return const Center(
-                  child: Text(
-                    'This feature is only available in the mobile app.\n'
-                    'Please download our mobile app to use this feature.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
+            Column(
+              children: [
+                const Text(
+                  'Enter your activation code to access all surahs.\n'
+                  'Without activation, only the first three surahs will be available.',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: codeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Activation Code',
+                    border: OutlineInputBorder(),
                   ),
-                );
-              }
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                Obx(() => controller.isVerifying
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: () async {
+                          print('Attempting to verify code: ${codeController.text}');
+                          if (codeController.text.isEmpty) {
+                            Get.snackbar(
+                              'Error',
+                              'Please enter an activation code',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                            return;
+                          }
 
-              return Column(
-                children: [
-                  const Text(
-                    'Enter your activation code',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: codeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Activation Code',
-                      border: OutlineInputBorder(),
+                          final success = await controller.verifyActivationCode(codeController.text);
+                          print('Verification result: $success');
+                          if (success) {
+                            Get.back();
+                            Get.snackbar(
+                              'Success',
+                              'Device activated successfully',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          }
+                        },
+                        child: const Text('Activate'),
+                      )),
+                Obx(() {
+                  final error = controller.verificationError;
+                  if (error == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      error,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  Obx(() => controller.isLoading.value
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: () async {
-                            print('Attempting to verify code: ${codeController.text}');
-                            if (codeController.text.isEmpty) {
-                              Get.snackbar(
-                                'Error',
-                                'Please enter an activation code',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                              return;
-                            }
-
-                            final success = await controller.verifyCode(codeController.text);
-                            print('Verification result: $success');
-                            if (success) {
-                              Get.back();
-                              Get.snackbar(
-                                'Success',
-                                'Device activated successfully',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            }
-                          },
-                          child: const Text('Activate'),
-                        )),
-                  Obx(() => controller.error.value.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            controller.error.value,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        )
-                      : const SizedBox()),
-                ],
-              );
-            }),
+                  );
+                }),
+              ],
+            ),
           ],
         ),
       ),

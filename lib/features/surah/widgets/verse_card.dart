@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/surah.dart';
+import '../../../core/models/surah_model.dart';
 
 class VerseCard extends StatelessWidget {
-  final Verse verse;
+  final VerseModel verse;
   final bool isHighlighted;
 
   const VerseCard({

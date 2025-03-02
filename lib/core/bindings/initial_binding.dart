@@ -13,16 +13,20 @@ import '../controllers/activation_controller.dart';
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    // Register services as singletons
-    Get.put<CacheService>(CacheService(), permanent: true);  // Initialize CacheService first
+    // Register core services first
+    Get.put<CacheService>(CacheService(), permanent: true);
+    Get.put<ApiService>(ApiService(), permanent: true);
+    Get.put<DeviceService>(DeviceService(), permanent: true);
+    
+    // Register services that depend on core services
+    Get.put<SettingsService>(SettingsService(), permanent: true);
     Get.put<FirebaseService>(FirebaseService(), permanent: true);
     Get.put<BookmarkService>(BookmarkService(), permanent: true);
     Get.put<QuranAudioService>(QuranAudioService(), permanent: true);
-    Get.put<SettingsService>(SettingsService(), permanent: true);
     Get.put<AudioService>(AudioService());
     Get.put<QuranService>(QuranService(), permanent: true);
-    Get.put<ApiService>(ApiService(), permanent: true);
-    Get.put<DeviceService>(DeviceService(), permanent: true);
+    
+    // Register controllers last since they depend on services
     Get.put<ActivationController>(ActivationController(), permanent: true);
   }
 }

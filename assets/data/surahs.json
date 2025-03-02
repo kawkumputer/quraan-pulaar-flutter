@@ -2,111 +2,151 @@
   "surahs": [
     {
       "number": 1,
-      "name": {
-        "arabic": "الفاتحة",
-        "pulaar": "Al-Fatiha",
-        "translation": "The Opening"
-      },
+      "juzz_number": 1,
+      "arabic": "الفاتحة",
+      "pulaar": "Udditirnde",
       "total_verses": 7,
+      "audio_url": "https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/quran-audios%2F1_Fatiha.mp3?alt=media&token=bd0702e3-b2dc-41d5-a88e-dbc80c6426a9",
       "verses": [
         {
           "number": 1,
-          "text": {
-            "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
-          },
-          "translation": {
-            "english": "In the name of Allah, the Entirely Merciful, the Especially Merciful",
-            "pulaar": "E innde alla Jurumdeero Jurmotooɗo"
-          },
-          "audio": "assets/audio/1/1.mp3"
+          "arabic": "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+          "pulaar": "E innde alla Jurumdeero Jurmotooɗo"
+        },
+        {
+          "number": 2,
+          "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+          "pulaar": "Jettooje ngoodanii Alla jom binnde"
+        },
+        {
+          "number": 3,
+          "arabic": "الرَّحْمَنِ الرَّحِيمِ",
+          "pulaar": "Jurumdeero Jurmotooɗo"
+        },
+        {
+          "number": 4,
+          "arabic": "مَالِكِ يَوْمِ الدِّينِ",
+          "pulaar": "Laamɗo ñalngu ñaawoore"
+        },
+        {
+          "number": 5,
+          "arabic": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+          "pulaar": "Ko aan tan min ndewata e ko aan tan min mballikintoo"
+        },
+        {
+          "number": 6,
+          "arabic": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+          "pulaar": "Hanndo min e laawol pooccingol"
+        },
+        {
+          "number": 7,
+          "arabic": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+          "pulaar": "Laawol ɓeen ɓe ndakmitɗaa tawi ngonaa tikkanaaɓe tee ɓe ngonaa majjuɓe"
         }
       ]
     },
     {
-      "number": 2,
-      "name": {
-        "arabic": "البقرة",
-        "pulaar": "Al-Baqara",
-        "translation": "The Cow"
-      },
-      "total_verses": 286,
+      "number": 112,
+      "juzz_number": 30,
+      "arabic": "الإخلاص",
+      "pulaar": "Laɓɓinoore",
+      "total_verses": 4,
+      "audio_url": "https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/quran-audios%2F112_AlIkhlas.mp3?alt=media&token=720b4345-efee-4b5d-925c-edee8a93b9e4",
       "verses": [
         {
           "number": 1,
-          "text": {
-            "arabic": "الم"
-          },
-          "translation": {
-            "english": "Alif, Lam, Meem",
-            "pulaar": "Alif Laam Miim"
-          },
-          "audio": "assets/audio/2/1.mp3"
+          "arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+          "pulaar": "Wiy ko kaŋko woni Alla gooto o"
+        },
+        {
+          "number": 2,
+          "arabic": "اللَّهُ الصَّمَدُ",
+          "pulaar": "Alla baawanɗo hoyre mum"
+        },
+        {
+          "number": 3,
+          "arabic": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+          "pulaar": "O jibinaani e o jibinaaka"
+        },
+        {
+          "number": 4,
+          "arabic": "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+          "pulaar": "E o alaa hay gooto nannduɗo e makko"
         }
       ]
     },
     {
-      "number": 3,
-      "name": {
-        "arabic": "آل عمران",
-        "pulaar": "Aali-Imraan",
-        "translation": "The Family of Imran"
-      },
-      "total_verses": 200,
+      "number": 113,
+      "juzz_number": 30,
+      "arabic": "الفلق",
+      "pulaar": "Weetndooga",
+      "total_verses": 5,
+      "audio_url": "https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/quran-audios%2F113_AlFalaq.mp3?alt=media&token=a6f509b1-22bb-4176-8ab2-b507838f00c0",
       "verses": [
         {
           "number": 1,
-          "text": {
-            "arabic": "الم"
-          },
-          "translation": {
-            "english": "Alif, Lam, Meem",
-            "pulaar": "Alif Laam Miim"
-          },
-          "audio": "assets/audio/3/1.mp3"
+          "arabic": "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ",
+          "pulaar": "Wiy mi mooliima jom mboɗeeri weetndooga"
+        },
+        {
+          "number": 2,
+          "arabic": "مِن شَرِّ مَا خَلَقَ",
+          "pulaar": "E bone ɗuum ko o tagi"
+        },
+        {
+          "number": 3,
+          "arabic": "وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ",
+          "pulaar": "E bone jamma o so naatii"
+        },
+        {
+          "number": 4,
+          "arabic": "وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ",
+          "pulaar": "E bone ɓeen jatotooɓe e tokkooɗe"
+        },
+        {
+          "number": 5,
+          "arabic": "وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+          "pulaar": "E bone gaño so tawii añii"
         }
       ]
     },
     {
-      "number": 4,
-      "name": {
-        "arabic": "النساء",
-        "pulaar": "An-Nisaa",
-        "translation": "The Women"
-      },
-      "total_verses": 176,
+      "number": 114,
+      "juzz_number": 30,
+      "arabic": "الناس",
+      "pulaar": "Yimɓe",
+      "total_verses": 6,
+      "audio_url": "https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/quran-audios%2F114_AnNas.mp3?alt=media&token=c0873ad0-2bf1-4259-9f37-daf970be74a4",
       "verses": [
         {
           "number": 1,
-          "text": {
-            "arabic": "يَا أَيُّهَا النَّاسُ اتَّقُوا رَبَّكُمُ"
-          },
-          "translation": {
-            "english": "O mankind, fear your Lord",
-            "pulaar": "Hey onon yimɓe, kulee joomi mon"
-          },
-          "audio": "assets/audio/4/1.mp3"
-        }
-      ]
-    },
-    {
-      "number": 5,
-      "name": {
-        "arabic": "المائدة",
-        "pulaar": "Al-Maaida",
-        "translation": "The Table Spread"
-      },
-      "total_verses": 120,
-      "verses": [
+          "arabic": "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+          "pulaar": "Wiy mi mooliima jom yimɓe ɓe"
+        },
         {
-          "number": 1,
-          "text": {
-            "arabic": "يَا أَيُّهَا الَّذِينَ آمَنُوا أَوْفُوا بِالْعُقُودِ"
-          },
-          "translation": {
-            "english": "O you who have believed, fulfill [all] contracts",
-            "pulaar": "Hey onon goongɗinɓe, timminee amaanaaji"
-          },
-          "audio": "assets/audio/5/1.mp3"
+          "number": 2,
+          "arabic": "مَلِكِ النَّاسِ",
+          "pulaar": "laamɗo yimɓe ɓe"
+        },
+        {
+          "number": 3,
+          "arabic": "إِلَهِ النَّاسِ",
+          "pulaar": "Deweteeɗo yimɓe ɓe"
+        },
+        {
+          "number": 4,
+          "arabic": "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",
+          "pulaar": "E bone oon cok-cokinoowo to les"
+        },
+        {
+          "number": 5,
+          "arabic": "الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ",
+          "pulaar": "Oon cok-cokinoowo he nder ɓecce yimɓe ɓe"
+        },
+        {
+          "number": 6,
+          "arabic": "مِنَ الْجِنَّةِ وَالنَّاسِ",
+          "pulaar": "Iwde e jinneeji e yimɓe"
         }
       ]
     }

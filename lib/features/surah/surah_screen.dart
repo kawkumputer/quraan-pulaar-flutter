@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/services/quran_service.dart';
+import '../../core/models/surah_model.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -56,7 +57,7 @@ class SurahScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: quranService.surahs.length,
           itemBuilder: (context, index) {
-            final surah = quranService.surahs[index];
+            final SurahModel surah = quranService.surahs[index];
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
@@ -87,11 +88,11 @@ class SurahScreen extends StatelessWidget {
                   ],
                 ),
                 subtitle: Text(
-                  '${surah.nameTranslation} • ${surah.versesCount} verses',
+                  '${surah.versesCount} verses',
                 ),
                 onTap: () {
                   quranService.setCurrentSurah(surah);
-                  Get.toNamed(AppRoutes.surahContent, arguments: surah);
+                  Get.toNamed(AppRoutes.surah, arguments: surah);
                 },
               ),
             );

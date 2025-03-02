@@ -1,78 +1,110 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/settings_service.dart';
 import '../services/device_service.dart';
+import '../../features/activation/activation_dialog.dart';
 
 class ActivationController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final DeviceService _deviceService = Get.find<DeviceService>();
-  
-  final RxBool isVerified = false.obs;
-  final RxBool isLoading = false.obs;
-  final RxString error = ''.obs;
-  final RxBool isWebPlatform = false.obs;
+  final SettingsService _settingsService = Get.find<SettingsService>();
+
+  final _isVerifying = false.obs;
+  final _verificationError = Rxn<String>();
+
+  bool get isVerifying => _isVerifying.value;
+  String? get verificationError => _verificationError.value;
 
   @override
-  void onInit() {
-    super.onInit();
-    checkVerificationStatus();
+  void onReady() {
+    super.onReady();
+    // Delay the check slightly to ensure all services are ready
+    Future.delayed(const Duration(milliseconds: 500), () {
+      checkActivation();
+    });
   }
 
-  Future<void> checkVerificationStatus() async {
-    isLoading.value = true;
-    error.value = '';
-    
+  Future<void> checkActivation() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      isVerified.value = prefs.getBool('isVerified') ?? false;
+      // If already activated, verify with backend
+      if (_settingsService.isActivated) {
+        print('Device is activated, checking validity with backend...');
+        final deviceInfo = await _deviceService.getDeviceInfo();
+        final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+
+        if (!isValid) {
+          print('Device activation is no longer valid');
+          await _settingsService.clearActivation();
+          showActivationDialog();
+        } else {
+          print('Device activation is valid');
+        }
+      } else {
+        print('Device is not activated');
+        showActivationDialog();
+      }
     } catch (e) {
-      // If we can't get device info, we're probably on web
-      isWebPlatform.value = true;
-      error.value = 'This feature is only available in the mobile app';
-      print('Error checking verification status: $e');
-    } finally {
-      isLoading.value = false;
+      print('Error checking activation: $e');
+      // Don't show dialog on error to allow offline usage
     }
   }
 
-  Future<bool> verifyCode(String code) async {
-    if (isWebPlatform.value) {
-      error.value = 'This feature is only available in the mobile app';
-      return false;
-    }
-
-    isLoading.value = true;
-    error.value = '';
-    
+  Future<void> showActivationDialog() async {
     try {
+      final result = await Get.dialog<bool>(
+        ActivationDialog(),
+        barrierDismissible: false,
+      );
+
+      // If user dismisses the dialog or clicks "Later", ensure we're in restricted mode
+      if (result != true) {
+        await _settingsService.clearActivation();
+      }
+    } catch (e) {
+      print('Error showing activation dialog: $e');
+    }
+  }
+
+  Future<bool> verifyActivationCode(String code) async {
+    try {
+      _isVerifying.value = true;
+      _verificationError.value = null;
+
+      // First verify the code
+      final isValid = await _apiService.checkDeviceValidity(code);
+      if (!isValid) {
+        _verificationError.value = 'Invalid activation code';
+        await _settingsService.clearActivation();
+        return false;
+      }
+
+      // Get device info for registration
       final deviceInfo = await _deviceService.getDeviceInfo();
+
+      // Register device with activation code
       final success = await _apiService.registerDevice(deviceInfo.uniqueId, code);
-      
+
       if (success) {
-        isVerified.value = true;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isVerified', true);
+        // Set activation status and save code
+        await _settingsService.setActivated(true, code: code);
         return true;
       } else {
-        error.value = 'Invalid activation code';
+        _verificationError.value = 'Failed to register device';
+        await _settingsService.clearActivation();
         return false;
       }
     } catch (e) {
-      error.value = 'Error verifying code';
-      print('Error verifying code: $e');
+      print('Error during verification: $e');
+      _verificationError.value = 'Error verifying code: $e';
+      await _settingsService.clearActivation();
       return false;
     } finally {
-      isLoading.value = false;
+      _isVerifying.value = false;
     }
   }
 
-  Future<String?> generateCode() async {
-    try {
-      return await _apiService.generateCode();
-    } catch (e) {
-      error.value = 'Error generating code';
-      print('Error generating code: $e');
-      return null;
-    }
+  void setVerificationError(String error) {
+    _verificationError.value = error;
   }
 }

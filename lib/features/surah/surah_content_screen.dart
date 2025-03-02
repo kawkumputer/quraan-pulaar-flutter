@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../core/widgets/audio_controls.dart';
 import '../../core/services/bookmark_service.dart';
-import 'models/surah.dart';
+import '../../core/models/surah_model.dart';
 import 'widgets/verse_card.dart';
 
 class SurahContentScreen extends StatefulWidget {
-  final Surah surah;
+  final SurahModel surah;
 
   const SurahContentScreen({
     super.key,
@@ -208,7 +208,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                       child: VerseCard(
                         verse: verse,
-                        isHighlighted: index == _currentVerseIndex,
+                        isHighlighted: index == _currentVerseIndex && _audioPlayer.playing,
                       ),
                     ),
                   );
