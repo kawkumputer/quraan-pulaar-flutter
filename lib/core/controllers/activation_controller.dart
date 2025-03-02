@@ -4,12 +4,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/api_service.dart';
 import '../services/settings_service.dart';
 import '../services/device_service.dart';
+import '../services/quran_service.dart';
 import '../../features/activation/activation_dialog.dart';
 
 class ActivationController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final DeviceService _deviceService = Get.find<DeviceService>();
   final SettingsService _settingsService = Get.find<SettingsService>();
+  final QuranService _quranService = Get.find<QuranService>();
 
   final _isVerifying = false.obs;
   final _verificationError = Rxn<String>();
@@ -31,10 +33,10 @@ class ActivationController extends GetxController {
       // If already activated, verify with backend
       if (_settingsService.isActivated) {
         // Check if we need to validate
-        if (!_settingsService.needsValidation) {
+       /* if (!_settingsService.needsValidation) {
           print('Skipping backend validation - last validation was recent');
           return;
-        }
+        }*/
 
         print('Device is activated, checking validity with backend...');
 
@@ -90,14 +92,6 @@ class ActivationController extends GetxController {
       _isVerifying.value = true;
       _verificationError.value = null;
 
-      // First verify the code
-      final isValid = await _apiService.checkDeviceValidity(code);
-      if (!isValid) {
-        _verificationError.value = 'Invalid activation code';
-        await _settingsService.clearActivation();
-        return false;
-      }
-
       // Get device info for registration
       final deviceInfo = await _deviceService.getDeviceInfo();
 
@@ -107,6 +101,8 @@ class ActivationController extends GetxController {
       if (success) {
         // Set activation status and save code
         await _settingsService.setActivated(true, code: code);
+        // Reload surahs from Firebase after successful activation
+        await _quranService.loadSurahs();
         return true;
       } else {
         _verificationError.value = 'Failed to register device';

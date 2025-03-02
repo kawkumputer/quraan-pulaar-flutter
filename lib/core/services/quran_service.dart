@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../models/surah_model.dart';
 import '../services/settings_service.dart';
+import '../services/firebase_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class QuranService extends GetxController {
   final _surahs = <SurahModel>[].obs;
@@ -11,29 +13,11 @@ class QuranService extends GetxController {
   final _isLoading = false.obs;
   final _error = Rxn<String>();
   final _settingsService = Get.find<SettingsService>();
+  final _firebaseService = Get.find<FirebaseService>();
 
-  // Return all surahs if activated, otherwise only first 3
-  List<SurahModel> get surahs {
-    print('Getting surahs. Activation status: ${_settingsService.isActivated}');
-    if (_settingsService.isActivated) {
-      return _surahs;
-    } else {
-      final restrictedSurahs = _surahs.where((surah) => surah.number <= 3).toList();
-      print('Restricted mode: showing ${restrictedSurahs.length} surahs');
-      return restrictedSurahs;
-    }
-  }
-
-  SurahModel? get currentSurah {
-    // Only allow access to current surah if activated or it's one of first 3
-    final surah = _currentSurah.value;
-    if (surah == null) return null;
-    if (_settingsService.isActivated || surah.number <= 3) {
-      return surah;
-    }
-    return null;
-  }
-
+  // Return all surahs - they're already filtered by source based on activation status
+  List<SurahModel> get surahs => _surahs;
+  SurahModel? get currentSurah => _currentSurah.value;
   int get currentVerseIndex => _currentVerseIndex.value;
   bool get isLoading => _isLoading.value;
   String? get error => _error.value;
@@ -50,32 +34,48 @@ class QuranService extends GetxController {
       _error.value = null;
       _surahs.clear();
 
-      print('Attempting to load surahs.json...');
-      final ByteData data = await rootBundle.load('assets/data/surahs.json');
-      final String jsonString = utf8.decode(data.buffer.asUint8List());
-      print('Successfully loaded JSON file');
+      if (_settingsService.isActivated) {
+        // Device is activated - load from Firebase with cache support
+        print('Device is activated, loading from Firebase...');
+        try {
+          final firebaseSurahs = await _firebaseService.getAllSurahs();
+          _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
+          print('Successfully loaded ${_surahs.length} surahs from Firebase/cache');
+          return;
+        } catch (e) {
+          print('Error loading from Firebase: $e');
+          _error.value = 'Failed to load surahs from Firebase: $e';
+          _surahs.clear();
+        }
+      } else {
+        // Device is not activated - load all surahs from local JSON
+        print('Device is not activated, loading from local JSON...');
+        final ByteData data = await rootBundle.load('assets/data/surahs.json');
+        final String jsonString = utf8.decode(data.buffer.asUint8List());
+        print('Successfully loaded JSON file');
 
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-      print('Successfully parsed JSON');
+        final Map<String, dynamic> jsonData = json.decode(jsonString);
+        print('Successfully parsed JSON');
 
-      if (!jsonData.containsKey('surahs')) {
-        throw 'Invalid JSON format: missing "surahs" key';
+        if (!jsonData.containsKey('surahs')) {
+          throw 'Invalid JSON format: missing "surahs" key';
+        }
+
+        final List<dynamic> surahsData = jsonData['surahs'];
+        print('Found ${surahsData.length} surahs in JSON');
+
+        _surahs.value = surahsData.map((surah) {
+          final model = SurahModel.fromJson(surah);
+          print('Loaded surah ${model.number}: ${model.namePulaar} (${model.nameArabic})');
+          return model;
+        }).toList();
+
+        if (_surahs.isEmpty) {
+          throw 'No surahs found in the JSON file';
+        }
+
+        print('Successfully loaded ${_surahs.length} surahs from local JSON');
       }
-
-      final List<dynamic> surahsData = jsonData['surahs'];
-      print('Found ${surahsData.length} surahs in JSON');
-
-      _surahs.value = surahsData.map((surah) {
-        final model = SurahModel.fromJson(surah);
-        print('Loaded surah ${model.number}: ${model.namePulaar} (${model.nameArabic})');
-        return model;
-      }).toList();
-
-      if (_surahs.isEmpty) {
-        throw 'No surahs found in the JSON file';
-      }
-
-      print('Successfully loaded ${_surahs.length} surahs');
     } catch (e, stackTrace) {
       print('Error loading surahs: $e');
       print('Stack trace: $stackTrace');
@@ -90,12 +90,7 @@ class QuranService extends GetxController {
     if (query.isEmpty) return [];
 
     final lowercaseQuery = query.toLowerCase();
-    final filteredSurahs = _surahs.where((surah) {
-      // If not activated, only search in first three surahs
-      if (!_settingsService.isActivated && surah.number > 3) {
-        return false;
-      }
-
+    return _surahs.where((surah) {
       final numberMatch = surah.number.toString().contains(query);
       final nameMatch = surah.namePulaar.toLowerCase().contains(lowercaseQuery) ||
                        surah.nameArabic.contains(query);
@@ -108,18 +103,11 @@ class QuranService extends GetxController {
 
       return numberMatch || nameMatch || versesMatch;
     }).toList();
-
-    return filteredSurahs;
   }
 
   void setCurrentSurah(SurahModel surah) {
-    // Only allow setting current surah if activated or surah number <= 3
-    if (_settingsService.isActivated || surah.number <= 3) {
-      _currentSurah.value = surah;
-      _currentVerseIndex.value = 0;
-    } else {
-      print('Cannot access surah ${surah.number} in restricted mode');
-    }
+    _currentSurah.value = surah;
+    _currentVerseIndex.value = 0;
   }
 
   void setCurrentVerse(int index) {

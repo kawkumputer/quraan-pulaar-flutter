@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/surah_model.dart';
+import '../../../core/models/verse_model.dart';
 
 class VerseCard extends StatelessWidget {
   final VerseModel verse;
-  final bool isHighlighted;
+  final bool isCurrentVerse;
+  final VoidCallback? onTap;
 
   const VerseCard({
-    super.key,
+    Key? key,
     required this.verse,
-    this.isHighlighted = false,
-  });
+    this.isCurrentVerse = false,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class VerseCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isHighlighted 
+        color: isCurrentVerse 
             ? Theme.of(context).primaryColor.withOpacity(0.1)
             : Colors.white,
         borderRadius: BorderRadius.circular(12),

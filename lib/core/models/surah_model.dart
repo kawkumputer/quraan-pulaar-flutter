@@ -1,57 +1,59 @@
-
+import '../../features/surah/models/surah.dart';
+import 'verse_model.dart';
 
 class SurahModel {
   final int number;
-  final int juzNumber;
   final String nameArabic;
   final String namePulaar;
+  final List<VerseModel> verses;
   final int versesCount;
   final String audioUrl;
-  final List<VerseModel> verses;
 
   SurahModel({
     required this.number,
-    required this.juzNumber,
     required this.nameArabic,
     required this.namePulaar,
-    required this.versesCount,
-    required this.audioUrl,
     required this.verses,
+    this.versesCount = 0,
+    this.audioUrl = '',
   });
 
   factory SurahModel.fromJson(Map<String, dynamic> json) {
+    final verses = (json['verses'] as List)
+        .map((verse) => VerseModel.fromJson(verse))
+        .toList();
+        
     return SurahModel(
-      number: json['number'] as int,
-      juzNumber: json['juzz_number'] as int,
-      nameArabic: json['arabic'] as String,
-      namePulaar: json['pulaar'] as String,
-      versesCount: json['total_verses'] as int,
-      audioUrl: json['audio_url'] as String,
-      verses: (json['verses'] as List<dynamic>)
-          .map((verse) => VerseModel.fromJson(verse))
-          .toList(),
+      number: json['number'],
+      nameArabic: json['arabic'] ?? '',
+      namePulaar: json['pulaar'] ?? '',
+      verses: verses,
+      versesCount: json['total_verses'] ?? verses.length,
+      audioUrl: json['audio_url'] ?? '',
     );
   }
 
-}
-
-class VerseModel {
-  final int number;
-  final String arabic;
-  final String pulaar;
-
-  VerseModel({
-    required this.number,
-    required this.arabic,
-    required this.pulaar,
-  });
-
-  factory VerseModel.fromJson(Map<String, dynamic> json) {
-    return VerseModel(
-      number: json['number'] as int,
-      arabic: json['arabic'] as String,
-      pulaar: json['pulaar'] as String,
+  factory SurahModel.fromFirebase(Surah surah) {
+    final verses = surah.verses.map((verse) => VerseModel.fromFirebase(verse)).toList();
+    
+    return SurahModel(
+      number: surah.number,
+      nameArabic: surah.nameArabic,
+      namePulaar: surah.namePulaar,
+      verses: verses,
+      versesCount: verses.length,
+      audioUrl: surah.audioUrl ?? '',
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'number': number,
+      'nameArabic': nameArabic,
+      'namePulaar': namePulaar,
+      'verses': verses.map((verse) => verse.toJson()).toList(),
+      'versesCount': versesCount,
+      'audioUrl': audioUrl,
+    };
+  }
 }
