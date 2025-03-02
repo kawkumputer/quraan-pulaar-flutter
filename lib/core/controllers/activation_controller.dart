@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/api_service.dart';
 import '../services/settings_service.dart';
 import '../services/device_service.dart';
@@ -30,6 +31,16 @@ class ActivationController extends GetxController {
       // If already activated, verify with backend
       if (_settingsService.isActivated) {
         print('Device is activated, checking validity with backend...');
+        
+        // Check connectivity first
+        final connectivityResult = await Connectivity().checkConnectivity();
+        final hasInternet = connectivityResult != ConnectivityResult.none;
+        
+        if (!hasInternet) {
+          print('No internet connection, skipping backend validation');
+          return;
+        }
+
         final deviceInfo = await _deviceService.getDeviceInfo();
         final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
 
