@@ -11,6 +11,8 @@ class SettingsService extends GetxService {
   static const String _isActivatedKey = 'is_activated';
   static const String _activationCodeKey = 'activation_code';
   static const String _isFirstLaunchKey = 'is_first_launch';
+  static const String _lastValidationKey = 'last_validation_time';
+  static const Duration _validationInterval = Duration(hours: 24);
 
   final Rx<ThemeMode> _themeMode = ThemeMode.system.obs;
   final RxDouble _fontSize = 16.0.obs;
@@ -54,6 +56,19 @@ class SettingsService extends GetxService {
     if (!_isActivated.value) return;
 
     try {
+      // Check if we should validate with backend
+      final lastValidation = DateTime.fromMillisecondsSinceEpoch(
+        _prefs?.getInt(_lastValidationKey) ?? 0
+      );
+      final now = DateTime.now();
+      final shouldValidate = now.difference(lastValidation) > _validationInterval;
+
+      // If it's too soon to validate again, skip backend check
+      if (!shouldValidate) {
+        print('Skipping validation - last validation was recent');
+        return;
+      }
+
       print('Validating device activation on startup...');
       final deviceInfo = await _deviceService.getDeviceInfo();
       final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
@@ -63,6 +78,8 @@ class SettingsService extends GetxService {
         await clearActivation();
       } else {
         print('Device activation is valid');
+        // Update last validation time
+        await _prefs?.setInt(_lastValidationKey, now.millisecondsSinceEpoch);
       }
     } catch (e) {
       print('Error validating device activation: $e');
@@ -121,6 +138,8 @@ class SettingsService extends GetxService {
     if (code != null) {
       await _prefs!.setString(_activationCodeKey, code);
       _activationCode.value = code;
+      // Set initial validation time when activating
+      await _prefs!.setInt(_lastValidationKey, DateTime.now().millisecondsSinceEpoch);
     }
   }
 
@@ -128,6 +147,7 @@ class SettingsService extends GetxService {
     if (_prefs == null) return;
     await _prefs!.setBool(_isActivatedKey, false);
     await _prefs!.setString(_activationCodeKey, '');
+    await _prefs!.remove(_lastValidationKey);
     _isActivated.value = false;
     _activationCode.value = '';
   }
