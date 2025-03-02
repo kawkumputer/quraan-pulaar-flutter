@@ -32,6 +32,16 @@ class SettingsService extends GetxService {
   String get activationCode => _activationCode.value;
   bool get isFirstLaunch => _isFirstLaunch.value;
 
+  bool get needsValidation {
+    if (!_isActivated.value) return false;
+    
+    final lastValidation = DateTime.fromMillisecondsSinceEpoch(
+      _prefs?.getInt(_lastValidationKey) ?? 0
+    );
+    final now = DateTime.now();
+    return now.difference(lastValidation) > _validationInterval;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -57,14 +67,7 @@ class SettingsService extends GetxService {
 
     try {
       // Check if we should validate with backend
-      final lastValidation = DateTime.fromMillisecondsSinceEpoch(
-        _prefs?.getInt(_lastValidationKey) ?? 0
-      );
-      final now = DateTime.now();
-      final shouldValidate = now.difference(lastValidation) > _validationInterval;
-
-      // If it's too soon to validate again, skip backend check
-      if (!shouldValidate) {
+      if (!needsValidation) {
         print('Skipping validation - last validation was recent');
         return;
       }
@@ -79,7 +82,7 @@ class SettingsService extends GetxService {
       } else {
         print('Device activation is valid');
         // Update last validation time
-        await _prefs?.setInt(_lastValidationKey, now.millisecondsSinceEpoch);
+        await _prefs?.setInt(_lastValidationKey, DateTime.now().millisecondsSinceEpoch);
       }
     } catch (e) {
       print('Error validating device activation: $e');

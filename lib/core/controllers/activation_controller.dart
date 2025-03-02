@@ -30,12 +30,18 @@ class ActivationController extends GetxController {
     try {
       // If already activated, verify with backend
       if (_settingsService.isActivated) {
+        // Check if we need to validate
+        if (!_settingsService.needsValidation) {
+          print('Skipping backend validation - last validation was recent');
+          return;
+        }
+
         print('Device is activated, checking validity with backend...');
-        
+
         // Check connectivity first
         final connectivityResult = await Connectivity().checkConnectivity();
         final hasInternet = connectivityResult != ConnectivityResult.none;
-        
+
         if (!hasInternet) {
           print('No internet connection, skipping backend validation');
           return;
@@ -50,6 +56,8 @@ class ActivationController extends GetxController {
           showActivationDialog();
         } else {
           print('Device activation is valid');
+          // Update last validation time in settings service
+          await _settingsService.setActivated(true, code: _settingsService.activationCode);
         }
       } else {
         print('Device is not activated');
