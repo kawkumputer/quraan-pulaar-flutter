@@ -37,7 +37,7 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.dark,
-                            child: Text('Niɓɓiɗgol'),
+                            child: Text('Niɓɓugol'),
                           ),
                         ],
                         onChanged: (ThemeMode? mode) {
@@ -102,13 +102,19 @@ class SettingsScreen extends StatelessWidget {
                     // TODO: Implement app sharing
                   },
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.device_unknown),
-                  title: const Text('Kuuɓnugol Kaɓirgal'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(AppRoutes.activation),
-                ),
+                Obx(() => !settingsService.isActivated
+                    ? Column(
+                        children: [
+                          const Divider(),
+                          ListTile(
+                            leading: const Icon(Icons.device_unknown),
+                            title: const Text('Kuɓnugol Kaɓirgal'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Get.toNamed(AppRoutes.activation),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink()),
               ],
             ),
           ),

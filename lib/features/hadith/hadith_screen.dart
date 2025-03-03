@@ -71,7 +71,7 @@ class HadithScreen extends StatelessWidget {
                         Icon(Icons.verified, color: Colors.green.shade700, size: 20),
                         const SizedBox(width: 4),
                         Text(
-                          'Premium',
+                          'Huuɓnaama',
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontSize: 14,

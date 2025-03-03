@@ -47,7 +47,7 @@ class AllSurahsScreen extends GetView<QuranService> {
               : IconButton(
                   icon: const Icon(Icons.lock_outline),
                   onPressed: () => Get.toNamed(AppRoutes.activation),
-                  tooltip: 'Huuɓnu Haa timma',
+                  tooltip: 'Huuɓnu haa timma',
                 ),
           ),
         ],

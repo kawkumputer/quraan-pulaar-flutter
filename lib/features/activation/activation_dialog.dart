@@ -69,7 +69,7 @@ class ActivationDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
                     child: Text(
-                      isVerifying ? 'Woni ko e huuɓnude...' : 'Huuɓnu',
+                      isVerifying ? 'Sabbo seeɗa...' : 'Huuɓnu',
                       style: const TextStyle(fontSize: 16),
                     ),
                   );

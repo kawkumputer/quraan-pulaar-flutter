@@ -55,8 +55,8 @@ class ActivationScreen extends GetView<ActivationController> {
                           if (success) {
                             Get.back();
                             Get.snackbar(
-                              'Jaajaama',
-                              'Kaɓirgal ngal kuɓnaama no moƴƴiri',
+                              'Huuɓnaama',
+                              'Kaɓirgal ngal huuɓnaama no moƴƴiri',
                               snackPosition: SnackPosition.BOTTOM,
                             );
                           }
