@@ -81,31 +81,36 @@ class QuranService extends GetxService {
           Future.delayed(const Duration(seconds: 2), _retryFirebaseLoad);
         }
       } else {
-        print('Device is not activated, using local JSON');
+        print('Device is not activated, loading free surahs from local JSON...');
       }
       
       // Load from local JSON if:
-      // 1. Device is not activated
+      // 1. Device is not activated (free mode)
       // 2. Firebase load failed
       // 3. Firebase returned empty results
-      if (_surahs.isEmpty) {
-        print('Loading from local JSON...');
-        final ByteData data = await rootBundle.load('assets/data/surahs.json');
-        final String jsonString = utf8.decode(data.buffer.asUint8List());
-        
-        final Map<String, dynamic> jsonData = json.decode(jsonString);
-        if (!jsonData.containsKey('surahs')) {
-          throw 'Invalid JSON format: missing "surahs" key';
-        }
-
-        final List<dynamic> surahsData = jsonData['surahs'];
-        _surahs.value = surahsData.map((surah) {
-          final model = SurahModel.fromJson(surah);
-          return model;
-        }).toList();
-
-        print('Loaded ${_surahs.length} surahs from local JSON');
+      print('Loading from local JSON...');
+      final ByteData data = await rootBundle.load('assets/data/surahs.json');
+      final String jsonString = utf8.decode(data.buffer.asUint8List());
+      
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      if (!jsonData.containsKey('surahs')) {
+        throw 'Invalid JSON format: missing "surahs" key';
       }
+
+      final List<dynamic> surahsData = jsonData['surahs'];
+      
+      if (!_settingsService.isActivated) {
+        // In free mode, only load the first 4 surahs
+        print('Free mode: Loading only first 4 surahs');
+        surahsData.removeRange(4, surahsData.length);
+      }
+
+      _surahs.value = surahsData.map((surah) {
+        final model = SurahModel.fromJson(surah);
+        return model;
+      }).toList();
+
+      print('Loaded ${_surahs.length} surahs from local JSON');
     } catch (e, stackTrace) {
       print('Error loading surahs: $e');
       print('Stack trace: $stackTrace');
