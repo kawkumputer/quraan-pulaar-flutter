@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/controllers/audio_controller.dart';
 import '../../core/services/hadith_service.dart';
+import '../../core/services/settings_service.dart';
+import '../../core/routes/app_routes.dart';
 import 'models/hadith.dart';
 import 'widgets/hadith_card.dart';
 
 class HadithController extends GetxController {
   final HadithService _hadithService = Get.find<HadithService>();
+  final SettingsService _settingsService = Get.find<SettingsService>();
   final RxList<Hadith> hadiths = <Hadith>[].obs;
   final RxBool isLoading = true.obs;
+
+  bool get isActivated => _settingsService.isActivated;
 
   @override
   void onInit() {
@@ -51,6 +56,38 @@ class HadithScreen extends StatelessWidget {
               Get.back();
             },
           ),
+          actions: [
+            Obx(() => controller.isActivated
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified, color: Colors.green.shade700, size: 20),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Premium',
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.lock_outline),
+                    onPressed: () => Get.toNamed(AppRoutes.activation),
+                    tooltip: 'Activate Premium',
+                  ),
+            ),
+          ],
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
@@ -65,12 +102,110 @@ class HadithScreen extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            itemCount: controller.hadiths.length,
-            itemBuilder: (context, index) {
-              final hadith = controller.hadiths[index];
-              return HadithCard(hadith: hadith);
-            },
+          return Column(
+            children: [
+              if (!controller.isActivated)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  color: Colors.amber.shade50,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.info_outline, 
+                          color: Colors.amber.shade900,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Free Version',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber.shade900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Access to first 3 hadiths only. Upgrade to premium for full access.',
+                              style: TextStyle(
+                                color: Colors.amber.shade900,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.lock_open, size: 18),
+                        label: const Text('Activate'),
+                        onPressed: () => Get.toNamed(AppRoutes.activation),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.shade600,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: controller.hadiths.length,
+                  itemBuilder: (context, index) {
+                    final hadith = controller.hadiths[index];
+                    final bool isLocked = !controller.isActivated && index >= 3;
+
+                    if (isLocked) {
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.lock_outline,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          title: Text(
+                            'Hadith ${hadith.id}',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Premium Content',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          onTap: () => Get.toNamed(AppRoutes.activation),
+                        ),
+                      );
+                    }
+
+                    return HadithCard(hadith: hadith);
+                  },
+                ),
+              ),
+            ],
           );
         }),
       ),
