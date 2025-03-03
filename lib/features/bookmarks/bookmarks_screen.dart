@@ -16,7 +16,7 @@ class BookmarksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bookmarks'),
+        title: const Text('Maanto'),
       ),
       body: Obx(() {
         final bookmarkedSurahs = _bookmarkService.bookmarkedSurahs;
@@ -34,14 +34,14 @@ class BookmarksScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No bookmarks yet',
+                  'A suwa maantaade tawo',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Colors.grey[600],
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your bookmarked surahs will appear here',
+                  'Cimooje ɗe maanti ɗaa maa a yiy ɗum en ɗo',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[500],
                   ),
@@ -93,8 +93,8 @@ class BookmarksScreen extends StatelessWidget {
                   onPressed: () async {
                     await _bookmarkService.toggleBookmark(surahNumber);
                     Get.snackbar(
-                      'Bookmark Removed',
-                      'Surah removed from bookmarks',
+                      'Maantol ittaama',
+                      'Simoore nde ittaama e maantaaɗi',
                       snackPosition: SnackPosition.BOTTOM,
                       backgroundColor: Colors.grey,
                       colorText: Colors.white,

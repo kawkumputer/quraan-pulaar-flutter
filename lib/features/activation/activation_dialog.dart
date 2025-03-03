@@ -24,7 +24,7 @@ class ActivationDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Activation',
+              'Kuuɓnugol',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -32,7 +32,7 @@ class ActivationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Welcome to Quraan Pulaar!\n\nActivate the app to access all surahs. Without activation, only the first three surahs will be available.',
+              'A jaɓɓaama e Quraan Pulaar!\n\nHuuɓnu jaaɓnirgal ngal ngam heɓde cimooje ɗee fof. So a huuɓnaani, ko cimooje tati gadane tan keɓataa.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
@@ -40,9 +40,9 @@ class ActivationDialog extends StatelessWidget {
             TextField(
               controller: _codeController,
               decoration: const InputDecoration(
-                labelText: 'Activation Code',
+                labelText: 'Doggol Kuuɓnugol',
                 border: OutlineInputBorder(),
-                hintText: 'Enter your code',
+                hintText: 'Naatnu doggol maa',
               ),
               keyboardType: TextInputType.number,
             ),
@@ -53,12 +53,12 @@ class ActivationDialog extends StatelessWidget {
                 if (isFirstLaunch) ...[
                   TextButton(
                     onPressed: () => Get.back(result: false),
-                    child: const Text('Try Demo'),
+                    child: const Text('Eto ƴeewndagol'),
                   ),
                 ] else ...[
                   TextButton(
                     onPressed: () => Get.back(result: false),
-                    child: const Text('Cancel'),
+                    child: const Text('Goɗngol'),
                   ),
                 ],
                 Obx(() {
@@ -69,7 +69,7 @@ class ActivationDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
                     child: Text(
-                      isVerifying ? 'Activating...' : 'Activate Now',
+                      isVerifying ? 'Woni ko e huuɓnude...' : 'Huuɓnu',
                       style: const TextStyle(fontSize: 16),
                     ),
                   );
@@ -97,7 +97,7 @@ class ActivationDialog extends StatelessWidget {
   Future<void> _activate() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
-      _activationController.setVerificationError('Please enter an activation code');
+      _activationController.setVerificationError('Tiiɗno naatnu doggol Kuuɓnugol');
       return;
     }
 

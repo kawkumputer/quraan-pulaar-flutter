@@ -14,7 +14,7 @@ class SurahScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Surahs'),
+        title: const Text('Cimooje'),
         centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
       ),

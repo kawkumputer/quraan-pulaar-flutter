@@ -96,14 +96,14 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
 
 ${verse['translation']}
 
-- ${verse['surah']}, Verse ${verse['verseNumber']}
+- ${verse['surah']}, Maande ${verse['verseNumber']}
 
-Shared from Quraan Pulaar App''';
+Ummoraade e Quraan Pulaar''';
 
     await Clipboard.setData(ClipboardData(text: shareText));
     Get.snackbar(
-      'Copied to Clipboard',
-      'Verse has been copied to clipboard',
+      'Naatii e ɗerewol',
+      'Maande nde naatnaama e ɗerewol',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.green,
       colorText: Colors.white,
@@ -139,8 +139,8 @@ Shared from Quraan Pulaar App''';
     final surahNumber = verse['surahNumber'] as int;
     if (surahNumber == 0) {
       Get.snackbar(
-        'Error',
-        'Cannot bookmark this verse at the moment',
+        'Juumre',
+        'Roŋki maantaade maande nde e oo sahaa',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -152,8 +152,8 @@ Shared from Quraan Pulaar App''';
 
     final isBookmarked = _bookmarkService.isBookmarked(surahNumber);
     Get.snackbar(
-      isBookmarked ? 'Bookmarked' : 'Bookmark Removed',
-      isBookmarked ? 'Surah added to bookmarks' : 'Surah removed from bookmarks',
+      isBookmarked ? 'Maantaama' : 'Maantol ittaama',
+      isBookmarked ? 'Simoore nde ɓeydaama e maantaaɗi' : 'Simoore nde ittaama e maantaaɗi',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: isBookmarked ? Colors.green : Colors.grey,
       colorText: Colors.white,
@@ -217,7 +217,7 @@ Shared from Quraan Pulaar App''';
                     ),
                     SizedBox(height: 16),
                     Text(
-                      'Loading daily verse...',
+                      'Woni ko e loowde maande nde...',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -238,7 +238,7 @@ Shared from Quraan Pulaar App''';
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
-                  'Could not load verse. Please try again later.',
+                  'Roŋki loowde maande nde. Tiiɗno eto goɗngol.',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -303,7 +303,7 @@ Shared from Quraan Pulaar App''';
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '${dailyVerse['surah']} - Verse ${dailyVerse['verseNumber']}',
+                                '${dailyVerse['surah']} - Maande ${dailyVerse['verseNumber']}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,

@@ -22,7 +22,7 @@ class ActivationController extends GetxController {
 
   Future<QuranService> _getQuranService() async {
     if (_quranService != null) return _quranService!;
-    
+
     try {
       _quranService = Get.find<QuranService>();
       return _quranService!;
@@ -128,13 +128,13 @@ class ActivationController extends GetxController {
         await quranService.loadSurahs();
         return true;
       } else {
-        _verificationError.value = 'Failed to register device';
+        _verificationError.value = 'Roŋki huuɓnude kaɓirgal ngal, ƴeewto tawo doggol ngol ina moƴƴi';
         await _settingsService.clearActivation();
         return false;
       }
     } catch (e) {
       print('Error during verification: $e');
-      _verificationError.value = 'Error verifying code: $e';
+      _verificationError.value = 'Juumre e ƴeewndagol doggol: $e';
       await _settingsService.clearActivation();
       return false;
     } finally {

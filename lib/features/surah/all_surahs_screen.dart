@@ -11,14 +11,14 @@ class AllSurahsScreen extends GetView<QuranService> {
   @override
   Widget build(BuildContext context) {
     final settingsService = Get.find<SettingsService>();
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
-        title: const Text('All Surahs'),
+        title: const Text('Cimooje'),
         actions: [
           Obx(() => settingsService.isActivated
               ? Container(
@@ -34,7 +34,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                       Icon(Icons.verified, color: Colors.green.shade700, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        'Premium',
+                        'Huuɓnaama',
                         style: TextStyle(
                           color: Colors.green.shade700,
                           fontSize: 14,
@@ -47,7 +47,7 @@ class AllSurahsScreen extends GetView<QuranService> {
               : IconButton(
                   icon: const Icon(Icons.lock_outline),
                   onPressed: () => Get.toNamed(AppRoutes.activation),
-                  tooltip: 'Activate Premium',
+                  tooltip: 'Huuɓnu Haa timma',
                 ),
           ),
         ],
@@ -80,7 +80,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                         color: Colors.amber.shade100,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.info_outline, 
+                      child: Icon(Icons.info_outline,
                         color: Colors.amber.shade900,
                         size: 20,
                       ),
@@ -91,7 +91,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Free Version',
+                            'Yamre Ɓolnde',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.amber.shade900,
@@ -99,7 +99,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Access to first 4 surahs only. Upgrade to premium for full access.',
+                            'Njogiɗaa tan ko cimooje nay. Huuɓnu ngam keɓa cimooje ɗee kala.',
                             style: TextStyle(
                               color: Colors.amber.shade900,
                               fontSize: 13,
@@ -131,7 +131,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                 itemBuilder: (context, index) {
                   final surah = surahs[index];
                   final bool isLocked = !settingsService.isActivated && index >= 4;
-                  
+
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: InkWell(

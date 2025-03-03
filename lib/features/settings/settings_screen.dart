@@ -29,15 +29,15 @@ class SettingsScreen extends StatelessWidget {
                         items: const [
                           DropdownMenuItem(
                             value: ThemeMode.system,
-                            child: Text('System'),
+                            child: Text('Kaɓirgal'),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.light,
-                            child: Text('Light'),
+                            child: Text('Jalbugol'),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.dark,
-                            child: Text('Dark'),
+                            child: Text('Niɓɓiɗgol'),
                           ),
                         ],
                         onChanged: (ThemeMode? mode) {
@@ -105,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.device_unknown),
-                  title: const Text('Device Activation'),
+                  title: const Text('Kuuɓnugol Kaɓirgal'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Get.toNamed(AppRoutes.activation),
                 ),
