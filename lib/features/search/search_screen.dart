@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/services/firebase_service.dart';
-import '../../features/surah/models/surah.dart';
+import '../../core/services/quran_service.dart';
 import '../../core/models/surah_model.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -13,41 +12,13 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final FirebaseService _firebaseService = Get.find<FirebaseService>();
+  final QuranService _quranService = Get.find<QuranService>();
   final RxString _searchQuery = ''.obs;
-  final RxList<Surah> _allSurahs = <Surah>[].obs;
-  final RxBool _isLoading = true.obs;
 
   @override
   void initState() {
     super.initState();
-    _loadSurahs();
-  }
-
-  Future<void> _loadSurahs() async {
-    _isLoading.value = true;
-    final surahs = await _firebaseService.getAllSurahs();
-    _allSurahs.value = surahs;
-    _isLoading.value = false;
-  }
-
-  List<Surah> _searchSurahs(String query) {
-    if (query.isEmpty) return _allSurahs;
-
-    final lowercaseQuery = query.toLowerCase();
-    return _allSurahs.where((surah) {
-      final numberMatch = surah.number.toString().contains(query);
-      final nameMatch = surah.namePulaar.toLowerCase().contains(lowercaseQuery) ||
-                       surah.nameArabic.contains(query);
-
-      // Also search in verses if there's a match in the text or translation
-      final versesMatch = surah.verses.any((verse) =>
-        verse.pulaar.toLowerCase().contains(lowercaseQuery) ||
-        verse.arabic.contains(query)
-      );
-
-      return numberMatch || nameMatch || versesMatch;
-    }).toList();
+    _quranService.loadSurahs();
   }
 
   @override
@@ -77,15 +48,38 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Expanded(
             child: Obx(() {
-              if (_isLoading.value) {
+              if (_quranService.isLoading) {
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
 
-              final results = _searchSurahs(_searchQuery.value);
+              if (_quranService.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Waawaa heɓde cimooje',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(_quranService.error!),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _quranService.loadSurahs,
+                        child: const Text('Fuɗɗito'),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-              if (_allSurahs.isEmpty) {
+              final results = _searchQuery.value.isEmpty 
+                  ? _quranService.surahs
+                  : _quranService.searchSurahs(_searchQuery.value);
+
+              if (_quranService.surahs.isEmpty) {
                 return const Center(
                   child: Text('Waawaa heɓde cimooje'),
                 );
@@ -133,7 +127,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     onTap: () {
                       Get.toNamed(
                         AppRoutes.surah,
-                        arguments: SurahModel.fromFirebase(surah),
+                        arguments: surah,
                       );
                     },
                   );
