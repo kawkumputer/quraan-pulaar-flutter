@@ -9,6 +9,7 @@ import '../../../core/services/firebase_service.dart';
 import '../../../features/surah/models/surah.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/models/surah_model.dart';
+import '../../../core/services/settings_service.dart';
 
 class DailyVerseWidget extends StatefulWidget {
   const DailyVerseWidget({super.key});
@@ -56,13 +57,20 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
       return;
     }
 
+    final settingsService = Get.find<SettingsService>();
+    final isActivated = settingsService.isActivated;
+
+    // Filter surahs based on activation status
+    final availableSurahs = isActivated ? surahs : surahs.where((s) => s.number <= 4).toList();
+    if (availableSurahs.isEmpty) return;
+
     // Use the current date as seed to ensure same verse throughout the day
     final now = DateTime.now();
     final seed = now.year * 10000 + now.month * 100 + now.day;
     final random = Random(seed);
 
-    // First, randomly select a surah
-    final surah = surahs[random.nextInt(surahs.length)];
+    // First, randomly select a surah from available ones
+    final surah = availableSurahs[random.nextInt(availableSurahs.length)];
 
     // Then, randomly select a verse from that surah
     if (surah.verses.isEmpty) {
