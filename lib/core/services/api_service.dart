@@ -136,7 +136,7 @@ class ApiService extends GetxService {
       print('Device validity check response data: ${response.data}');
 
       // Backend returns 302 (FOUND) with code for valid devices
-      if (response.statusCode == 302 && response.data != null) {
+      if (response.statusCode == 200 && response.data != null) {
         print('Device found with valid code');
         return true;
       } else if (response.statusCode == 404) {
