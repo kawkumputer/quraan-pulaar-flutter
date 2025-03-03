@@ -8,6 +8,7 @@ import '../../../core/services/bookmark_service.dart';
 import '../../../core/services/firebase_service.dart';
 import '../../../features/surah/models/surah.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/models/surah_model.dart';
 
 class DailyVerseWidget extends StatefulWidget {
   const DailyVerseWidget({super.key});
@@ -122,7 +123,7 @@ Shared from Quraan Pulaar App''';
 
     Get.toNamed(
       AppRoutes.surah,
-      arguments: surah,
+      arguments: SurahModel.fromFirebase(surah),
     );
   }
 

@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/services/cache_service.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/models/surah_model.dart';
 
 class BookmarksScreen extends StatelessWidget {
   BookmarksScreen({super.key});
@@ -103,7 +104,7 @@ class BookmarksScreen extends StatelessWidget {
                 onTap: () {
                   Get.toNamed(
                     AppRoutes.surah,
-                    arguments: surah,
+                    arguments: SurahModel.fromFirebase(surah),
                   );
                 },
               ),
