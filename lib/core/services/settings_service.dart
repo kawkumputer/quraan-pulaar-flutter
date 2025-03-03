@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'device_service.dart';
+import 'quran_service.dart';
 
 class SettingsService extends GetxService {
   static const String _themeKey = 'theme_mode';
@@ -29,6 +30,7 @@ class SettingsService extends GetxService {
   double get fontSize => _fontSize.value;
   bool get notificationsEnabled => _notificationsEnabled.value;
   bool get isActivated => _isActivated.value;
+  RxBool get isActivatedRx => _isActivated;
   String get activationCode => _activationCode.value;
   bool get isFirstLaunch => _isFirstLaunch.value;
 
@@ -60,6 +62,16 @@ class SettingsService extends GetxService {
     _prefs = await SharedPreferences.getInstance();
     await _loadSettings();
     await _validateDeviceActivation();
+    // Notify that initialization is complete
+    try {
+      if (Get.isRegistered<QuranService>()) {
+        Get.find<QuranService>().onSettingsInitialized();
+      } else {
+        print('QuranService not yet registered');
+      }
+    } catch (e) {
+      print('Error notifying QuranService: $e');
+    }
   }
 
   Future<void> _validateDeviceActivation() async {
@@ -74,15 +86,18 @@ class SettingsService extends GetxService {
 
       print('Validating device activation on startup...');
       final deviceInfo = await _deviceService.getDeviceInfo();
-      final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+      final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
 
-      if (!isValid) {
-        print('Device activation is no longer valid, clearing activation status');
+      if (validityStatus == false) {
+        print('Device activation is explicitly invalid, clearing activation status');
         await clearActivation();
-      } else {
+      } else if (validityStatus == true) {
         print('Device activation is valid');
         // Update last validation time
         await _prefs?.setInt(_lastValidationKey, DateTime.now().millisecondsSinceEpoch);
+      } else {
+        print('Device status uncertain, trusting existing activation');
+        // Don't update validation time for uncertain status
       }
     } catch (e) {
       print('Error validating device activation: $e');

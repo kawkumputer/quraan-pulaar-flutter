@@ -24,7 +24,13 @@ class InitialBinding extends Bindings {
     Get.put<BookmarkService>(BookmarkService(), permanent: true);
     Get.put<QuranAudioService>(QuranAudioService(), permanent: true);
     Get.put<AudioService>(AudioService());
-    Get.put<QuranService>(QuranService(), permanent: true);
+
+    // Register QuranService with its dependencies
+    final quranService = QuranService(
+      firebaseService: Get.find<FirebaseService>(),
+      settingsService: Get.find<SettingsService>(),
+    );
+    Get.put<QuranService>(quranService, permanent: true);
     
     // Register controllers last since they depend on services
     Get.put<ActivationController>(ActivationController(), permanent: true);

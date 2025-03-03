@@ -12,13 +12,26 @@ class ActivationController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final DeviceService _deviceService = Get.find<DeviceService>();
   final SettingsService _settingsService = Get.find<SettingsService>();
-  final QuranService _quranService = Get.find<QuranService>();
+  QuranService? _quranService;
 
   final _isVerifying = false.obs;
   final _verificationError = Rxn<String>();
 
   bool get isVerifying => _isVerifying.value;
   String? get verificationError => _verificationError.value;
+
+  Future<QuranService> _getQuranService() async {
+    if (_quranService != null) return _quranService!;
+    
+    try {
+      _quranService = Get.find<QuranService>();
+      return _quranService!;
+    } catch (e) {
+      print('QuranService not available yet, retrying in 100ms');
+      await Future.delayed(const Duration(milliseconds: 100));
+      return _getQuranService();
+    }
+  }
 
   @override
   void onReady() {
@@ -33,12 +46,6 @@ class ActivationController extends GetxController {
     try {
       // If already activated, verify with backend
       if (_settingsService.isActivated) {
-        // Check if we need to validate
-        /*if (!_settingsService.needsValidation) {
-          print('Skipping backend validation - last validation was recent');
-          return;
-        }*/
-
         print('Device is activated, checking validity with backend...');
 
         // Check connectivity first
@@ -52,28 +59,23 @@ class ActivationController extends GetxController {
 
         try {
           final deviceInfo = await _deviceService.getDeviceInfo();
-          final isValid = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+          final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
 
-          if (isValid) {
-            print('Device activation is valid');
-            // Update last validation time in settings service
+          if (validityStatus == true) {
+            print('Device activation confirmed valid');
             await _settingsService.setActivated(true, code: _settingsService.activationCode);
-          } else {
-            print('Device activation is no longer valid');
+          } else if (validityStatus == false) {
+            print('Device activation is explicitly invalid');
             await _settingsService.clearActivation();
             showActivationDialog();
+          } else {
+            // For null (uncertain), trust existing activation
+            print('Device status uncertain, trusting existing activation');
+            await _settingsService.setActivated(true, code: _settingsService.activationCode);
           }
-        } on DioException catch (e) {
-          if (e.type == DioExceptionType.connectionError || 
-              e.type == DioExceptionType.connectionTimeout) {
-            print('Connection error checking validity: ${e.message}');
-            print('Trusting existing activation due to connection error');
-            return;
-          }
-          throw e;
         } catch (e) {
           print('Error checking validity with backend: $e');
-          print('Trusting existing activation due to backend error');
+          print('Trusting existing activation due to error');
           return;
         }
       } else {
@@ -82,7 +84,12 @@ class ActivationController extends GetxController {
       }
     } catch (e) {
       print('Error checking activation: $e');
-      // Don't show dialog on error to allow offline usage
+      // Trust existing activation on error
+      if (_settingsService.isActivated) {
+        print('Trusting existing activation due to error');
+        return;
+      }
+      showActivationDialog();
     }
   }
 
@@ -117,7 +124,8 @@ class ActivationController extends GetxController {
         // Set activation status and save code
         await _settingsService.setActivated(true, code: code);
         // Reload surahs from Firebase after successful activation
-        await _quranService.loadSurahs();
+        final quranService = await _getQuranService();
+        await quranService.loadSurahs();
         return true;
       } else {
         _verificationError.value = 'Failed to register device';

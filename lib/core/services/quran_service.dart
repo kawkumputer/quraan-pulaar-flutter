@@ -2,20 +2,27 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../models/surah_model.dart';
-import '../services/settings_service.dart';
 import '../services/firebase_service.dart';
+import '../services/settings_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-class QuranService extends GetxController {
+class QuranService extends GetxService {
   final _surahs = <SurahModel>[].obs;
   final _currentSurah = Rxn<SurahModel>();
   final _currentVerseIndex = 0.obs;
   final _isLoading = false.obs;
-  final _error = Rxn<String>();
-  final _settingsService = Get.find<SettingsService>();
-  final _firebaseService = Get.find<FirebaseService>();
+  final _error = Rx<String?>(null);
+  final _settingsInitialized = false.obs;
 
-  // Return all surahs - they're already filtered by source based on activation status
+  final FirebaseService _firebaseService;
+  final SettingsService _settingsService;
+
+  QuranService({
+    required FirebaseService firebaseService,
+    required SettingsService settingsService,
+  }) : _firebaseService = firebaseService,
+       _settingsService = settingsService;
+
   List<SurahModel> get surahs => _surahs;
   SurahModel? get currentSurah => _currentSurah.value;
   int get currentVerseIndex => _currentVerseIndex.value;
@@ -25,64 +32,103 @@ class QuranService extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Listen to activation status changes
+    ever(_settingsService.isActivatedRx, (bool activated) {
+      print('Activation status changed: $activated');
+      if (activated && _settingsInitialized.value) {
+        print('Device activated, reloading surahs...');
+        loadSurahs();
+      }
+    });
+    
+    // Try to load immediately if settings are already initialized
+    if (_settingsService.isActivated) {
+      print('Settings already initialized on QuranService init');
+      onSettingsInitialized();
+    }
+  }
+
+  void onSettingsInitialized() {
+    print('Settings initialized, activation status: ${_settingsService.isActivated}');
+    _settingsInitialized.value = true;
     loadSurahs();
   }
 
   Future<void> loadSurahs() async {
+    if (!_settingsInitialized.value) {
+      print('Settings not initialized yet, deferring surah load');
+      return;
+    }
+
     try {
       _isLoading.value = true;
       _error.value = null;
-      _surahs.clear();
 
       if (_settingsService.isActivated) {
-        // Device is activated - load from Firebase with cache support
-        print('Device is activated, loading from Firebase...');
+        print('Device is activated, attempting to load from Firebase...');
         try {
           final firebaseSurahs = await _firebaseService.getAllSurahs();
-          _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
-          print('Successfully loaded ${_surahs.length} surahs from Firebase/cache');
-          return;
+          if (firebaseSurahs.isNotEmpty) {
+            print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase/cache');
+            _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
+            _isLoading.value = false;
+            return;
+          }
+          print('No surahs found in Firebase/cache');
         } catch (e) {
           print('Error loading from Firebase: $e');
-          _error.value = 'Failed to load surahs from Firebase: $e';
-          _surahs.clear();
+          // Start background retry after a delay
+          Future.delayed(const Duration(seconds: 2), _retryFirebaseLoad);
         }
       } else {
-        // Device is not activated - load all surahs from local JSON
-        print('Device is not activated, loading from local JSON...');
+        print('Device is not activated, using local JSON');
+      }
+      
+      // Load from local JSON if:
+      // 1. Device is not activated
+      // 2. Firebase load failed
+      // 3. Firebase returned empty results
+      if (_surahs.isEmpty) {
+        print('Loading from local JSON...');
         final ByteData data = await rootBundle.load('assets/data/surahs.json');
         final String jsonString = utf8.decode(data.buffer.asUint8List());
-        print('Successfully loaded JSON file');
-
+        
         final Map<String, dynamic> jsonData = json.decode(jsonString);
-        print('Successfully parsed JSON');
-
         if (!jsonData.containsKey('surahs')) {
           throw 'Invalid JSON format: missing "surahs" key';
         }
 
         final List<dynamic> surahsData = jsonData['surahs'];
-        print('Found ${surahsData.length} surahs in JSON');
-
         _surahs.value = surahsData.map((surah) {
           final model = SurahModel.fromJson(surah);
-          print('Loaded surah ${model.number}: ${model.namePulaar} (${model.nameArabic})');
           return model;
         }).toList();
 
-        if (_surahs.isEmpty) {
-          throw 'No surahs found in the JSON file';
-        }
-
-        print('Successfully loaded ${_surahs.length} surahs from local JSON');
+        print('Loaded ${_surahs.length} surahs from local JSON');
       }
     } catch (e, stackTrace) {
       print('Error loading surahs: $e');
       print('Stack trace: $stackTrace');
       _error.value = 'Failed to load surahs: $e';
-      _surahs.clear();
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  Future<void> _retryFirebaseLoad() async {
+    if (!_settingsService.isActivated || !_settingsInitialized.value) return;
+
+    try {
+      print('Retrying Firebase load...');
+      final firebaseSurahs = await _firebaseService.getAllSurahs();
+      if (firebaseSurahs.isNotEmpty) {
+        print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase on retry');
+        _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
+      } else {
+        print('Firebase retry returned no surahs');
+      }
+    } catch (e) {
+      print('Firebase retry failed: $e');
     }
   }
 

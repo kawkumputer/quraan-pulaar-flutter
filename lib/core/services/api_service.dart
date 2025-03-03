@@ -118,7 +118,7 @@ class ApiService extends GetxService {
   }
 
   // Check device validity using saved code
-  Future<bool> checkDeviceValidity(String deviceId) async {
+  Future<bool?> checkDeviceValidity(String deviceId) async {
     try {
       // If we can't find a working URL, consider it a connection error
       if (!await _findWorkingUrl()) {
@@ -135,28 +135,29 @@ class ApiService extends GetxService {
       print('Device validity check response status: ${response.statusCode}');
       print('Device validity check response data: ${response.data}');
 
-      if (response.statusCode == 200 && response.data != null) {
-        // The endpoint returns the VenteDTO if valid
-        final venteData = response.data;
-        return venteData != null;
+      // Backend returns 302 (FOUND) with code for valid devices
+      if (response.statusCode == 302 && response.data != null) {
+        print('Device found with valid code');
+        return true;
+      } else if (response.statusCode == 404) {
+        // Explicit "not found" response
+        print('Device explicitly not found');
+        return false;
       }
 
-      print('Device validity check failed');
-      return false;
+      // For any other status code or error, return null to indicate uncertainty
+      print('Uncertain device validity status');
+      return null;
     } on DioException catch (e) {
       print('DioError checking device validity:');
       print('  Type: ${e.type}');
       print('  Message: ${e.message}');
-      // For connection errors, throw the exception to be handled by caller
-      if (e.type == DioExceptionType.connectionError || 
-          e.type == DioExceptionType.connectionTimeout) {
-        throw e;
-      }
-      return false;
+      // For any Dio error, return null to indicate uncertainty
+      return null;
     } catch (e) {
       print('Error checking device validity: $e');
-      // For unexpected errors, throw to be handled by caller
-      throw e;
+      // For any other error, return null to indicate uncertainty
+      return null;
     }
   }
 }
