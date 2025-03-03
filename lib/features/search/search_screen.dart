@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/firebase_service.dart';
 import '../../features/surah/models/surah.dart';
+import '../../core/models/surah_model.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -132,7 +133,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     onTap: () {
                       Get.toNamed(
                         AppRoutes.surah,
-                        arguments: surah,
+                        arguments: SurahModel.fromFirebase(surah),
                       );
                     },
                   );
