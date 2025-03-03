@@ -182,7 +182,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        '• ${surah.versesCount} verses',
+                                        '• Maandeeji ${surah.versesCount}',
                                         style: TextStyle(
                                           color: isLocked
                                               ? Colors.grey

@@ -78,7 +78,7 @@ class SurahCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${surah.versesCount} Verses',
+                      'Maandeeji ${surah.versesCount}',
                       style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 14,

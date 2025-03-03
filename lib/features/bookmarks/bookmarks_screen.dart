@@ -87,7 +87,7 @@ class BookmarksScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                subtitle: Text('${surah.versesCount} verses'),
+                subtitle: Text('Maandeeji ${surah.versesCount}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () async {

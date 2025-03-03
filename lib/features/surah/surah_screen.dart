@@ -88,7 +88,7 @@ class SurahScreen extends StatelessWidget {
                   ],
                 ),
                 subtitle: Text(
-                  '${surah.versesCount} verses',
+                  'Maandeeji ${surah.versesCount}',
                 ),
                 onTap: () {
                   quranService.setCurrentSurah(surah);
