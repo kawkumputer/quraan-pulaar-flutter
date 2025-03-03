@@ -59,8 +59,8 @@ class AudioController extends GetxController {
     } catch (e) {
       _resetState();
       Get.snackbar(
-        'Error',
-        'Error playing audio',
+        'Juumre',
+        'Roŋki aawtaade simoore nde',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,

@@ -14,7 +14,7 @@ class SurahScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Surahs'),
+        title: const Text('Cimooje'),
         centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
       ),
@@ -88,7 +88,7 @@ class SurahScreen extends StatelessWidget {
                   ],
                 ),
                 subtitle: Text(
-                  '${surah.versesCount} verses',
+                  'Maandeeji ${surah.versesCount}',
                 ),
                 onTap: () {
                   quranService.setCurrentSurah(surah);

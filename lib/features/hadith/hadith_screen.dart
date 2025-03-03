@@ -47,7 +47,7 @@ class HadithScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Hadiths'),
+          title: const Text('Hadiisaaji'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
@@ -71,7 +71,7 @@ class HadithScreen extends StatelessWidget {
                         Icon(Icons.verified, color: Colors.green.shade700, size: 20),
                         const SizedBox(width: 4),
                         Text(
-                          'Premium',
+                          'Huuɓnaama',
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontSize: 14,
@@ -84,7 +84,7 @@ class HadithScreen extends StatelessWidget {
                 : IconButton(
                     icon: const Icon(Icons.lock_outline),
                     onPressed: () => Get.toNamed(AppRoutes.activation),
-                    tooltip: 'Activate Premium',
+                    tooltip: 'Huuɓnu',
                   ),
             ),
           ],
@@ -98,7 +98,7 @@ class HadithScreen extends StatelessWidget {
 
           if (controller.hadiths.isEmpty) {
             return const Center(
-              child: Text('No hadiths available'),
+              child: Text('Alaa hadiisaaji goodɗi'),
             );
           }
 
@@ -116,7 +116,7 @@ class HadithScreen extends StatelessWidget {
                           color: Colors.amber.shade100,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.info_outline, 
+                        child: Icon(Icons.info_outline,
                           color: Colors.amber.shade900,
                           size: 20,
                         ),
@@ -127,7 +127,7 @@ class HadithScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Free Version',
+                              'Yamre Ɓolnde',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.amber.shade900,
@@ -135,7 +135,7 @@ class HadithScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Access to first 3 hadiths only. Upgrade to premium for full access.',
+                              'Njogiɗaa tan ko njangtuuji (Hadisaaji) tati. Huuɓnu ngam keɓa njangtuuji nulaaɗo ɗii kala.',
                               style: TextStyle(
                                 color: Colors.amber.shade900,
                                 fontSize: 13,
@@ -147,7 +147,7 @@ class HadithScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.lock_open, size: 18),
-                        label: const Text('Activate'),
+                        label: const Text('Huuɓnu'),
                         onPressed: () => Get.toNamed(AppRoutes.activation),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber.shade600,
@@ -185,13 +185,13 @@ class HadithScreen extends StatelessWidget {
                             ),
                           ),
                           title: Text(
-                            'Hadith ${hadith.id}',
+                            'Hadiisa ${hadith.id}',
                             style: TextStyle(
                               color: Colors.grey.shade400,
                             ),
                           ),
                           subtitle: Text(
-                            'Premium Content',
+                            'Loowdi Kuuɓntundi',
                             style: TextStyle(
                               color: Colors.grey.shade400,
                             ),

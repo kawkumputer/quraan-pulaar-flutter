@@ -22,6 +22,42 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: const Center(
+                child: Text(
+                  'Quraan Pulaar',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Jokkondiral'),
+              onTap: () {
+                Get.back();
+                Get.toNamed(AppRoutes.about);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Teelte'),
+              onTap: () {
+                Get.back();
+                Get.toNamed(AppRoutes.settings);
+              },
+            ),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,19 +74,12 @@ class HomeScreen extends StatelessWidget {
                           Icon(Icons.verified, color: Colors.green.shade700),
                           const SizedBox(width: 8),
                           Text(
-                            'Premium Version',
+                            'Yamre Huuɓtunde',
                             style: TextStyle(
                               color: Colors.green.shade700,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Full Access',
-                            style: TextStyle(
-                              color: Colors.green.shade700,
-                            ),
-                          ),
+                          )
                         ],
                       ),
                     )
@@ -62,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                           Icon(Icons.info_outline, color: Colors.amber.shade900),
                           const SizedBox(width: 8),
                           const Text(
-                            'Free Version',
+                            'Yamre Ɓolnde',
                             style: TextStyle(
                               color: Colors.amber,
                               fontWeight: FontWeight.bold,
@@ -71,7 +100,7 @@ class HomeScreen extends StatelessWidget {
                           const Spacer(),
                           TextButton.icon(
                             icon: const Icon(Icons.lock_open),
-                            label: const Text('Activate'),
+                            label: const Text('Huuɓnu'),
                             onPressed: () => Get.toNamed(AppRoutes.activation),
                           ),
                         ],
@@ -102,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildNavigationCard(
-                    title: 'Maantore',
+                    title: 'Maanto',
                     subtitle: 'Yiy cimooje ɗe maanitiɗa',
                     icon: Icons.bookmark,
                     onTap: () => Get.toNamed(AppRoutes.bookmarks),

@@ -29,15 +29,15 @@ class SettingsScreen extends StatelessWidget {
                         items: const [
                           DropdownMenuItem(
                             value: ThemeMode.system,
-                            child: Text('System'),
+                            child: Text('Kaɓirgal'),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.light,
-                            child: Text('Light'),
+                            child: Text('Jalbugol'),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.dark,
-                            child: Text('Dark'),
+                            child: Text('Niɓɓugol'),
                           ),
                         ],
                         onChanged: (ThemeMode? mode) {
@@ -70,14 +70,6 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.info),
-                  title: const Text('Baɗte'),
-                  onTap: () {
-                    // TODO: Implement about page
-                  },
-                ),
-                const Divider(),
-                ListTile(
                   leading: const Icon(Icons.notifications),
                   title: const Text('Tintine'),
                   subtitle: const Text('Tintine maande ñalnde'),
@@ -102,13 +94,19 @@ class SettingsScreen extends StatelessWidget {
                     // TODO: Implement app sharing
                   },
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.device_unknown),
-                  title: const Text('Device Activation'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(AppRoutes.activation),
-                ),
+                Obx(() => !settingsService.isActivated
+                    ? Column(
+                        children: [
+                          const Divider(),
+                          ListTile(
+                            leading: const Icon(Icons.device_unknown),
+                            title: const Text('Kuɓnugol Kaɓirgal'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Get.toNamed(AppRoutes.activation),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink()),
               ],
             ),
           ),

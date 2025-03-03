@@ -104,8 +104,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error playing audio: $e'),
+        const SnackBar(
+          content: Text('Roŋki aawtaade simoore nde'),
           backgroundColor: Colors.red,
         ),
       );
@@ -159,8 +159,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
           actions: [
             Obx(() => IconButton(
               icon: Icon(
-                _bookmarkService.isBookmarked(widget.surah.number) 
-                  ? Icons.bookmark 
+                _bookmarkService.isBookmarked(widget.surah.number)
+                  ? Icons.bookmark
                   : Icons.bookmark_border
               ),
               onPressed: () => _bookmarkService.toggleBookmark(widget.surah.number),

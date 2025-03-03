@@ -11,7 +11,7 @@ class ActivationScreen extends GetView<ActivationController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Activation'),
+        title: const Text('Kuuɓnugol'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -21,8 +21,8 @@ class ActivationScreen extends GetView<ActivationController> {
             Column(
               children: [
                 const Text(
-                  'Enter your activation code to access all surahs.\n'
-                  'Without activation, only the first three surahs will be available.',
+                  'Naatnu doggol kuuɓnugol ngam heɓde cimooje ɗee fof.\n'
+                  'So a huuɓnaani, cimooje tati gadane tan keɓataa.',
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
@@ -30,7 +30,7 @@ class ActivationScreen extends GetView<ActivationController> {
                 TextField(
                   controller: codeController,
                   decoration: const InputDecoration(
-                    labelText: 'Activation Code',
+                    labelText: 'Doggol Kuuɓnugol',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -43,8 +43,8 @@ class ActivationScreen extends GetView<ActivationController> {
                           print('Attempting to verify code: ${codeController.text}');
                           if (codeController.text.isEmpty) {
                             Get.snackbar(
-                              'Error',
-                              'Please enter an activation code',
+                              'Juumre',
+                              'Tiiɗno naatnu doggol Kuuɓnugol',
                               snackPosition: SnackPosition.BOTTOM,
                             );
                             return;
@@ -55,13 +55,13 @@ class ActivationScreen extends GetView<ActivationController> {
                           if (success) {
                             Get.back();
                             Get.snackbar(
-                              'Success',
-                              'Device activated successfully',
+                              'Huuɓnaama',
+                              'Kaɓirgal ngal huuɓnaama no moƴƴiri',
                               snackPosition: SnackPosition.BOTTOM,
                             );
                           }
                         },
-                        child: const Text('Activate'),
+                        child: const Text('Huuɓnu'),
                       )),
                 Obx(() {
                   final error = controller.verificationError;

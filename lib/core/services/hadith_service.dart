@@ -30,8 +30,12 @@ class HadithService extends GetxService {
         return _freeHadiths.map((data) => Hadith.fromJson(data)).toList();
       }
 
-      // Return all hadiths for activated devices
-      final QuerySnapshot snapshot = await _firestore.collection('hadiis').get();
+      // Return all hadiths for activated devices, ordered by ID
+      final QuerySnapshot snapshot = await _firestore
+          .collection('hadiis')
+          .orderBy('id')
+          .get();
+          
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return Hadith.fromJson(data);
