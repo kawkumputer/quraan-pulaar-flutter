@@ -70,14 +70,6 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.info),
-                  title: const Text('Baɗte'),
-                  onTap: () {
-                    // TODO: Implement about page
-                  },
-                ),
-                const Divider(),
-                ListTile(
                   leading: const Icon(Icons.notifications),
                   title: const Text('Tintine'),
                   subtitle: const Text('Tintine maande ñalnde'),
