@@ -20,9 +20,35 @@ class AllSurahsScreen extends GetView<QuranService> {
         ),
         title: const Text('All Surahs'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.lock_open),
-            onPressed: () => Get.toNamed(AppRoutes.activation),
+          Obx(() => settingsService.isActivated
+              ? Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified, color: Colors.green.shade700, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Premium',
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.lock_outline),
+                  onPressed: () => Get.toNamed(AppRoutes.activation),
+                  tooltip: 'Activate Premium',
+                ),
           ),
         ],
       ),
@@ -44,21 +70,57 @@ class AllSurahsScreen extends GetView<QuranService> {
           children: [
             if (!settingsService.isActivated)
               Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.amber.shade100,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                color: Colors.amber.shade50,
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.amber),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Only the first three surahs are available. Activate the app to access all surahs.',
-                        style: TextStyle(color: Colors.amber.shade900),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.info_outline, 
+                        color: Colors.amber.shade900,
+                        size: 20,
                       ),
                     ),
-                    TextButton(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Free Version',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Access to first 4 surahs only. Upgrade to premium for full access.',
+                            style: TextStyle(
+                              color: Colors.amber.shade900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.lock_open, size: 18),
+                      label: const Text('Activate'),
                       onPressed: () => Get.toNamed(AppRoutes.activation),
-                      child: const Text('Activate'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -68,13 +130,17 @@ class AllSurahsScreen extends GetView<QuranService> {
                 itemCount: surahs.length,
                 itemBuilder: (context, index) {
                   final surah = surahs[index];
+                  final bool isLocked = !settingsService.isActivated && index >= 4;
+                  
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: InkWell(
-                      onTap: () {
-                        controller.setCurrentSurah(surah);
-                        Get.toNamed(AppRoutes.surah, arguments: surah);
-                      },
+                      onTap: isLocked
+                          ? () => Get.toNamed(AppRoutes.activation)
+                          : () {
+                              controller.setCurrentSurah(surah);
+                              Get.toNamed(AppRoutes.surah, arguments: surah);
+                            },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -83,14 +149,16 @@ class AllSurahsScreen extends GetView<QuranService> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: isLocked
+                                    ? Colors.grey.shade300
+                                    : Theme.of(context).primaryColor,
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
                                 child: Text(
                                   '${surah.number}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: isLocked ? Colors.grey : Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -105,29 +173,46 @@ class AllSurahsScreen extends GetView<QuranService> {
                                     children: [
                                       Text(
                                         surah.nameArabic,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                           fontFamily: 'Amiri',
+                                          color: isLocked ? Colors.grey : null,
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
                                         '• ${surah.versesCount} verses',
                                         style: TextStyle(
-                                          color: Colors.grey[600],
+                                          color: isLocked
+                                              ? Colors.grey
+                                              : Colors.grey[600],
                                           fontSize: 14,
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    surah.namePulaar,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        surah.namePulaar,
+                                        style: TextStyle(
+                                          color: isLocked
+                                              ? Colors.grey
+                                              : Colors.grey[600],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if (isLocked) ...[
+                                        const SizedBox(width: 8),
+                                        Icon(
+                                          Icons.lock_outline,
+                                          size: 16,
+                                          color: Colors.grey[400],
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ),

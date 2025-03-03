@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/settings_service.dart';
 import 'widgets/daily_verse_widget.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -9,6 +10,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settingsService = Get.find<SettingsService>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quraan Pulaar'),
@@ -23,6 +26,59 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Activation Status Banner
+            Obx(() => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: settingsService.isActivated
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      color: Colors.green.shade50,
+                      child: Row(
+                        children: [
+                          Icon(Icons.verified, color: Colors.green.shade700),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Premium Version',
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Full Access',
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      color: Colors.amber.shade50,
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.amber.shade900),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Free Version',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton.icon(
+                            icon: const Icon(Icons.lock_open),
+                            label: const Text('Activate'),
+                            onPressed: () => Get.toNamed(AppRoutes.activation),
+                          ),
+                        ],
+                      ),
+                    ),
+            )),
+
             // Daily Verse Section
             DailyVerseWidget(),
 
