@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/controllers/activation_controller.dart';
+import '../../core/routes/app_routes.dart';
 
 class ActivationScreen extends GetView<ActivationController> {
   const ActivationScreen({Key? key}) : super(key: key);
@@ -75,6 +76,25 @@ class ActivationScreen extends GetView<ActivationController> {
                     ),
                   );
                 }),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: () => Get.toNamed(AppRoutes.about),
+                  child: const Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'So tawi a alaa doggol kuuɓnugol, yah to '),
+                        TextSpan(
+                          text: 'Jokkondiral',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
             ),
           ],

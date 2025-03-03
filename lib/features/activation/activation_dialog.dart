@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/controllers/activation_controller.dart';
+import '../../core/routes/app_routes.dart';
 
 class ActivationDialog extends StatelessWidget {
   final bool isFirstLaunch;
@@ -88,6 +89,28 @@ class ActivationDialog extends StatelessWidget {
                 ),
               );
             }),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Get.back();  // Close the dialog first
+                Get.toNamed(AppRoutes.about);  // Then navigate to about screen
+              },
+              child: const Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: 'So tawi a alaa doggol kuuɓnugol, yah to '),
+                    TextSpan(
+                      text: 'Jokkondiral',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
         ),
       ),
