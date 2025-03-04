@@ -5,12 +5,18 @@ import '../models/device_info.dart';
 import '../services/device_service.dart';
 
 class ApiService extends GetxService {
+  static const List<String> _prodUrls = [
+    'http://146.190.150.139:8082/api/v1/quran/',  // Production URL - replace with your domain
+  ];
+
   static const List<String> _devUrls = [
+    'http://146.190.150.139:8082/api/v1/quran/',
     'http://192.168.1.27:8080/api/v1/quran/',  // Your computer's IP - for physical device
     'http://10.0.2.2:8080/api/v1/quran/',      // Android emulator
     'http://localhost:8080/api/v1/quran/',      // Direct localhost
   ];
 
+  final bool _isProduction = const bool.fromEnvironment('dart.vm.product');
   late final Dio _dio;
   String? _workingUrl;
 
@@ -30,7 +36,9 @@ class ApiService extends GetxService {
   Future<bool> _findWorkingUrl() async {
     if (_workingUrl != null) return true;
 
-    for (final url in _devUrls) {
+    final urls = _isProduction ? _prodUrls : _devUrls;
+
+    for (final url in urls) {
       try {
         print('Trying URL: $url');
         _dio.options.baseUrl = url;
@@ -46,8 +54,15 @@ class ApiService extends GetxService {
         print('URL $url failed: $e');
       }
     }
-    print('No working URL found, using first URL for development');
-    _workingUrl = _devUrls.first;
+
+    // In production, use first production URL as fallback
+    if (_isProduction) {
+      print('No working URL found, using first production URL');
+      _workingUrl = _prodUrls.first;
+    } else {
+      print('No working URL found, using first development URL');
+      _workingUrl = _devUrls.first;
+    }
     return false;
   }
 
