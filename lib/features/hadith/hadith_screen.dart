@@ -47,7 +47,15 @@ class HadithScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Hadiisaaji'),
+          title: const Text(
+            'Hadiisaaji',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: false,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {

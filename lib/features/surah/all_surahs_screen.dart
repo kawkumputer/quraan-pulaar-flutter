@@ -18,7 +18,15 @@ class AllSurahsScreen extends GetView<QuranService> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
-        title: const Text('Cimooje'),
+        title: const Text(
+          'Cimooje',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: false,
         actions: [
           Obx(() => settingsService.isActivated
               ? Container(

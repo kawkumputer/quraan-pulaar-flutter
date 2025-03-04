@@ -50,15 +50,24 @@ class SurahCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
+              Text(
+                surah.nameArabic,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontFamily: 'Arabic',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      surah.nameArabic,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      'Maandeeji ${surah.verses}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -66,6 +75,7 @@ class SurahCard extends StatelessWidget {
                       surah.namePulaar,
                       style: TextStyle(
                         color: Colors.grey[600],
+                        fontSize: 16,
                       ),
                     ),
                   ],
