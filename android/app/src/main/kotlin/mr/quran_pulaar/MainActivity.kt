@@ -1,4 +1,4 @@
-package mr.quraan_pulaar
+package mr.quran_pulaar
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

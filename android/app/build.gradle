@@ -30,7 +30,7 @@ if (flutterVersionName == null) {
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    namespace "mr.quraan_pulaar"
+    namespace "mr.quran_pulaar"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -54,8 +54,17 @@ android {
         checkDependencies true
     }
 
+    signingConfigs {
+        release {
+            storeFile file("quran-pulaar-key.keystore")
+            keyAlias "quran-pulaar-key-alias"  // You'll need to provide this
+            storePassword "MRQuranPulaar2021"  // You'll need to provide this
+            keyPassword "MRQuranPulaar2021"  // You'll need to provide this
+        }
+    }
+
     defaultConfig {
-        applicationId "mr.quraan_pulaar"
+        applicationId "mr.quran_pulaar"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
@@ -65,7 +74,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
