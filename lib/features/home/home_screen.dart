@@ -161,10 +161,10 @@ class HomeScreen extends StatelessWidget {
     return Card(
       elevation: 2,
       child: ListTile(
-        leading: Icon(icon, color: const Color(0xFF1F6E8C)),
+        leading: Icon(icon, color: AppTheme.primaryColor),
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Icon(Icons.chevron_right, color: AppTheme.primaryColor),
         onTap: onTap,
       ),
     );

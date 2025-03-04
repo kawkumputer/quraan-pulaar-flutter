@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/audio_controller.dart';
 import '../../../core/widgets/audio_controls.dart';
+import '../../../core/theme/app_theme.dart';
 import '../models/hadith.dart';
 
 class HadithCard extends StatelessWidget {
@@ -40,7 +41,7 @@ class HadithCard extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: isPlaying ? Colors.green : const Color(0xFF1F6E8C),
+                        color: isPlaying ? AppTheme.primaryColor.withOpacity(0.8) : AppTheme.primaryColor,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Icon(

@@ -4,7 +4,7 @@ class AppTheme {
   // Primary Colors
   static const Color primaryColor = Color(0xFF1F4037);  // Deep Islamic Green
   static const Color secondaryColor = Color(0xFF99B898); // Soft Sage
-  static const Color accentColor = Color(0xFFB4A28F);   // Warm Sand
+  static const Color accentColor = Color(0xFFD4AF37);   // Islamic Gold
   
   // Background Colors
   static const Color backgroundColor = Color(0xFFF8F4E9); // Warm Parchment
@@ -14,6 +14,8 @@ class AppTheme {
   static const Color goldAccent = Color(0xFFD4AF37);    // Islamic Gold
   static const Color textPrimary = Color(0xFF2C3E50);   // Rich Text
   static const Color textSecondary = Color(0xFF34495E); // Subtle Text
+  static const Color verseCardColor = Color(0xFF207B8E); // Teal Blue for Verse Cards
+  static const Color dailyVerseColor = Color(0xFFAD8A56); // Warm Gold for Daily Verse
 
   static ThemeData get lightTheme {
     return ThemeData(

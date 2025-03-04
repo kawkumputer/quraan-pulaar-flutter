@@ -169,18 +169,19 @@ Ummoraade e Quraan Pulaar''';
         children: [
           Row(
             children: [
-              const Icon(Icons.wb_sunny),
+              Icon(Icons.wb_sunny, color: AppTheme.primaryColor),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Maande hande ko',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
                 ),
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.share),
+                icon: Icon(Icons.share, color: AppTheme.primaryColor),
                 onPressed: () => _shareVerse(_dailyVerse.value),
               ),
               Obx(() => IconButton(
@@ -188,6 +189,7 @@ Ummoraade e Quraan Pulaar''';
                   _bookmarkService.isBookmarked(_dailyVerse.value['surahNumber'] ?? 0)
                       ? Icons.bookmark
                       : Icons.bookmark_border,
+                  color: AppTheme.primaryColor,
                 ),
                 onPressed: () => _toggleBookmark(_dailyVerse.value),
               )),
@@ -200,125 +202,89 @@ Ummoraade e Quraan Pulaar''';
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6E8C),
+                  color: AppTheme.dailyVerseColor,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
-                child: const Column(
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Woni ko e loowde maande nde...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
                 ),
               );
             }
 
-            final dailyVerse = _dailyVerse.value;
-            if (dailyVerse.isEmpty) {
+            if (_dailyVerse.value.isEmpty) {
               return Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6E8C),
+                  color: AppTheme.dailyVerseColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
-                  'Roŋki loowde maande nde. Tiiɗno eto goɗngol.',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
+                  'Roŋkii heɓde maande hannde',
+                  style: TextStyle(color: Colors.white),
                 ),
               );
             }
 
-            return InkWell(
-              onTap: () => _navigateToSurah(dailyVerse),
+            return GestureDetector(
+              onTap: () => _navigateToSurah(_dailyVerse.value),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6E8C),
+                  color: AppTheme.dailyVerseColor,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      dailyVerse['verse']!,
+                      _dailyVerse.value['verse'] ?? '',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
+                        fontSize: 24,
                         height: 1.5,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      dailyVerse['translation']!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 17,
+                      _dailyVerse.value['translation'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
                         height: 1.5,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Udditirde - Maande ${_dailyVerse.value['verseNumber'] ?? ''}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                          const Icon(
+                            Icons.headphones,
+                            color: Colors.white,
+                            size: 16,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${dailyVerse['surah']} - Maande ${dailyVerse['verseNumber']}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.touch_app,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
