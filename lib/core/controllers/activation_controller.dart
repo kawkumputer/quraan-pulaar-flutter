@@ -44,8 +44,13 @@ class ActivationController extends GetxController {
 
   Future<void> checkActivation() async {
     try {
-      // If already activated, verify with backend
+      // If already activated, only verify with backend if 24 hours have passed
       if (_settingsService.isActivated) {
+        if (!_settingsService.needsValidation) {
+          print('Skipping activation check - last check was within 24 hours');
+          return;
+        }
+
         print('Device is activated, checking validity with backend...');
 
         // Check connectivity first
