@@ -8,7 +8,13 @@ import Firebase
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+    do {
+      if FirebaseApp.app() == nil {
+        try FirebaseApp.configure()
+      }
+    } catch {
+      print("Error configuring Firebase: \(error)")
+    }
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
