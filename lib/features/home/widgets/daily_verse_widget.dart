@@ -252,6 +252,7 @@ Ummoraade e Quraan Pulaar''';
                     const SizedBox(height: 12),
                     Text(
                       _dailyVerse.value['translation'] ?? '',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 16,
                         height: 1.5,
@@ -259,32 +260,38 @@ Ummoraade e Quraan Pulaar''';
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Udditirde - Maande ${_dailyVerse.value['verseNumber'] ?? ''}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          const Icon(
-                            Icons.headphones,
-                            color: Colors.white,
-                            size: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${_dailyVerse.value['surah']} - maande ${_dailyVerse.value['verseNumber']}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.touch_app,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
