@@ -76,7 +76,7 @@ class AboutScreen extends StatelessWidget {
               const SizedBox(height: 32),
               // Pulaar Title
               const Text(
-                'E innde alla Jurumdeero Jurmotoodo',
+                'E innde alla Jurumdeero Jurmotooɗo',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

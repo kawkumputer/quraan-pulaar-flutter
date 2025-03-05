@@ -197,19 +197,37 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
               child: ListView.builder(
                 controller: _scrollController,
                 padding: EdgeInsets.zero,
-                itemCount: widget.surah.verses.length,
+                itemCount: widget.surah.number == 1 ? widget.surah.verses.length : widget.surah.verses.length + 1,
                 itemBuilder: (context, index) {
-                  final verse = widget.surah.verses[index];
+                  // Show Basmala for all surahs except Al-Fatiha (surah 1)
+                  if (widget.surah.number != 1 && index == 0) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 1.0),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                        child: VerseCard(
+                          verse: VerseModel(
+                            number: 0,
+                            arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                            pulaar: 'E innde alla Jurumdeero Jurmotooɗo',
+                          ),
+                          isCurrentVerse: false,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final verse = widget.surah.verses[widget.surah.number == 1 ? index : index - 1];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 1.0),
-                    color: index == _currentVerseIndex
+                    color: (widget.surah.number == 1 ? index : index - 1) == _currentVerseIndex
                         ? Theme.of(context).primaryColor.withOpacity(0.05)
                         : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                       child: VerseCard(
                         verse: verse,
-                        isCurrentVerse: index == _currentVerseIndex && _audioPlayer.playing,
+                        isCurrentVerse: (widget.surah.number == 1 ? index : index - 1) == _currentVerseIndex && _audioPlayer.playing,
                       ),
                     ),
                   );
