@@ -8,9 +8,11 @@ import '../../features/search/search_screen.dart';
 import '../../features/hadith/hadith_screen.dart';
 import '../../features/activation/activation_screen.dart';
 import '../../features/about/about_screen.dart';
+import '../../features/splash/splash_screen.dart';
 
 class AppRoutes {
-  static const String home = '/';
+  static const String splash = '/splash';
+  static const String home = '/home';
   static const String allSurahs = '/all-surahs';
   static const String surah = '/surah';
   static const String bookmarks = '/bookmarks';
@@ -21,6 +23,10 @@ class AppRoutes {
   static const String about = '/about';
 
   static final List<GetPage> pages = [
+    GetPage(
+      name: splash,
+      page: () => const SplashScreen(),
+    ),
     GetPage(
       name: home,
       page: () => const HomeScreen(),

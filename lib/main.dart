@@ -55,7 +55,7 @@ class QuranApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       initialBinding: InitialBinding(),
       getPages: AppRoutes.pages,
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.splash,
       navigatorObservers: [
         AudioRouteObserver(), 
       ],
