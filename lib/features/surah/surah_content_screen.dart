@@ -71,7 +71,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         final targetOffset = targetIndex * _verseHeight;
         _scrollController.animateTo(
           targetOffset,
-          duration: const Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 600),
           curve: Curves.easeOut,
         );
       }
