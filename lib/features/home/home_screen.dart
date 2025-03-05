@@ -3,10 +3,27 @@ import 'package:get/get.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/settings_service.dart';
+import '../../core/controllers/activation_controller.dart';
 import 'widgets/daily_verse_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _activationController = Get.find<ActivationController>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Check activation after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _activationController.checkActivation();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

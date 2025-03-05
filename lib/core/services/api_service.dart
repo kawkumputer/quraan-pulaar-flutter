@@ -6,11 +6,11 @@ import '../services/device_service.dart';
 
 class ApiService extends GetxService {
   static const List<String> _prodUrls = [
-    'http://146.190.150.139:8082/api/v1/quran/',  // Production URL - replace with your domain
+    'http://146.190.150.139:8081/api/v1/quran/',  // Production URL - replace with your domain
   ];
 
   static const List<String> _devUrls = [
-    'http://146.190.150.139:8082/api/v1/quran/',
+    'http://146.190.150.139:8081/api/v1/quran/',
     'http://192.168.1.27:8080/api/v1/quran/',  // Your computer's IP - for physical device
     'http://10.0.2.2:8080/api/v1/quran/',      // Android emulator
     'http://localhost:8080/api/v1/quran/',      // Direct localhost

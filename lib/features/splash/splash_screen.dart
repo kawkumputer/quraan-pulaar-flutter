@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 4));
     Get.offNamed(AppRoutes.home);
   }
 
@@ -31,10 +31,10 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/splash_screen.png'),
-            fit: BoxFit.contain, 
+            fit: BoxFit.contain,
             alignment: Alignment.center,
           ),
-          color: Color(0xFF203A43), 
+          color: Color(0xFF203A43),
         ),
         child: const Center(
           child: CircularProgressIndicator(

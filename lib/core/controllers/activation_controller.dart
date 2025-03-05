@@ -36,10 +36,7 @@ class ActivationController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    // Delay the check slightly to ensure all services are ready
-    Future.delayed(const Duration(milliseconds: 500), () {
-      checkActivation();
-    });
+    // Removed automatic activation check
   }
 
   Future<void> checkActivation() async {

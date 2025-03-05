@@ -47,7 +47,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         });
         _scrollController.animateTo(
           0,
-          duration: const Duration(milliseconds: 600),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeOut,
         );
       }
@@ -71,7 +71,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         final targetOffset = targetIndex * _verseHeight;
         _scrollController.animateTo(
           targetOffset,
-          duration: const Duration(milliseconds: 100),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeOut,
         );
       }
@@ -123,7 +123,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     });
     _scrollController.animateTo(
       0,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 500),
       curve: Curves.easeOut,
     );
   }
