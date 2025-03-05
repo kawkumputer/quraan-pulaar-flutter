@@ -49,5 +49,22 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Quraan Pulaar needs access to the microphone for audio recording features.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>mr.quraanpulaar</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>
