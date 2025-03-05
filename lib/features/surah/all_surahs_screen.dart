@@ -119,7 +119,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.lock_open, size: 18),
-                      label: const Text('Activate'),
+                      label: const Text('Huuɓnu'),
                       onPressed: () => Get.toNamed(AppRoutes.activation),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade600,
