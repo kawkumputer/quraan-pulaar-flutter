@@ -10,6 +10,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _hasError = false;
+
   @override
   void initState() {
     super.initState();
@@ -17,28 +19,51 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 4));
-    Get.offNamed(AppRoutes.home);
+    try {
+      await Future.delayed(const Duration(seconds: 4));
+      if (mounted) {
+        Get.offNamed(AppRoutes.home);
+      }
+    } catch (e) {
+      debugPrint('Error navigating to home: $e');
+      setState(() => _hasError = true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/splash_screen.png'),
-            fit: BoxFit.contain,
-            alignment: Alignment.center,
-          ),
-          color: Color(0xFF203A43),
-        ),
-        child: const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFDAA520)),
+      backgroundColor: const Color(0xFF203A43),
+      body: SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/splash_screen.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('Error loading splash image: $error');
+                      return const Icon(
+                        Icons.menu_book,
+                        size: 120,
+                        color: Color(0xFFDAA520),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              if (!_hasError) const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFDAA520)),
+              ),
+              const SizedBox(height: 64),
+            ],
           ),
         ),
       ),

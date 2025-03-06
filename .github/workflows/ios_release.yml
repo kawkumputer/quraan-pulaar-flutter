@@ -27,6 +27,26 @@ jobs:
           flutter pub get
           flutter pub run build_runner build --delete-conflicting-outputs
 
+      - name: Restore GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          ls -la ios/Runner/
+
+      - name: Ensure GoogleService-Info.plist is included in Xcode project
+        run: |
+          cd ios
+          ruby -e '
+            require "xcodeproj"
+            project = Xcodeproj::Project.open("Runner.xcodeproj")
+            target = project.targets.find { |t| t.name == "Runner" }
+            file_ref = project.main_group.find_file_by_path("Runner/GoogleService-Info.plist") ||
+                      project.main_group.new_file("Runner/GoogleService-Info.plist")
+            target.add_resources([file_ref])
+            project.save
+          '
+
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods
@@ -38,18 +58,14 @@ jobs:
           P12_PASSWORD: "12345"
           KEYCHAIN_PASSWORD: "temporary_keychain_password"
         run: |
-          # Create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -t 3600 -l build.keychain
 
-          # Import certificate to keychain
           echo $CERTIFICATE_BASE64 | base64 --decode > certificate.p12
           security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-
-          # Clean up
           rm certificate.p12
 
       - name: Import Provisioning Profile
@@ -76,8 +92,6 @@ jobs:
             require "xcodeproj"
             project_path = "Runner.xcodeproj"
             project = Xcodeproj::Project.open(project_path)
-          
-            # Set manual signing for Runner target only
             project.targets.each do |target|
               if target.name == "Runner"
                 target.build_configurations.each do |config|
@@ -104,68 +118,34 @@ jobs:
       - name: Build iOS app
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
-          IPHONEOS_DEPLOYMENT_TARGET: '12.0'
         run: |
           flutter build ios --release --no-codesign
           cd ios
-          
-          # Clean the build directory
-          xcodebuild clean -workspace Runner.xcworkspace -scheme Runner \
-            -destination "generic/platform=iOS"
-          
-          # Archive with explicit build settings
-          xcodebuild archive \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -destination "generic/platform=iOS" \
-            -sdk iphoneos \
-            -archivePath "build/Runner.xcarchive" \
-            -allowProvisioningUpdates \
-            -allowProvisioningDeviceRegistration \
+          xcodebuild clean -workspace Runner.xcworkspace -scheme Runner -destination "generic/platform=iOS"
+          xcodebuild archive -workspace Runner.xcworkspace -scheme Runner -configuration Release \
+            -destination "generic/platform=iOS" -sdk iphoneos -archivePath "build/Runner.xcarchive" \
+            -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
             DEVELOPMENT_TEAM="94VW99RYDQ" \
             PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App2" \
             CODE_SIGN_IDENTITY="iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)" \
             CODE_SIGN_STYLE=Manual \
-            PRODUCT_BUNDLE_IDENTIFIER="mr.quraanpulaar" \
             ENABLE_BITCODE=NO \
             DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" \
             ARCHS="arm64" \
             ONLY_ACTIVE_ARCH=NO \
-            archive CODE_SIGNING_ALLOWED=NO \
-          BUILD_RESULT=$?
-          
-          # Check if archive was successful
-          if [ $BUILD_RESULT -ne 0 ] || [ ! -d "build/Runner.xcarchive" ]; then
-            echo "Archive failed with exit code: $BUILD_RESULT"
-            exit 1
-          fi
+            archive CODE_SIGNING_ALLOWED=NO
 
+      - name: Verify GoogleService-Info.plist in the archive
+        run: |
+          unzip -l ios/build/Runner.xcarchive/Products/Applications/Runner.app | grep GoogleService-Info.plist || echo "❌ GoogleService-Info.plist is missing in archive!"
 
       - name: Export IPA
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
         run: |
-          # Disable forking safety and increase processes
           export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-          export MAX_LAUNCHING_PROCESSES=2000
           cd ios
-          
-          # Debug: Print current directory and list build directory contents
-          pwd
-          ls -la build/
-          
-          # Export archive with xcpretty disabled for better error reporting
-          xcodebuild -exportArchive \
-            -archivePath build/Runner.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath build \
-            -allowProvisioningUpdates \
-            || exit 1
-            
-          # Debug: List contents after export
-          echo "Contents of build directory after export:"
-          ls -la build/
+          xcodebuild -exportArchive -archivePath build/Runner.xcarchive -exportOptionsPlist exportOptions.plist -exportPath build -allowProvisioningUpdates
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -184,29 +164,10 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           cd ios
-          
-          # Create private keys directory
           mkdir -p ~/.appstoreconnect/private_keys
-          
-          # Create the auth key file from secret
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
-          
-          # Debug: Find IPA file
-          echo "Looking for IPA file:"
-          find . -name "*.ipa" -type f
-          
-          # Get the actual IPA path
           IPA_PATH=$(find . -name "*.ipa" -type f | head -n 1)
-          echo "Found IPA at: $IPA_PATH"
-          
-          if [ -z "$IPA_PATH" ]; then
-            echo "No IPA file found!"
-            exit 1
-          fi
-          
           xcrun altool --output-format xml --upload-app --file "$IPA_PATH" --type ios \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
-            
-          # Clean up the key file
           rm -f ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
