@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/bookmark_service.dart';
-import '../../core/services/cache_service.dart';
+import '../../core/services/quran_service.dart';
+import '../../core/services/settings_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/models/surah_model.dart';
 
 class BookmarksScreen extends StatelessWidget {
   BookmarksScreen({super.key});
 
   final _bookmarkService = Get.find<BookmarkService>();
-  final _cacheService = Get.find<CacheService>();
+  final _quranService = Get.find<QuranService>();
+  final _settingsService = Get.find<SettingsService>();
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +20,10 @@ class BookmarksScreen extends StatelessWidget {
         title: const Text('Maanto'),
       ),
       body: Obx(() {
-        final bookmarkedSurahs = _bookmarkService.bookmarkedSurahs;
-        final allSurahs = _cacheService.getCachedSurahs();
+        final availableBookmarks = _bookmarkService.bookmarkedSurahs;
+        final allSurahs = _quranService.surahs;
 
-        if (bookmarkedSurahs.isEmpty) {
+        if (availableBookmarks.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -53,9 +54,9 @@ class BookmarksScreen extends StatelessWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: bookmarkedSurahs.length,
+          itemCount: availableBookmarks.length,
           itemBuilder: (context, index) {
-            final surahNumber = bookmarkedSurahs[index];
+            final surahNumber = availableBookmarks[index];
             final surah = allSurahs.firstWhere(
               (s) => s.number == surahNumber,
               orElse: () => allSurahs.first,
@@ -87,7 +88,7 @@ class BookmarksScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                subtitle: Text('Maandeeji ${surah.versesCount}'),
+                subtitle: Text('Maandeeji ${surah.verses.length}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () async {
@@ -104,7 +105,7 @@ class BookmarksScreen extends StatelessWidget {
                 onTap: () {
                   Get.toNamed(
                     AppRoutes.surah,
-                    arguments: SurahModel.fromFirebase(surah),
+                    arguments: surah,
                   );
                 },
               ),

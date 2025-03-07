@@ -276,7 +276,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Maa maandeeji di beydoye doo e yeeso',
+                            'Maa maandeeji ɗi ɓeydoye ɗoo e yeeso',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 17,

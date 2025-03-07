@@ -52,7 +52,7 @@ class QuranService extends GetxService {
 
     // Setup periodic sync check for activated users
     _setupPeriodicSyncCheck();
-    
+
     // Try to load immediately if settings are already initialized
     if (_settingsService.isActivated) {
       print('Settings already initialized on QuranService init');
@@ -121,7 +121,7 @@ class QuranService extends GetxService {
       } else {
         print('Device is not activated, loading free surahs from local JSON...');
       }
-      
+
       // Load from local JSON if:
       // 1. Device is not activated (free mode)
       // 2. Firebase load failed
@@ -129,22 +129,16 @@ class QuranService extends GetxService {
       print('Loading from local JSON...');
       final ByteData data = await rootBundle.load('assets/data/surahs.json');
       final String jsonString = utf8.decode(data.buffer.asUint8List());
-      
+
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       if (!jsonData.containsKey('surahs')) {
         throw 'Invalid JSON format: missing "surahs" key';
       }
 
       final List<dynamic> surahsData = List.from(jsonData['surahs']);
-      
-      if (!_settingsService.isActivated) {
-        // In free mode, only keep surahs 1-4, regardless of sort order
-        print('Free mode: Loading only first 4 surahs');
-        surahsData.removeWhere((surah) => (surah['number'] as int) > 4);
-      }
 
       // Sort after filtering to maintain correct order
-      surahsData.sort((a, b) => (b['number'] as int).compareTo(a['number'] as int)); // Sort descending
+      //surahsData.sort((a, b) => (b['number'] as int).compareTo(a['number'] as int)); // Sort descending
 
       _surahs.value = surahsData.map((surah) {
         final model = SurahModel.fromJson(surah);

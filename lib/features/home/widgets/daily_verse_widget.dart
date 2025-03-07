@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:math';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/services/cache_service.dart';
 import '../../../core/services/bookmark_service.dart';
-import '../../../core/services/firebase_service.dart';
+import '../../../core/services/quran_service.dart';
+import '../../../core/models/surah_model.dart';
 import '../../../features/surah/models/surah.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/models/surah_model.dart';
 import '../../../core/services/settings_service.dart';
 
 class DailyVerseWidget extends StatefulWidget {
@@ -20,8 +19,7 @@ class DailyVerseWidget extends StatefulWidget {
 
 class _DailyVerseWidgetState extends State<DailyVerseWidget> {
   final _bookmarkService = Get.find<BookmarkService>();
-  final _cacheService = Get.find<CacheService>();
-  final _firebaseService = Get.find<FirebaseService>();
+  final _quranService = Get.find<QuranService>();
   final _dailyVerse = Rx<Map<String, dynamic>>({});
   final _isLoading = true.obs;
 
@@ -34,15 +32,8 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
   Future<void> _loadVerseData() async {
     _isLoading.value = true;
     try {
-      var surahs = _cacheService.getCachedSurahs();
-      if (surahs.isEmpty) {
-        // If cache is empty, try to load from Firebase
-        final allSurahs = await _firebaseService.getAllSurahs();
-        if (allSurahs != null && allSurahs.isNotEmpty) {
-          await _cacheService.cacheSurahs(allSurahs);
-          surahs = allSurahs;
-        }
-      }
+      await _quranService.loadSurahs();
+      final surahs = _quranService.surahs;
 
       if (surahs.isNotEmpty) {
         _getDailyVerse(surahs);
@@ -52,7 +43,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
     }
   }
 
-  void _getDailyVerse(List<Surah> surahs) {
+  void _getDailyVerse(List<SurahModel> surahs) {
     if (_dailyVerse.value.isNotEmpty) {
       return;
     }
@@ -61,7 +52,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
     final isActivated = settingsService.isActivated;
 
     // Filter surahs based on activation status
-    final availableSurahs = isActivated ? surahs : surahs.where((s) => s.number <= 4).toList();
+    final availableSurahs = surahs.where((s) => s.verses.isNotEmpty).toList();
     if (availableSurahs.isEmpty) return;
 
     // Use the current date as seed to ensure same verse throughout the day
@@ -114,15 +105,12 @@ Ummoraade e Quraan Pulaar''';
   void _navigateToSurah(Map<String, dynamic> verse) {
     if (verse['surahNumber'] == null) return;
 
-    final surah = _cacheService.getCachedSurahs().firstWhere(
+    final surah = _quranService.surahs.firstWhere(
       (s) => s.number == verse['surahNumber'],
-      orElse: () => Surah(
+      orElse: () => SurahModel(
         number: 0,
-        juzNumber: 0,
         nameArabic: '',
         namePulaar: '',
-        versesCount: 0,
-        audioUrl: '',
         verses: [],
       ),
     );
@@ -131,7 +119,7 @@ Ummoraade e Quraan Pulaar''';
 
     Get.toNamed(
       AppRoutes.surah,
-      arguments: SurahModel.fromFirebase(surah),
+      arguments: surah,
     );
   }
 
