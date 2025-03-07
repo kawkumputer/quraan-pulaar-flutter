@@ -224,17 +224,50 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       ((widget.surah.number == 1 && index == 0) || 
                        (widget.surah.number != 1 && index == 1))) {
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 1.0),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                        child: VerseCard(
-                          verse: VerseModel(
-                            number: 0,
-                            arabic: '',
-                            pulaar: 'Maa maandeeji di beydoye doo e yeeso',
-                          ),
-                          isCurrentVerse: false,
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.02),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.update_rounded,
+                              size: 28,
+                              color: Theme.of(context).primaryColor.withOpacity(0.5),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Maa maandeeji di beydoye doo e yeeso',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 17,
+                              height: 1.5,
+                              color: Theme.of(context).primaryColor.withOpacity(0.7),
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
