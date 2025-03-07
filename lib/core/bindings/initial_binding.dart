@@ -20,7 +20,10 @@ class InitialBinding extends Bindings {
     
     // Register services that depend on core services
     Get.put<SettingsService>(SettingsService(), permanent: true);
-    Get.put<FirebaseService>(FirebaseService(), permanent: true);
+    Get.put<FirebaseService>(FirebaseService(
+      cacheService: Get.find<CacheService>(),
+      settingsService: Get.find<SettingsService>(),
+    ), permanent: true);
     Get.put<BookmarkService>(BookmarkService(), permanent: true);
     Get.put<QuranAudioService>(QuranAudioService(), permanent: true);
     Get.put<AudioService>(AudioService());
@@ -29,6 +32,7 @@ class InitialBinding extends Bindings {
     final quranService = QuranService(
       firebaseService: Get.find<FirebaseService>(),
       settingsService: Get.find<SettingsService>(),
+      cacheService: Get.find<CacheService>(),
     );
     Get.put<QuranService>(quranService, permanent: true);
     

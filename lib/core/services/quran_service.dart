@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../models/surah_model.dart';
 import '../services/firebase_service.dart';
 import '../services/settings_service.dart';
+import '../services/cache_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class QuranService extends GetxService {
@@ -13,20 +15,27 @@ class QuranService extends GetxService {
   final _isLoading = false.obs;
   final _error = Rx<String?>(null);
   final _settingsInitialized = false.obs;
+  final _isSyncing = false.obs;
 
   final FirebaseService _firebaseService;
   final SettingsService _settingsService;
+  final CacheService _cacheService;
+  final _connectivity = Connectivity();
+  Timer? _syncCheckTimer;
 
   QuranService({
     required FirebaseService firebaseService,
     required SettingsService settingsService,
+    required CacheService cacheService,
   }) : _firebaseService = firebaseService,
-       _settingsService = settingsService;
+       _settingsService = settingsService,
+       _cacheService = cacheService;
 
   List<SurahModel> get surahs => _surahs;
   SurahModel? get currentSurah => _currentSurah.value;
   int get currentVerseIndex => _currentVerseIndex.value;
   bool get isLoading => _isLoading.value;
+  bool get isSyncing => _isSyncing.value;
   String? get error => _error.value;
 
   @override
@@ -40,6 +49,9 @@ class QuranService extends GetxService {
         loadSurahs();
       }
     });
+
+    // Setup periodic sync check for activated users
+    _setupPeriodicSyncCheck();
     
     // Try to load immediately if settings are already initialized
     if (_settingsService.isActivated) {
@@ -48,13 +60,36 @@ class QuranService extends GetxService {
     }
   }
 
+  @override
+  void onClose() {
+    _syncCheckTimer?.cancel();
+    super.onClose();
+  }
+
+  void _setupPeriodicSyncCheck() {
+    // Check every 30 minutes if we need to sync
+    _syncCheckTimer?.cancel();
+    _syncCheckTimer = Timer.periodic(const Duration(minutes: 30), (timer) async {
+      if (!_settingsService.isActivated) return;
+
+      final connectivityResult = await _connectivity.checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) return;
+
+      final timeSinceLastSync = _cacheService.getTimeSinceLastSync();
+      if (timeSinceLastSync.inHours >= 6) {
+        print('Periodic sync check: Last sync was ${timeSinceLastSync.inHours} hours ago, initiating sync...');
+        loadSurahs(forceSync: true);
+      }
+    });
+  }
+
   void onSettingsInitialized() {
     print('Settings initialized, activation status: ${_settingsService.isActivated}');
     _settingsInitialized.value = true;
     loadSurahs();
   }
 
-  Future<void> loadSurahs() async {
+  Future<void> loadSurahs({bool forceSync = false}) async {
     if (!_settingsInitialized.value) {
       print('Settings not initialized yet, deferring surah load');
       return;
@@ -67,16 +102,19 @@ class QuranService extends GetxService {
       if (_settingsService.isActivated) {
         print('Device is activated, attempting to load from Firebase...');
         try {
+          _isSyncing.value = forceSync;
           final firebaseSurahs = await _firebaseService.getAllSurahs();
           if (firebaseSurahs.isNotEmpty) {
             print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase/cache');
             _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
             _isLoading.value = false;
+            _isSyncing.value = false;
             return;
           }
           print('No surahs found in Firebase/cache');
         } catch (e) {
           print('Error loading from Firebase: $e');
+          _isSyncing.value = false;
           // Start background retry after a delay
           Future.delayed(const Duration(seconds: 2), _retryFirebaseLoad);
         }
@@ -97,13 +135,16 @@ class QuranService extends GetxService {
         throw 'Invalid JSON format: missing "surahs" key';
       }
 
-      final List<dynamic> surahsData = jsonData['surahs'];
+      final List<dynamic> surahsData = List.from(jsonData['surahs']);
       
       if (!_settingsService.isActivated) {
-        // In free mode, only load the first 4 surahs
+        // In free mode, only keep surahs 1-4, regardless of sort order
         print('Free mode: Loading only first 4 surahs');
-        surahsData.removeRange(4, surahsData.length);
+        surahsData.removeWhere((surah) => (surah['number'] as int) > 4);
       }
+
+      // Sort after filtering to maintain correct order
+      surahsData.sort((a, b) => (b['number'] as int).compareTo(a['number'] as int)); // Sort descending
 
       _surahs.value = surahsData.map((surah) {
         final model = SurahModel.fromJson(surah);
@@ -117,6 +158,7 @@ class QuranService extends GetxService {
       _error.value = 'Failed to load surahs: $e';
     } finally {
       _isLoading.value = false;
+      _isSyncing.value = false;
     }
   }
 
@@ -125,6 +167,7 @@ class QuranService extends GetxService {
 
     try {
       print('Retrying Firebase load...');
+      _isSyncing.value = true;
       final firebaseSurahs = await _firebaseService.getAllSurahs();
       if (firebaseSurahs.isNotEmpty) {
         print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase on retry');
@@ -134,6 +177,8 @@ class QuranService extends GetxService {
       }
     } catch (e) {
       print('Firebase retry failed: $e');
+    } finally {
+      _isSyncing.value = false;
     }
   }
 
