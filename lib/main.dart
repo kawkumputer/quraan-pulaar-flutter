@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -26,13 +27,22 @@ void main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: 'AIzaSyBTkrQNZPlu_gj28CGwRd1eOOK-D8qFnxQ',
-      appId: '1:316874132271:android:4e2a5fdb7c6c056eeaafda',
-      messagingSenderId: '316874132271',
-      projectId: 'quran-pulaar-dmwdqo',
-      storageBucket: 'quran-pulaar-dmwdqo.firebasestorage.app',
-    ),
+    options: Platform.isIOS
+        ? const FirebaseOptions(
+            apiKey: 'AIzaSyBs6_6QvWQOTDzrQefCa1UsVU1Rc1jb1r4',
+            appId: '1:316874132271:ios:d883672f0e40699ceaafda',
+            messagingSenderId: '316874132271',
+            projectId: 'quran-pulaar-dmwdqo',
+            storageBucket: 'quran-pulaar-dmwdqo.firebasestorage.app',
+            iosBundleId: 'mr.quraanpulaar',
+          )
+        : const FirebaseOptions(
+            apiKey: 'AIzaSyBTkrQNZPlu_gj28CGwRd1eOOK-D8qFnxQ',
+            appId: '1:316874132271:android:4e2a5fdb7c6c056eeaafda',
+            messagingSenderId: '316874132271',
+            projectId: 'quran-pulaar-dmwdqo',
+            storageBucket: 'quran-pulaar-dmwdqo.firebasestorage.app',
+          ),
   );
   
   // Initialize all services
