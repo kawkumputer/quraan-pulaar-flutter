@@ -56,7 +56,10 @@ flutter:
           weight: 700
 
 flutter_launcher_icons:
+  android: true
   ios: true
-  image_path: "assets/images/splash_screen.png"
+  image_path: "store_assets/ios/icon/original.png"
   remove_alpha_ios: true
   min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "store_assets/ios/icon/original.png"
