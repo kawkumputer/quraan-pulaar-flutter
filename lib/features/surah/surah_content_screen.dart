@@ -177,27 +177,46 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         body: Column(
           children: [
             Container(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  trackHeight: 1.5,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(45),
                 ),
-                child: AudioControls(
-                  audioPlayer: _audioPlayer,
-                  isPlaying: _audioPlayer.playing,
-                  onPlayPause: _togglePlay,
-                  onStop: _stopPlaying,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 2.0,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                      activeTrackColor: Theme.of(context).primaryColor,
+                      inactiveTrackColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                      thumbColor: Theme.of(context).primaryColor,
+                      overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    ),
+                    child: AudioControls(
+                      audioPlayer: _audioPlayer,
+                      isPlaying: _audioPlayer.playing,
+                      onPlayPause: _togglePlay,
+                      onStop: _stopPlaying,
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
                 padding: EdgeInsets.zero,
-                itemCount: widget.surah.verses.isEmpty 
+                itemCount: widget.surah.verses.isEmpty
                     ? (widget.surah.number == 1 ? 1 : 2)  // Empty surah: 1 item for Fatiha, 2 for others (Basmala + message)
                     : (widget.surah.number == 1 ? widget.surah.verses.length : widget.surah.verses.length + 1), // Normal case
                 itemBuilder: (context, index) {
@@ -220,8 +239,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                   }
 
                   // Show "verses coming soon" message after Basmala (or as first item for Fatiha)
-                  if (widget.surah.verses.isEmpty && 
-                      ((widget.surah.number == 1 && index == 0) || 
+                  if (widget.surah.verses.isEmpty &&
+                      ((widget.surah.number == 1 && index == 0) ||
                        (widget.surah.number != 1 && index == 1))) {
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -292,7 +311,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       );
                     }
                   }
-                  
+
                   return const SizedBox.shrink();
                 },
               ),

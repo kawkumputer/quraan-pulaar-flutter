@@ -35,49 +35,71 @@ class AudioControls extends StatelessWidget {
             builder: (context, snapshot) {
               final position = snapshot.data ?? Duration.zero;
               final duration = audioPlayer.duration ?? Duration.zero;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Text(_formatDuration(position)),
-                      Expanded(
-                        child: Slider(
-                          value: position.inSeconds.toDouble(),
-                          max: duration.inSeconds.toDouble(),
-                          onChanged: (value) {
-                            audioPlayer.seek(Duration(seconds: value.toInt()));
-                          },
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          _formatDuration(position),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Text(_formatDuration(duration)),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                          size: 40,
-                          color: Theme.of(context).primaryColor,
+                        Expanded(
+                          child: Slider(
+                            value: position.inSeconds.toDouble(),
+                            max: duration.inSeconds.toDouble(),
+                            onChanged: (value) {
+                              audioPlayer.seek(Duration(seconds: value.toInt()));
+                            },
+                          ),
                         ),
-                        onPressed: onPlayPause,
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: Icon(
-                          Icons.stop_circle,
-                          size: 40,
-                          color: Theme.of(context).primaryColor,
+                        Text(
+                          _formatDuration(duration),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        onPressed: onStop,
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                              size: 44,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            onPressed: onPlayPause,
+                            padding: EdgeInsets.zero,
+                            splashRadius: 24,
+                          ),
+                          const SizedBox(width: 20),
+                          IconButton(
+                            icon: Icon(
+                              Icons.stop_circle,
+                              size: 44,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            onPressed: onStop,
+                            padding: EdgeInsets.zero,
+                            splashRadius: 24,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               );
             },
           ),
