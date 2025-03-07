@@ -7,7 +7,7 @@ class Hadith {
     required this.url,
   });
 
-  String get title => 'Njangtu ${id.toString()}';
+  String get title => 'Njangtuwol ${id.toString()}';
 
   factory Hadith.fromJson(Map<String, dynamic> json) {
     return Hadith(
