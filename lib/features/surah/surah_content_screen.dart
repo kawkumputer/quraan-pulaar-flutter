@@ -197,7 +197,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
               child: ListView.builder(
                 controller: _scrollController,
                 padding: EdgeInsets.zero,
-                itemCount: widget.surah.number == 1 ? widget.surah.verses.length : widget.surah.verses.length + 1,
+                itemCount: widget.surah.verses.isEmpty 
+                    ? (widget.surah.number == 1 ? 1 : 2)  // Empty surah: 1 item for Fatiha, 2 for others (Basmala + message)
+                    : (widget.surah.number == 1 ? widget.surah.verses.length : widget.surah.verses.length + 1), // Normal case
                 itemBuilder: (context, index) {
                   // Show Basmala for all surahs except Al-Fatiha (surah 1)
                   if (widget.surah.number != 1 && index == 0) {
@@ -217,20 +219,48 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                     );
                   }
 
-                  final verse = widget.surah.verses[widget.surah.number == 1 ? index : index - 1];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 1.0),
-                    color: (widget.surah.number == 1 ? index : index - 1) == _currentVerseIndex
-                        ? Theme.of(context).primaryColor.withOpacity(0.05)
-                        : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                      child: VerseCard(
-                        verse: verse,
-                        isCurrentVerse: (widget.surah.number == 1 ? index : index - 1) == _currentVerseIndex && _audioPlayer.playing,
+                  // Show "verses coming soon" message after Basmala (or as first item for Fatiha)
+                  if (widget.surah.verses.isEmpty && 
+                      ((widget.surah.number == 1 && index == 0) || 
+                       (widget.surah.number != 1 && index == 1))) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 1.0),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                        child: VerseCard(
+                          verse: VerseModel(
+                            number: 0,
+                            arabic: '',
+                            pulaar: 'Maa maandeeji di beydoye doo e yeeso',
+                          ),
+                          isCurrentVerse: false,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
+
+                  // Show verses if available
+                  if (widget.surah.verses.isNotEmpty) {
+                    final verseIndex = widget.surah.number == 1 ? index : index - 1;
+                    if (verseIndex >= 0 && verseIndex < widget.surah.verses.length) {
+                      final verse = widget.surah.verses[verseIndex];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 1.0),
+                        color: verseIndex == _currentVerseIndex
+                            ? Theme.of(context).primaryColor.withOpacity(0.05)
+                            : null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                          child: VerseCard(
+                            verse: verse,
+                            isCurrentVerse: verseIndex == _currentVerseIndex && _audioPlayer.playing,
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  
+                  return const SizedBox.shrink();
                 },
               ),
             ),
