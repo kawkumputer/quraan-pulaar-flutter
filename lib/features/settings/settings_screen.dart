@@ -28,16 +28,12 @@ class SettingsScreen extends StatelessWidget {
                         value: settingsService.themeMode,
                         items: const [
                           DropdownMenuItem(
-                            value: ThemeMode.system,
-                            child: Text('Kaɓirgal'),
-                          ),
-                          DropdownMenuItem(
                             value: ThemeMode.light,
                             child: Text('Jalbugol'),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.dark,
-                            child: Text('Niɓɓugol'),
+                            child: Text('Niɓɓiɗgol'),
                           ),
                         ],
                         onChanged: (ThemeMode? mode) {

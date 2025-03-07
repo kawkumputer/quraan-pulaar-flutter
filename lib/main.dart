@@ -62,7 +62,7 @@ class QuranApp extends StatelessWidget {
       title: 'Quraan Pulaar',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       initialBinding: InitialBinding(),
       getPages: AppRoutes.pages,
       initialRoute: AppRoutes.splash,

@@ -15,7 +15,7 @@ class SettingsService extends GetxService {
   static const String _lastValidationKey = 'last_validation_time';
   static const Duration _validationInterval = Duration(hours: 24);
 
-  final Rx<ThemeMode> _themeMode = ThemeMode.system.obs;
+  final Rx<ThemeMode> _themeMode = ThemeMode.light.obs;
   final RxDouble _fontSize = 16.0.obs;
   final RxBool _notificationsEnabled = true.obs;
   final RxBool _isActivated = false.obs;
@@ -108,10 +108,10 @@ class SettingsService extends GetxService {
   Future<void> _loadSettings() async {
     if (_prefs == null) return;
     
-    final themeModeString = _prefs!.getString(_themeKey) ?? 'system';
+    final themeModeString = _prefs!.getString(_themeKey) ?? 'light';
     _themeMode.value = ThemeMode.values.firstWhere(
       (mode) => mode.toString() == 'ThemeMode.$themeModeString',
-      orElse: () => ThemeMode.system,
+      orElse: () => ThemeMode.light,
     );
 
     _fontSize.value = _prefs!.getDouble(_fontSizeKey) ?? 16.0;
