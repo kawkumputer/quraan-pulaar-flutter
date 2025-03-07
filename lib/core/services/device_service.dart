@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:get/get.dart';
 import '../models/device_info.dart';
@@ -13,12 +14,23 @@ class DeviceService extends GetxService {
     String manufacturer = '';
 
     try {
-      final androidInfo = await _deviceInfo.androidInfo;
-      deviceId = androidInfo.id;
-      baseOs = androidInfo.version.release;
-      deviceName = androidInfo.device;
-      deviceModel = androidInfo.model;
-      manufacturer = androidInfo.manufacturer;
+      if (Platform.isAndroid) {
+        final androidInfo = await _deviceInfo.androidInfo;
+        deviceId = androidInfo.id;
+        baseOs = 'Android ${androidInfo.version.release}';
+        deviceName = androidInfo.device;
+        deviceModel = androidInfo.model;
+        manufacturer = androidInfo.manufacturer;
+      } else if (Platform.isIOS) {
+        final iosInfo = await _deviceInfo.iosInfo;
+        deviceId = iosInfo.identifierForVendor ?? 'unknown';
+        baseOs = 'iOS ${iosInfo.systemVersion}';
+        deviceName = iosInfo.name ?? 'iPhone';
+        deviceModel = iosInfo.model ?? 'iOS Device';
+        manufacturer = 'Apple';
+      } else {
+        throw UnsupportedError('Platform not supported');
+      }
 
       return DeviceInfo(
         uniqueId: deviceId,
@@ -30,7 +42,6 @@ class DeviceService extends GetxService {
       );
     } catch (e) {
       print('Error getting device info: $e');
-      // Don't return a device for web platform
       rethrow;
     }
   }
