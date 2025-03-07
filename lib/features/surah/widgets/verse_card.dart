@@ -16,13 +16,13 @@ class VerseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isCurrentVerse 
+        color: isCurrentVerse
             ? Theme.of(context).primaryColor.withOpacity(0.1)
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -58,14 +58,14 @@ class VerseCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
           ],
           Text(
             verse.arabic,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.right,
             style: const TextStyle(
               fontSize: 22,
               height: 1.5,
@@ -73,13 +73,13 @@ class VerseCard extends StatelessWidget {
             ),
           ),
           if (verse.pulaar.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               verse.pulaar,
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
               style: const TextStyle(
                 fontSize: 17,
-                height: 1.5,
+                height: 1.4,
                 color: Colors.black87,
                 fontWeight: FontWeight.w400,
               ),

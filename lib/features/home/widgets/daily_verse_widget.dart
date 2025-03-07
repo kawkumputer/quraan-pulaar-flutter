@@ -242,9 +242,9 @@ Ummoraade e Quraan Pulaar''';
                   children: [
                     Text(
                       _dailyVerse.value['verse'] ?? '',
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.right,
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         height: 1.5,
                         color: Colors.white,
                       ),
@@ -252,7 +252,7 @@ Ummoraade e Quraan Pulaar''';
                     const SizedBox(height: 12),
                     Text(
                       _dailyVerse.value['translation'] ?? '',
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.left,
                       style: const TextStyle(
                         fontSize: 16,
                         height: 1.5,
