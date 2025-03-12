@@ -7,12 +7,16 @@ import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
 import 'core/services/hadith_service.dart';
+import 'core/services/app_initialization_service.dart';
 import 'features/surah/models/surah.dart';
 import 'core/controllers/audio_controller.dart';
 import 'core/routes/route_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize app with tracking permission request
+  await AppInitializationService.initialize();
   
   // Initialize Hive
   await Hive.initFlutter();

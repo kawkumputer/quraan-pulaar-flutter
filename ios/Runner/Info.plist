@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.6.10</string>
+	<string>2.6.11</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>9</string>
+	<string>11</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -67,6 +67,8 @@
 		<string>processing</string>
 	</array>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>We use a device identifier to validate your app activation status. This helps us ensure your premium access works correctly across app reinstalls. We do not use this for advertising or share it with third parties.</string>
+	<string>English: We use a device identifier to validate your app activation status. This helps us to identify your device.
+
+Pulaar: Min kuutorto Tongoode cindel ma ngam waawde huuɓnude jaaɓngal ngal. Ɗum wallat min waawde heftinde cindel ngel.</string>
 </dict>
 </plist>
