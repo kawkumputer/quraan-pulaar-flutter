@@ -66,5 +66,7 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use a device identifier to validate your app activation status. This helps us ensure your premium access works correctly across app reinstalls. We do not use this for advertising or share it with third parties.</string>
 </dict>
 </plist>

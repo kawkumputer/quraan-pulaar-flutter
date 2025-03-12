@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'device_service.dart';
 import 'quran_service.dart';
+import 'tracking_permission_service.dart';
 
 class SettingsService extends GetxService {
   static const String _themeKey = 'theme_mode';
@@ -85,6 +86,14 @@ class SettingsService extends GetxService {
       }
 
       print('Validating device activation on startup...');
+      
+      // Request tracking permission before accessing device ID
+      final hasTrackingPermission = await TrackingPermissionService.requestTrackingPermission();
+      if (!hasTrackingPermission) {
+        print('Tracking permission denied, skipping validation');
+        return;
+      }
+
       final deviceInfo = await _deviceService.getDeviceInfo();
       final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
 
