@@ -17,6 +17,23 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            android {
+                if (!android.hasProperty('namespace')) {
+                    namespace = project.group?.toString()
+                    if (namespace == null || namespace.isEmpty()) {
+                        if (project.plugins.hasPlugin('com.android.library')) {
+                            namespace = "io.flutter.plugins.${project.name}"
+                        } else {
+                            namespace = "mr.quran_pulaar"
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 rootProject.buildDir = '../build'

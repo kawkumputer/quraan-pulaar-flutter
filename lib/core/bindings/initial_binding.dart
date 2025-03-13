@@ -8,6 +8,7 @@ import '../services/quran_service.dart';
 import '../services/cache_service.dart';
 import '../services/api_service.dart';
 import '../services/device_service.dart';
+import '../services/ad_service.dart';
 import '../controllers/activation_controller.dart';
 
 class InitialBinding extends Bindings {
@@ -27,6 +28,7 @@ class InitialBinding extends Bindings {
     Get.put<BookmarkService>(BookmarkService(), permanent: true);
     Get.put<QuranAudioService>(QuranAudioService(), permanent: true);
     Get.put<AudioService>(AudioService());
+    Get.put<AdService>(AdService());
 
     // Register QuranService with its dependencies
     final quranService = QuranService(

@@ -7,6 +7,10 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Quraan Pulaar"
         android:enableOnBackInvokedCallback="true">
+        <!-- AdMob app ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4086972652140089~7252305068"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
