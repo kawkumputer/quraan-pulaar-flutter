@@ -19,6 +19,7 @@ class RespectfulBannerAd extends StatefulWidget {
 }
 
 class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
+  final adService = Get.find<AdService>();
   BannerAd? _bannerAd;
 
   @override
@@ -31,7 +32,6 @@ class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
   }
 
   Future<void> _loadAd() async {
-    final adService = Get.find<AdService>();
     final ad = await adService.loadBannerAd();
     if (mounted) {
       setState(() => _bannerAd = ad);
@@ -41,16 +41,22 @@ class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
   @override
   Widget build(BuildContext context) {
     // Don't show ads during Quran reading or audio playback
-    if (widget.isQuranSection || widget.isAudioPlaying || _bannerAd == null) {
+    if (widget.isQuranSection || widget.isAudioPlaying) {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      alignment: Alignment.center,
-      width: _bannerAd!.size.width.toDouble(),
-      height: _bannerAd!.size.height.toDouble(),
-      child: AdWidget(ad: _bannerAd!),
-    );
+    return Obx(() {
+      if (!adService.isAdLoaded || _bannerAd == null) {
+        return const SizedBox.shrink();
+      }
+
+      return Container(
+        alignment: Alignment.center,
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
+      );
+    });
   }
 
   @override

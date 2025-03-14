@@ -6,14 +6,18 @@ import 'package:get/get.dart';
 class AdService extends GetxService {
   static AdService get to => Get.find();
   
-  // Production ad unit ID
-  final String _bannerAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
-      : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
+  // Test ad unit ID while account is pending approval
+  final String _bannerAdUnitId = kDebugMode || true // Force test ads until account approved
+      ? 'ca-app-pub-3940256099942544/6300978111'  // Test banner ID
+      : Platform.isAndroid
+          ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
+          : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
       
+  final _isAdLoaded = false.obs;
   BannerAd? _bannerAd;
-  bool _isAdLoaded = false;
 
+  bool get isAdLoaded => _isAdLoaded.value;
+  
   @override
   void onInit() {
     super.onInit();
@@ -29,12 +33,18 @@ class AdService extends GetxService {
         maxAdContentRating: MaxAdContentRating.g,
         tagForChildDirectedTreatment: TagForChildDirectedTreatment.yes,
         tagForUnderAgeOfConsent: TagForUnderAgeOfConsent.yes,
+        // Add test device ID from logs
+        testDeviceIds: ['2F6E669A1C7C8E7F1D2FF5E8AFC9C4A4'],
       ),
     );
   }
 
   // Load banner ad with content filtering
   Future<BannerAd?> loadBannerAd() async {
+    if (_bannerAd != null) {
+      return _bannerAd;
+    }
+
     final adRequest = AdRequest(
       // Additional content filtering
       keywords: ['education', 'books', 'learning', 'quran'],
@@ -48,16 +58,15 @@ class AdService extends GetxService {
       request: adRequest,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          _isAdLoaded = true;
+          _isAdLoaded.value = true;
           debugPrint('Banner ad loaded successfully');
         },
         onAdFailedToLoad: (ad, error) {
           debugPrint('Banner ad failed to load: $error');
           ad.dispose();
           _bannerAd = null;
-          _isAdLoaded = false;
+          _isAdLoaded.value = false;
         },
-        // Monitor ad content
         onAdOpened: (ad) {
           debugPrint('Ad opened - checking content');
         },
@@ -78,7 +87,7 @@ class AdService extends GetxService {
     }
   }
 
-  BannerAd? get bannerAd => _isAdLoaded ? _bannerAd : null;
+  BannerAd? get bannerAd => _isAdLoaded.value ? _bannerAd : null;
 
   @override
   void onClose() {
