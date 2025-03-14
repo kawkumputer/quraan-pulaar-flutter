@@ -98,6 +98,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () async {
                           await controller.toggleBookmark(surahNumber);
+                          Get.find<AdService>().showInterstitialAd('bookmarks_screen');
                           Get.snackbar(
                             'Maantol ittaama',
                             'Simoore nde ittaama e maantaaɗi',

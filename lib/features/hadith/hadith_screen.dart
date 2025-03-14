@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/controllers/audio_controller.dart';
 import '../../core/services/hadith_service.dart';
 import '../../core/services/settings_service.dart';
+import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
 import 'models/hadith.dart';
@@ -44,6 +45,7 @@ class HadithScreen extends StatelessWidget {
       onWillPop: () async {
         final audioController = Get.find<AudioController>();
         await audioController.stopPlaying();
+        Get.find<AdService>().showInterstitialAd('hadith_screen');
         return true;
       },
       child: Scaffold(
@@ -62,6 +64,7 @@ class HadithScreen extends StatelessWidget {
             onPressed: () async {
               final audioController = Get.find<AudioController>();
               await audioController.stopPlaying();
+              Get.find<AdService>().showInterstitialAd('hadith_screen');
               Get.back();
             },
           ),

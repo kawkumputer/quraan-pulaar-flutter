@@ -6,14 +6,25 @@ import 'package:get/get.dart';
 class AdService extends GetxService {
   static AdService get to => Get.find();
   
-  // Test ad unit ID while account is pending approval
+  // Test ad unit IDs while account is pending approval
   final String _bannerAdUnitId = kDebugMode || true // Force test ads until account approved
       ? 'ca-app-pub-3940256099942544/6300978111'  // Test banner ID
       : Platform.isAndroid
           ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
           : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
+
+  final String _interstitialAdUnitId = kDebugMode || true // Force test ads until account approved
+      ? 'ca-app-pub-3940256099942544/1033173712'  // Test interstitial ID
+      : Platform.isAndroid
+          ? 'ca-app-pub-4086972652140089/7123456789'  // Replace with your Android interstitial ID
+          : 'ca-app-pub-4086972652140089/7123456789'; // Replace with your iOS interstitial ID
       
   final _bannerAds = <String, Rx<BannerAd?>>{};
+  final _interstitialAds = <String, Rx<InterstitialAd?>>{};
+  final _lastInterstitialShow = <String, DateTime>{};
+  
+  // Minimum time between interstitial ads per screen (3 minutes)
+  static const _minInterstitialInterval = Duration(minutes: 3);
 
   @override
   void onInit() {
@@ -37,6 +48,10 @@ class AdService extends GetxService {
 
   Rx<BannerAd?> getBannerAdController(String screenId) {
     return _bannerAds.putIfAbsent(screenId, () => Rx<BannerAd?>(null));
+  }
+
+  Rx<InterstitialAd?> getInterstitialAdController(String screenId) {
+    return _interstitialAds.putIfAbsent(screenId, () => Rx<InterstitialAd?>(null));
   }
 
   // Load banner ad with content filtering
@@ -86,8 +101,71 @@ class AdService extends GetxService {
     }
   }
 
+  // Load and show interstitial ad with content filtering
+  Future<void> showInterstitialAd(String screenId) async {
+    // Check if enough time has passed since last show
+    final lastShow = _lastInterstitialShow[screenId];
+    if (lastShow != null && DateTime.now().difference(lastShow) < _minInterstitialInterval) {
+      debugPrint('Skipping interstitial ad - too soon since last show');
+      return;
+    }
+
+    final adController = getInterstitialAdController(screenId);
+    
+    final adRequest = AdRequest(
+      keywords: ['education', 'books', 'learning', 'quran'],
+      contentUrl: 'https://quran.com',
+      nonPersonalizedAds: true,
+    );
+
+    try {
+      await InterstitialAd.load(
+        adUnitId: _interstitialAdUnitId,
+        request: adRequest,
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) {
+            debugPrint('Interstitial ad loaded successfully for screen: $screenId');
+            adController.value = ad;
+            
+            // Show the ad and update last show time
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdDismissedFullScreenContent: (ad) {
+                debugPrint('Interstitial ad dismissed');
+                ad.dispose();
+                adController.value = null;
+              },
+              onAdFailedToShowFullScreenContent: (ad, error) {
+                debugPrint('Interstitial ad failed to show: $error');
+                ad.dispose();
+                adController.value = null;
+              },
+            );
+            
+            ad.show();
+            _lastInterstitialShow[screenId] = DateTime.now();
+          },
+          onAdFailedToLoad: (error) {
+            debugPrint('Interstitial ad failed to load for screen $screenId: $error');
+            adController.value = null;
+          },
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error loading interstitial ad for screen $screenId: $e');
+      adController.value = null;
+    }
+  }
+
   void disposeBannerAd(String screenId) {
     final adController = _bannerAds[screenId];
+    if (adController != null) {
+      adController.value?.dispose();
+      adController.value = null;
+    }
+  }
+
+  void disposeInterstitialAd(String screenId) {
+    final adController = _interstitialAds[screenId];
     if (adController != null) {
       adController.value?.dispose();
       adController.value = null;
@@ -99,7 +177,12 @@ class AdService extends GetxService {
     for (final adController in _bannerAds.values) {
       adController.value?.dispose();
     }
+    for (final adController in _interstitialAds.values) {
+      adController.value?.dispose();
+    }
     _bannerAds.clear();
+    _interstitialAds.clear();
+    _lastInterstitialShow.clear();
     super.onClose();
   }
 }
