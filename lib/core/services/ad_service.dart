@@ -9,17 +9,21 @@ class AdService extends GetxService {
   
   // Test ad unit IDs while account is pending approval
   final String _bannerAdUnitId = kDebugMode || true // Force test ads until account approved
-      ? 'ca-app-pub-3940256099942544/6300978111'  // Test banner ID
+      ? Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/6300978111'  // Android test banner
+          : 'ca-app-pub-3940256099942544/2934735716'  // iOS test banner
       : Platform.isAndroid
-          ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
-          : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
+          ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner
+          : 'ca-app-pub-4086972652140089/1234567890'; // iOS banner (replace with your ID)
 
   // Use test interstitial ID that enforces minimum display time
   final String _interstitialAdUnitId = kDebugMode || true
-      ? 'ca-app-pub-3940256099942544/8691691433'  // Test interstitial with minimum display time
+      ? Platform.isAndroid
+          ? 'ca-app-pub-3940256099942544/8691691433'  // Android test interstitial
+          : 'ca-app-pub-3940256099942544/4411468910'  // iOS test interstitial
       : Platform.isAndroid
-          ? 'ca-app-pub-4086972652140089/7123456789'  // Replace with your Android interstitial ID
-          : 'ca-app-pub-4086972652140089/7123456789'; // Replace with your iOS interstitial ID
+          ? 'ca-app-pub-4086972652140089/7123456789'  // Android interstitial
+          : 'ca-app-pub-4086972652140089/9876543210'; // iOS interstitial (replace with your ID)
       
   final _bannerAds = <String, Rx<BannerAd?>>{};
   final _interstitialAds = <String, Rx<InterstitialAd?>>{};
