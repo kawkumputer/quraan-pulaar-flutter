@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/models/surah_model.dart';
+import '../../core/widgets/respectful_banner_ad.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -134,6 +135,12 @@ class _SearchScreenState extends State<SearchScreen> {
                 },
               );
             }),
+          ),
+          // Add banner at bottom, not marking as Quran section since it's just search
+          const RespectfulBannerAd(
+            screenId: 'search_screen',
+            isQuranSection: false,
+            isAudioPlaying: false,
           ),
         ],
       ),

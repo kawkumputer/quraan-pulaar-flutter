@@ -4,6 +4,7 @@ import '../../core/controllers/audio_controller.dart';
 import '../../core/services/hadith_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/widgets/respectful_banner_ad.dart';
 import 'models/hadith.dart';
 import 'widgets/hadith_card.dart';
 
@@ -199,12 +200,11 @@ class HadithScreen extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            'Loowdi Kuuɓntundi',
+                            'Huuɓnu ngam heɗaade hadiisa oo',
                             style: TextStyle(
                               color: Colors.grey.shade400,
                             ),
                           ),
-                          onTap: () => Get.toNamed(AppRoutes.activation),
                         ),
                       );
                     }
@@ -212,6 +212,12 @@ class HadithScreen extends StatelessWidget {
                     return HadithCard(hadith: hadith);
                   },
                 ),
+              ),
+              // Add banner at bottom, not showing during audio playback
+              const RespectfulBannerAd(
+                screenId: 'hadith_screen',
+                isQuranSection: false,
+                isAudioPlaying: false,
               ),
             ],
           );
