@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:get/get.dart';
 
@@ -13,8 +14,9 @@ class AdService extends GetxService {
           ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
           : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
 
-  final String _interstitialAdUnitId = kDebugMode || true // Force test ads until account approved
-      ? 'ca-app-pub-3940256099942544/1033173712'  // Test interstitial ID
+  // Use test interstitial ID that enforces minimum display time
+  final String _interstitialAdUnitId = kDebugMode || true
+      ? 'ca-app-pub-3940256099942544/8691691433'  // Test interstitial with minimum display time
       : Platform.isAndroid
           ? 'ca-app-pub-4086972652140089/7123456789'  // Replace with your Android interstitial ID
           : 'ca-app-pub-4086972652140089/7123456789'; // Replace with your iOS interstitial ID
@@ -129,23 +131,14 @@ class AdService extends GetxService {
             debugPrint('Interstitial ad loaded successfully for screen: $screenId');
             adController.value = ad;
             
-            // Show the ad with minimum display duration
-            final showTime = DateTime.now();
+            // Set immersive mode for better user experience
+            await ad.setImmersiveMode(true);
+            
             ad.fullScreenContentCallback = FullScreenContentCallback(
               onAdShowedFullScreenContent: (ad) {
                 debugPrint('Interstitial ad showed full screen content');
               },
-              onAdDismissedFullScreenContent: (ad) async {
-                final now = DateTime.now();
-                final timeSinceShow = now.difference(showTime);
-                
-                if (timeSinceShow < _minAdDisplayDuration) {
-                  // If trying to close too early, wait for the remaining time
-                  final remainingTime = _minAdDisplayDuration - timeSinceShow;
-                  debugPrint('Waiting ${remainingTime.inSeconds} seconds before allowing ad close');
-                  await Future.delayed(remainingTime);
-                }
-                
+              onAdDismissedFullScreenContent: (ad) {
                 debugPrint('Interstitial ad dismissed');
                 ad.dispose();
                 adController.value = null;
@@ -156,8 +149,8 @@ class AdService extends GetxService {
                 adController.value = null;
               },
             );
-            
-            ad.show();
+
+            await ad.show();
             _lastInterstitialShow[screenId] = DateTime.now();
           },
           onAdFailedToLoad: (error) {
