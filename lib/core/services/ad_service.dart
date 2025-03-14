@@ -6,29 +6,21 @@ import 'package:get/get.dart';
 
 class AdService extends GetxService {
   static AdService get to => Get.find();
-  
+
   // Test ad unit IDs while account is pending approval
-  final String _bannerAdUnitId = kDebugMode || true // Force test ads until account approved
-      ? Platform.isAndroid
-          ? 'ca-app-pub-3940256099942544/6300978111'  // Android test banner
-          : 'ca-app-pub-3940256099942544/2934735716'  // iOS test banner
-      : Platform.isAndroid
+  final String _bannerAdUnitId = Platform.isAndroid
           ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner
           : 'ca-app-pub-4086972652140089/1234567890'; // iOS banner (replace with your ID)
 
   // Use test interstitial ID that enforces minimum display time
-  final String _interstitialAdUnitId = kDebugMode || true
-      ? Platform.isAndroid
-          ? 'ca-app-pub-3940256099942544/8691691433'  // Android test interstitial
-          : 'ca-app-pub-3940256099942544/4411468910'  // iOS test interstitial
-      : Platform.isAndroid
+  final String _interstitialAdUnitId = Platform.isAndroid
           ? 'ca-app-pub-4086972652140089/7123456789'  // Android interstitial
           : 'ca-app-pub-4086972652140089/9876543210'; // iOS interstitial (replace with your ID)
-      
+
   final _bannerAds = <String, Rx<BannerAd?>>{};
   final _interstitialAds = <String, Rx<InterstitialAd?>>{};
   final _lastInterstitialShow = <String, DateTime>{};
-  
+
   // Minimum time between interstitial ads per screen (3 minutes)
   static const _minInterstitialInterval = Duration(minutes: 3);
   // Minimum time before allowing ad close (5 seconds)
@@ -42,7 +34,7 @@ class AdService extends GetxService {
 
   Future<void> _initGoogleMobileAds() async {
     await MobileAds.instance.initialize();
-    
+
     // Set up strict content filtering
     await MobileAds.instance.updateRequestConfiguration(
       RequestConfiguration(
@@ -65,7 +57,7 @@ class AdService extends GetxService {
   // Load banner ad with content filtering
   Future<void> loadBannerAd(String screenId) async {
     final adController = getBannerAdController(screenId);
-    
+
     // Return if ad already loaded
     if (adController.value != null) {
       return;
@@ -119,7 +111,7 @@ class AdService extends GetxService {
     }
 
     final adController = getInterstitialAdController(screenId);
-    
+
     final adRequest = AdRequest(
       keywords: ['education', 'books', 'learning', 'quran'],
       contentUrl: 'https://quran.com',
@@ -134,10 +126,10 @@ class AdService extends GetxService {
           onAdLoaded: (ad) async {
             debugPrint('Interstitial ad loaded successfully for screen: $screenId');
             adController.value = ad;
-            
+
             // Set immersive mode for better user experience
             await ad.setImmersiveMode(true);
-            
+
             ad.fullScreenContentCallback = FullScreenContentCallback(
               onAdShowedFullScreenContent: (ad) {
                 debugPrint('Interstitial ad showed full screen content');
