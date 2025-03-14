@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
+import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/models/surah_model.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
@@ -17,7 +19,10 @@ class AllSurahsScreen extends GetView<QuranService> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            Get.find<AdService>().showInterstitialAd('all_surahs_screen');
+            Get.back();
+          },
         ),
         title: const Text(
           'Cimooje',

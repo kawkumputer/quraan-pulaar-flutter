@@ -25,6 +25,8 @@ class AdService extends GetxService {
   
   // Minimum time between interstitial ads per screen (3 minutes)
   static const _minInterstitialInterval = Duration(minutes: 3);
+  // Minimum time before allowing ad close (5 seconds)
+  static const _minAdDisplayDuration = Duration(seconds: 5);
 
   @override
   void onInit() {
@@ -101,7 +103,7 @@ class AdService extends GetxService {
     }
   }
 
-  // Load and show interstitial ad with content filtering
+  // Load and show interstitial ad with content filtering and minimum display time
   Future<void> showInterstitialAd(String screenId) async {
     // Check if enough time has passed since last show
     final lastShow = _lastInterstitialShow[screenId];
@@ -123,13 +125,27 @@ class AdService extends GetxService {
         adUnitId: _interstitialAdUnitId,
         request: adRequest,
         adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (ad) {
+          onAdLoaded: (ad) async {
             debugPrint('Interstitial ad loaded successfully for screen: $screenId');
             adController.value = ad;
             
-            // Show the ad and update last show time
+            // Show the ad with minimum display duration
+            final showTime = DateTime.now();
             ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdDismissedFullScreenContent: (ad) {
+              onAdShowedFullScreenContent: (ad) {
+                debugPrint('Interstitial ad showed full screen content');
+              },
+              onAdDismissedFullScreenContent: (ad) async {
+                final now = DateTime.now();
+                final timeSinceShow = now.difference(showTime);
+                
+                if (timeSinceShow < _minAdDisplayDuration) {
+                  // If trying to close too early, wait for the remaining time
+                  final remainingTime = _minAdDisplayDuration - timeSinceShow;
+                  debugPrint('Waiting ${remainingTime.inSeconds} seconds before allowing ad close');
+                  await Future.delayed(remainingTime);
+                }
+                
                 debugPrint('Interstitial ad dismissed');
                 ad.dispose();
                 adController.value = null;

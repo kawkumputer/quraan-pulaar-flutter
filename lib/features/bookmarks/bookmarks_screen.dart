@@ -20,6 +20,13 @@ class BookmarksScreen extends GetView<BookmarkService> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Maantaaɗi'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Get.find<AdService>().showInterstitialAd('bookmarks_screen');
+            Get.back();
+          },
+        ),
       ),
       body: Column(
         children: [
