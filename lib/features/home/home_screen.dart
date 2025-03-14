@@ -171,7 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const RespectfulBannerAd(), // Add banner at bottom
+          // Add banner at bottom with unique screen ID
+          const RespectfulBannerAd(
+            screenId: 'home_screen',
+            isQuranSection: false,
+          ),
         ],
       ),
     );

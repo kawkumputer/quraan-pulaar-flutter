@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
+import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
 
@@ -12,6 +13,8 @@ class BookmarksScreen extends GetView<BookmarkService> {
 
   final _quranService = Get.find<QuranService>();
   final _settingsService = Get.find<SettingsService>();
+  final _adService = Get.find<AdService>();
+  final _isAdVisible = true.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +30,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
               final allSurahs = _quranService.surahs;
 
               if (availableBookmarks.isEmpty) {
+                _isAdVisible.value = true; // Show ad when no bookmarks (non-sacred)
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -55,6 +59,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                 );
               }
 
+              _isAdVisible.value = false; // Hide ad when showing sacred content
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: availableBookmarks.length,
@@ -117,7 +122,14 @@ class BookmarksScreen extends GetView<BookmarkService> {
               );
             }),
           ),
-          const RespectfulBannerAd(), // Add banner at bottom
+          // Only show ad when no sacred content is displayed
+          Obx(() => _isAdVisible.value 
+            ? const RespectfulBannerAd(
+                screenId: 'bookmarks_screen',
+                isQuranSection: false,
+              )
+            : const SizedBox.shrink()
+          ),
         ],
       ),
     );

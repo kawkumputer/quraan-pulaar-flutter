@@ -113,7 +113,10 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
-          const RespectfulBannerAd(),
+          const RespectfulBannerAd(
+            screenId: 'settings_screen',
+            isQuranSection: false,
+          ),
         ],
       ),
     );

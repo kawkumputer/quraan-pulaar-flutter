@@ -7,11 +7,13 @@ class RespectfulBannerAd extends StatefulWidget {
   // Only show in non-sacred sections
   final bool isQuranSection;
   final bool isAudioPlaying;
+  final String screenId;
   
   const RespectfulBannerAd({
     Key? key,
     this.isQuranSection = false,
     this.isAudioPlaying = false,
+    required this.screenId,
   }) : super(key: key);
 
   @override
@@ -20,7 +22,7 @@ class RespectfulBannerAd extends StatefulWidget {
 
 class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
   final adService = Get.find<AdService>();
-  BannerAd? _bannerAd;
+  late final bannerAdController = adService.getBannerAdController(widget.screenId);
 
   @override
   void initState() {
@@ -32,10 +34,7 @@ class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
   }
 
   Future<void> _loadAd() async {
-    final ad = await adService.loadBannerAd();
-    if (mounted) {
-      setState(() => _bannerAd = ad);
-    }
+    await adService.loadBannerAd(widget.screenId);
   }
 
   @override
@@ -46,22 +45,23 @@ class _RespectfulBannerAdState extends State<RespectfulBannerAd> {
     }
 
     return Obx(() {
-      if (!adService.isAdLoaded || _bannerAd == null) {
+      final currentAd = bannerAdController.value;
+      if (currentAd == null) {
         return const SizedBox.shrink();
       }
 
       return Container(
         alignment: Alignment.center,
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: _bannerAd!),
+        width: currentAd.size.width.toDouble(),
+        height: currentAd.size.height.toDouble(),
+        child: AdWidget(ad: currentAd),
       );
     });
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    adService.disposeBannerAd(widget.screenId);
     super.dispose();
   }
 }

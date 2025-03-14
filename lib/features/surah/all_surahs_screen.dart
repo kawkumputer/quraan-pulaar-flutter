@@ -241,7 +241,10 @@ class AllSurahsScreen extends GetView<QuranService> {
               ),
             );
           }),
-          const RespectfulBannerAd(),
+          const RespectfulBannerAd(
+            screenId: 'all_surahs_screen',
+            isQuranSection: false,
+          ),
         ],
       ),
     );

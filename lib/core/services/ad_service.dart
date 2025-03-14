@@ -13,11 +13,8 @@ class AdService extends GetxService {
           ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner ID
           : 'ca-app-pub-4086972652140089/5635971060'; // Use same for iOS for now
       
-  final _isAdLoaded = false.obs;
-  BannerAd? _bannerAd;
+  final _bannerAds = <String, Rx<BannerAd?>>{};
 
-  bool get isAdLoaded => _isAdLoaded.value;
-  
   @override
   void onInit() {
     super.onInit();
@@ -33,39 +30,43 @@ class AdService extends GetxService {
         maxAdContentRating: MaxAdContentRating.g,
         tagForChildDirectedTreatment: TagForChildDirectedTreatment.yes,
         tagForUnderAgeOfConsent: TagForUnderAgeOfConsent.yes,
-        // Add test device ID from logs
         testDeviceIds: ['2F6E669A1C7C8E7F1D2FF5E8AFC9C4A4'],
       ),
     );
   }
 
+  Rx<BannerAd?> getBannerAdController(String screenId) {
+    return _bannerAds.putIfAbsent(screenId, () => Rx<BannerAd?>(null));
+  }
+
   // Load banner ad with content filtering
-  Future<BannerAd?> loadBannerAd() async {
-    if (_bannerAd != null) {
-      return _bannerAd;
+  Future<void> loadBannerAd(String screenId) async {
+    final adController = getBannerAdController(screenId);
+    
+    // Return if ad already loaded
+    if (adController.value != null) {
+      return;
     }
 
     final adRequest = AdRequest(
-      // Additional content filtering
       keywords: ['education', 'books', 'learning', 'quran'],
-      contentUrl: 'https://quran.com', // Helps AdMob understand context
-      nonPersonalizedAds: true, // Prefer non-personalized ads
+      contentUrl: 'https://quran.com',
+      nonPersonalizedAds: true,
     );
 
-    _bannerAd = BannerAd(
+    final bannerAd = BannerAd(
       adUnitId: _bannerAdUnitId,
       size: AdSize.banner,
       request: adRequest,
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          _isAdLoaded.value = true;
-          debugPrint('Banner ad loaded successfully');
+          debugPrint('Banner ad loaded successfully for screen: $screenId');
+          adController.value = ad as BannerAd;
         },
         onAdFailedToLoad: (ad, error) {
-          debugPrint('Banner ad failed to load: $error');
+          debugPrint('Banner ad failed to load for screen $screenId: $error');
           ad.dispose();
-          _bannerAd = null;
-          _isAdLoaded.value = false;
+          adController.value = null;
         },
         onAdOpened: (ad) {
           debugPrint('Ad opened - checking content');
@@ -77,21 +78,28 @@ class AdService extends GetxService {
     );
 
     try {
-      await _bannerAd?.load();
-      return _bannerAd;
+      await bannerAd.load();
     } catch (e) {
-      debugPrint('Error loading banner ad: $e');
-      _bannerAd?.dispose();
-      _bannerAd = null;
-      return null;
+      debugPrint('Error loading banner ad for screen $screenId: $e');
+      bannerAd.dispose();
+      adController.value = null;
     }
   }
 
-  BannerAd? get bannerAd => _isAdLoaded.value ? _bannerAd : null;
+  void disposeBannerAd(String screenId) {
+    final adController = _bannerAds[screenId];
+    if (adController != null) {
+      adController.value?.dispose();
+      adController.value = null;
+    }
+  }
 
   @override
   void onClose() {
-    _bannerAd?.dispose();
+    for (final adController in _bannerAds.values) {
+      adController.value?.dispose();
+    }
+    _bannerAds.clear();
     super.onClose();
   }
 }
