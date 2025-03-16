@@ -160,7 +160,7 @@ Ummoraade e Quraan Pulaar''';
               Icon(Icons.wb_sunny, color: AppTheme.primaryColor),
               const SizedBox(width: 8),
               Text(
-                'Maande hande ko',
+                'Maande hannde ko',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
