@@ -10,12 +10,12 @@ class AdService extends GetxService {
   // Test ad unit IDs while account is pending approval
   final String _bannerAdUnitId = Platform.isAndroid
           ? 'ca-app-pub-4086972652140089/5635971060'  // Android banner
-          : 'ca-app-pub-4086972652140089/1234567890'; // iOS banner (replace with your ID)
+          : 'ca-app-pub-4086972652140089/8498309250'; // iOS banner (replace with your ID)
 
   // Use test interstitial ID that enforces minimum display time
   final String _interstitialAdUnitId = Platform.isAndroid
-          ? 'ca-app-pub-4086972652140089/7123456789'  // Android interstitial
-          : 'ca-app-pub-4086972652140089/9876543210'; // iOS interstitial (replace with your ID)
+          ? 'ca-app-pub-4086972652140089/8805431018'  // Android interstitial
+          : 'ca-app-pub-4086972652140089/3794407795'; // iOS interstitial (replace with your ID)
 
   final _bannerAds = <String, Rx<BannerAd?>>{};
   final _interstitialAds = <String, Rx<InterstitialAd?>>{};
