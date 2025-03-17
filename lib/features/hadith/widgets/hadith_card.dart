@@ -92,13 +92,11 @@ class HadithCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: AudioControls(
                 audioPlayer: audioController.audioPlayer,
-                isPlaying: audioController.isPlaying.value,
-                showProgress: true,
-                onPlayPause: () => audioController.togglePlay(
-                  hadith.id,
-                  hadith.url,
-                ),
-                onStop: () => audioController.stopPlaying(),
+                onPlayPressed: () => audioController.togglePlay(hadith.id, hadith.url),
+                onPausePressed: () => audioController.togglePlay(hadith.id, hadith.url),
+                onStopPressed: () => audioController.stopPlaying(),
+                onPreviousPressed: () {},
+                onNextPressed: () {},
               ),
             );
           }),

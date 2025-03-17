@@ -3,24 +3,20 @@ import 'package:just_audio/just_audio.dart';
 
 class AudioControls extends StatelessWidget {
   final AudioPlayer audioPlayer;
-  final bool isPlaying;
-  final bool showProgress;
-  final VoidCallback onPlayPause;
-  final VoidCallback onStop;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-  final bool showNavigationButtons;
+  final VoidCallback onPlayPressed;
+  final VoidCallback onPausePressed;
+  final VoidCallback onPreviousPressed;
+  final VoidCallback onNextPressed;
+  final VoidCallback onStopPressed;
 
   const AudioControls({
     super.key,
     required this.audioPlayer,
-    required this.isPlaying,
-    this.showProgress = true,
-    required this.onPlayPause,
-    required this.onStop,
-    this.onPrevious,
-    this.onNext,
-    this.showNavigationButtons = false,
+    required this.onPlayPressed,
+    required this.onPausePressed,
+    required this.onPreviousPressed,
+    required this.onNextPressed,
+    required this.onStopPressed,
   });
 
   String _formatDuration(Duration duration) {
@@ -32,124 +28,126 @@ class AudioControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (showProgress) ...[
-          StreamBuilder<Duration>(
-            stream: audioPlayer.positionStream,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Progress bar
+          StreamBuilder<Duration?>(
+            stream: audioPlayer.durationStream,
             builder: (context, snapshot) {
-              final position = snapshot.data ?? Duration.zero;
-              final duration = audioPlayer.duration ?? Duration.zero;
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          _formatDuration(position),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
+              final duration = snapshot.data ?? Duration.zero;
+              return StreamBuilder<Duration>(
+                stream: audioPlayer.positionStream,
+                builder: (context, snapshot) {
+                  final position = snapshot.data ?? Duration.zero;
+                  return Column(
+                    children: [
+                      SliderTheme(
+                        data: SliderThemeData(
+                          trackHeight: 4,
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                          activeTrackColor: Theme.of(context).primaryColor,
+                          inactiveTrackColor: Colors.grey[300],
+                          thumbColor: Theme.of(context).primaryColor,
+                          overlayColor: Theme.of(context).primaryColor.withOpacity(0.2),
                         ),
-                        Expanded(
-                          child: Slider(
-                            value: position.inSeconds.toDouble(),
-                            max: duration.inSeconds.toDouble(),
-                            onChanged: (value) {
-                              audioPlayer.seek(Duration(seconds: value.toInt()));
-                            },
-                          ),
+                        child: Slider(
+                          min: 0,
+                          max: duration.inMilliseconds.toDouble(),
+                          value: position.inMilliseconds.toDouble().clamp(0, duration.inMilliseconds.toDouble()),
+                          onChanged: (value) {
+                            audioPlayer.seek(Duration(milliseconds: value.round()));
+                          },
                         ),
-                        Text(
-                          _formatDuration(duration),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDuration(position),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            Text(
+                              _formatDuration(duration),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
-        ],
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          const SizedBox(height: 8),
+          // Controls
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              if (showNavigationButtons && onPrevious != null) ...[
-                IconButton(
-                  icon: const Icon(Icons.skip_previous, size: 32),
-                  onPressed: audioPlayer.processingState == ProcessingState.loading ? null : onPrevious,
-                  color: Theme.of(context).primaryColor,
-                  padding: EdgeInsets.zero,
-                  splashRadius: 24,
-                ),
-                const SizedBox(width: 8),
-              ],
               IconButton(
-                icon: Icon(
-                  isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                  size: 44,
-                  color: Theme.of(context).primaryColor,
-                ),
-                onPressed: audioPlayer.processingState == ProcessingState.loading ? null : onPlayPause,
-                padding: EdgeInsets.zero,
-                splashRadius: 24,
+                icon: const Icon(Icons.skip_previous),
+                onPressed: onPreviousPressed,
               ),
-              const SizedBox(width: 20),
+              StreamBuilder<PlayerState>(
+                stream: audioPlayer.playerStateStream,
+                builder: (context, snapshot) {
+                  final playerState = snapshot.data;
+                  final processingState = playerState?.processingState;
+                  final playing = playerState?.playing;
+
+                  if (processingState == ProcessingState.loading ||
+                      processingState == ProcessingState.buffering) {
+                    return Container(
+                      margin: const EdgeInsets.all(8.0),
+                      width: 32.0,
+                      height: 32.0,
+                      child: const CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (playing != true) {
+                    return IconButton(
+                      icon: const Icon(Icons.play_arrow),
+                      iconSize: 32.0,
+                      onPressed: onPlayPressed,
+                    );
+                  }
+
+                  return IconButton(
+                    icon: const Icon(Icons.pause),
+                    iconSize: 32.0,
+                    onPressed: onPausePressed,
+                  );
+                },
+              ),
               IconButton(
-                icon: Icon(
-                  Icons.stop_circle,
-                  size: 44,
-                  color: Theme.of(context).primaryColor,
-                ),
-                onPressed: audioPlayer.processingState == ProcessingState.loading ? null : onStop,
-                padding: EdgeInsets.zero,
-                splashRadius: 24,
+                icon: const Icon(Icons.stop),
+                onPressed: onStopPressed,
               ),
-              if (showNavigationButtons && onNext != null) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.skip_next, size: 32),
-                  onPressed: audioPlayer.processingState == ProcessingState.loading ? null : onNext,
-                  color: Theme.of(context).primaryColor,
-                  padding: EdgeInsets.zero,
-                  splashRadius: 24,
-                ),
-              ],
-              if (audioPlayer.processingState == ProcessingState.loading)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+              IconButton(
+                icon: const Icon(Icons.skip_next),
+                onPressed: onNextPressed,
+              ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
