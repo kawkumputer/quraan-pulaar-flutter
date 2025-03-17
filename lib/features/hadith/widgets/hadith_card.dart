@@ -91,8 +91,9 @@ class HadithCard extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: AudioControls(
+                audioPlayer: audioController.audioPlayer,
                 isPlaying: audioController.isPlaying.value,
-                isLoading: audioController.isLoading.value,
+                showProgress: true,
                 onPlayPause: () => audioController.togglePlay(
                   hadith.id,
                   hadith.url,

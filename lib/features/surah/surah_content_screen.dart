@@ -235,8 +235,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     ),
                     child: AudioControls(
+                      audioPlayer: _audioController.audioPlayer,
                       isPlaying: _audioController.isPlaying.value,
-                      isLoading: _audioController.isLoading.value,
                       onPlayPause: _togglePlay,
                       onStop: _stopPlaying,
                       onPrevious: _previousSurah != null ? _navigateToPreviousSurah : null,
