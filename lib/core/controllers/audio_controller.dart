@@ -30,28 +30,48 @@ class AudioController extends GetxController {
     isLoading.value = false;
   }
 
-  Future<void> togglePlay(int id, String url) async {
+  Future<void> playUrl(int id, String url) async {
     try {
       isLoading.value = true;
-      
-      // Check if we're playing a different audio
       if (_currentId != id) {
         await stopPlaying();
         _currentId = id;
         await audioPlayer.setUrl(url);
       }
+      await audioPlayer.play();
+      isPlaying.value = true;
+    } catch (e) {
+      print('Error playing audio: $e');
+      Get.snackbar(
+        'Juumre',
+        'Roŋki aawtaade simoore nde',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-      if (isPlaying.value) {
-        await audioPlayer.pause();
-        isPlaying.value = false;
+  Future<void> togglePlay(int id, String url) async {
+    try {
+      if (audioPlayer.playing) {
+        await pause();
       } else {
-        await audioPlayer.play();
-        isPlaying.value = true;
+        await playUrl(id, url);
       }
     } catch (e) {
       print('Error toggling play: $e');
-    } finally {
-      isLoading.value = false;
+    }
+  }
+
+  Future<void> pause() async {
+    try {
+      await audioPlayer.pause();
+      isPlaying.value = false;
+    } catch (e) {
+      print('Error pausing audio: $e');
     }
   }
 

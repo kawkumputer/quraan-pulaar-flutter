@@ -60,10 +60,26 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
       _verseKeys[i] = GlobalKey();
     }
     _verseKeys[-1] = GlobalKey(); // Special key for Basmala
+
+    // Auto-play if coming from previous surah completion
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map<String, dynamic> && arguments['autoPlay'] == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _audioController.playUrl(widget.surah.number, widget.surah.audioUrl);
+      });
+    }
+  }
+
+  Future<void> _initializeAudioAndPlay() async {
+    try {
+      await _audioController.playUrl(widget.surah.number, widget.surah.audioUrl);
+    } catch (e) {
+      print('Error initializing audio: $e');
+    }
   }
 
   void _setupAudioPlayer() {
-    _playerStateSubscription = _audioController.audioPlayer.playerStateStream.listen((state) {
+    _playerStateSubscription = _audioController.audioPlayer.playerStateStream.listen((state) async {
       if (!mounted) return;
       if (state.processingState == ProcessingState.completed) {
         setState(() {
@@ -73,10 +89,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         
         // Auto-navigate to next surah if available
         if (_nextSurah != null) {
-          _navigateToNextSurah();
+          await _navigateToNextSurah(autoPlay: true);
         } else {
-          // If no next surah, just stop playing
-          _audioController.stopPlaying();
+          await _audioController.stopPlaying();
         }
       }
     });
@@ -144,37 +159,38 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     super.dispose();
   }
 
-  void _togglePlay() async {
-    await _audioController.togglePlay(
-      widget.surah.number,
-      widget.surah.audioUrl,
-    );
+  Future<void> _navigateToNextSurah({bool autoPlay = false}) async {
+    if (_nextSurah != null) {
+      await _audioController.stopPlaying();
+      _quranService.setCurrentSurah(_nextSurah!);
+      await Get.off(
+        () => SurahContentScreen(surah: _nextSurah!),
+        transition: Transition.rightToLeft,
+        preventDuplicates: false,
+        arguments: autoPlay ? {'autoPlay': true} : null
+      );
+    }
   }
 
-  void _stopPlaying() {
-    _audioController.stopPlaying();
-  }
-
-  void _navigateToPreviousSurah() {
+  void _navigateToPreviousSurah({bool autoPlay = false}) {
     if (_previousSurah != null) {
       _audioController.stopPlaying();
       _quranService.setCurrentSurah(_previousSurah!);
       Get.off(
         () => SurahContentScreen(surah: _previousSurah!),
+        transition: Transition.leftToRight,
         preventDuplicates: false,
+        arguments: autoPlay ? {'autoPlay': true} : null
       );
     }
   }
 
-  void _navigateToNextSurah() {
-    if (_nextSurah != null) {
-      _audioController.stopPlaying();
-      _quranService.setCurrentSurah(_nextSurah!);
-      Get.off(
-        () => SurahContentScreen(surah: _nextSurah!),
-        preventDuplicates: false,
-      );
-    }
+  void _togglePlay() {
+    _audioController.togglePlay(widget.surah.number, widget.surah.audioUrl);
+  }
+
+  void _stopPlaying() {
+    _audioController.stopPlaying();
   }
 
   @override
