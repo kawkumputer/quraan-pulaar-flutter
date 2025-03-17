@@ -5,6 +5,9 @@ import '../../core/widgets/audio_controls.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/models/surah_model.dart';
 import '../../core/models/verse_model.dart';
+import '../../core/controllers/audio_controller.dart';
+import '../../core/services/quran_service.dart';
+import '../../core/routes/app_routes.dart';
 import 'widgets/verse_card.dart';
 
 class SurahContentScreen extends StatefulWidget {
@@ -20,15 +23,29 @@ class SurahContentScreen extends StatefulWidget {
 }
 
 class _SurahContentScreenState extends State<SurahContentScreen> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioController _audioController = Get.find<AudioController>();
   final BookmarkService _bookmarkService = Get.find<BookmarkService>();
-  bool _isPlaying = false;
-  bool _isLoading = false;
+  final QuranService _quranService = Get.find<QuranService>();
   final ScrollController _scrollController = ScrollController();
   int _currentVerseIndex = 0;
   final Map<int, GlobalKey> _verseKeys = {};
   final Map<int, double> _verseTimestamps = {};
-  bool _hasInitializedVerses = false;
+
+  SurahModel? get _previousSurah {
+    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
+    if (currentIndex > 0) {
+      return _quranService.surahs[currentIndex - 1];
+    }
+    return null;
+  }
+
+  SurahModel? get _nextSurah {
+    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
+    if (currentIndex < _quranService.surahs.length - 1) {
+      return _quranService.surahs[currentIndex + 1];
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -42,12 +59,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   }
 
   void _setupAudioPlayer() {
-    // Listen to player state changes
-    _audioPlayer.playerStateStream.listen((state) {
-      setState(() {
-        _isPlaying = state.playing;
-      });
-
+    _audioController.audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
         setState(() {
           _currentVerseIndex = 0;
@@ -56,134 +68,92 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
       }
     });
 
-    // Listen to position changes
-    _audioPlayer.positionStream.listen((position) {
-      if (!_audioPlayer.playing) return;
-
-      final duration = _audioPlayer.duration;
-      if (duration == null) return;
-
-      // Initialize verse timestamps on first play
-      if (!_hasInitializedVerses) {
-        _initializeVerseTimestamps(duration);
-        _hasInitializedVerses = true;
-      }
-
-      // Find the current verse based on timestamps
-      int targetIndex = _findCurrentVerseIndex(position);
-      
-      if (targetIndex != _currentVerseIndex && targetIndex >= 0 && targetIndex < widget.surah.verses.length) {
+    _audioController.audioPlayer.positionStream.listen((position) {
+      if (!mounted) return;
+      final newIndex = _findCurrentVerseIndex(position);
+      if (newIndex != _currentVerseIndex) {
         setState(() {
-          _currentVerseIndex = targetIndex;
+          _currentVerseIndex = newIndex;
         });
-        _scrollToVerse(targetIndex);
+        _scrollToVerse(newIndex);
+      }
+    });
+
+    _audioController.audioPlayer.durationStream.listen((duration) {
+      if (duration != null) {
+        _initializeVerseTimestamps(duration);
       }
     });
   }
 
   void _initializeVerseTimestamps(Duration totalDuration) {
-    final int totalVerses = widget.surah.verses.length;
-    // Calculate approximate verse durations based on verse lengths
-    int totalTextLength = widget.surah.verses.fold(0, (sum, verse) => sum + verse.arabic.length);
-    
-    // Add Basmala length for non-Fatiha surahs
-    if (widget.surah.number != 1) {
-      totalTextLength += 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length;
-    }
-    
-    double currentTime = 0;
-    
-    // Account for Basmala timing in non-Fatiha surahs
-    if (widget.surah.number != 1) {
-      final double basmalaDuration = ('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length / totalTextLength) * totalDuration.inMilliseconds;
-      currentTime += basmalaDuration;
-    }
-    
-    for (int i = 0; i < totalVerses; i++) {
-      final verse = widget.surah.verses[i];
-      final double verseDuration = (verse.arabic.length / totalTextLength) * totalDuration.inMilliseconds;
-      _verseTimestamps[i] = currentTime;
-      currentTime += verseDuration;
+    final verseCount = widget.surah.verses.length;
+    final timePerVerse = totalDuration.inMilliseconds ~/ verseCount;
+
+    for (var i = 0; i < verseCount; i++) {
+      _verseTimestamps[i] = i * timePerVerse.toDouble();
     }
   }
 
   int _findCurrentVerseIndex(Duration position) {
-    final currentTime = position.inMilliseconds.toDouble();
-    
-    // Find the verse whose timestamp is closest to but not exceeding current time
-    int targetIndex = 0;
-    for (int i = 0; i < _verseTimestamps.length; i++) {
-      if (_verseTimestamps[i]! <= currentTime) {
-        targetIndex = i;
-      } else {
-        break;
+    if (_verseTimestamps.isEmpty) return 0;
+
+    for (var i = widget.surah.verses.length - 1; i >= 0; i--) {
+      if (position.inMilliseconds >= _verseTimestamps[i]!) {
+        return i;
       }
     }
-    
-    // Don't highlight any verse during Basmala for non-Fatiha surahs
-    if (widget.surah.number != 1 && currentTime < _verseTimestamps[0]!) {
-      return -1;
-    }
-    
-    return targetIndex;
+    return 0;
   }
 
   void _scrollToVerse(int index) {
     final key = _verseKeys[index];
     if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 500),
+      _scrollController.animateTo(
+        _scrollController.position.pixels + key!.currentContext!.findRenderObject()!.paintBounds.top - 100,
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        alignment: 0.3, // Align verse towards the top third of screen
       );
     }
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _togglePlay() async {
-    if (_isLoading) return;
+  void _togglePlay() async {
+    await _audioController.togglePlay(
+      widget.surah.number,
+      widget.surah.audioUrl,
+    );
+  }
 
-    try {
-      setState(() {
-        _isLoading = true;
-      });
+  void _stopPlaying() {
+    _audioController.stopPlaying();
+  }
 
-      if (_audioPlayer.playing) {
-        await _audioPlayer.pause();
-      } else {
-        if (_audioPlayer.duration == null) {
-          await _audioPlayer.setUrl(widget.surah.audioUrl);
-        }
-        await _audioPlayer.seek(Duration.zero);
-        await _audioPlayer.play();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Roŋki aawtaade simoore nde'),
-          backgroundColor: Colors.red,
-        ),
+  void _navigateToPreviousSurah() {
+    if (_previousSurah != null) {
+      _audioController.stopPlaying();
+      _quranService.setCurrentSurah(_previousSurah!);
+      Get.off(
+        () => SurahContentScreen(surah: _previousSurah!),
+        preventDuplicates: false,
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
-  Future<void> _stopPlaying() async {
-    await _audioPlayer.stop();
-    setState(() {
-      _currentVerseIndex = 0;
-    });
-    _scrollToVerse(0);
+  void _navigateToNextSurah() {
+    if (_nextSurah != null) {
+      _audioController.stopPlaying();
+      _quranService.setCurrentSurah(_nextSurah!);
+      Get.off(
+        () => SurahContentScreen(surah: _nextSurah!),
+        preventDuplicates: false,
+      );
+    }
   }
 
   @override
@@ -192,27 +162,39 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _stopPlaying();
+        _stopPlaying();
         return true;
       },
       child: Scaffold(
         appBar: AppBar(
-          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _stopPlaying();
+              Get.back();
+            },
+          ),
           title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 widget.surah.nameArabic,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Amiri',
+                ),
               ),
               Text(
                 widget.surah.namePulaar,
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.normal,
+                  color: Colors.grey,
                 ),
               ),
             ],
           ),
+          centerTitle: false,
           actions: [
             Obx(() => IconButton(
               icon: Icon(
@@ -223,13 +205,6 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
               onPressed: () => _bookmarkService.toggleBookmark(widget.surah.number),
             )),
           ],
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              await _stopPlaying();
-              Get.back();
-            },
-          ),
         ),
         body: Column(
           children: [
@@ -260,10 +235,13 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     ),
                     child: AudioControls(
-                      audioPlayer: _audioPlayer,
-                      isPlaying: _audioPlayer.playing,
+                      isPlaying: _audioController.isPlaying.value,
+                      isLoading: _audioController.isLoading.value,
                       onPlayPause: _togglePlay,
                       onStop: _stopPlaying,
+                      onPrevious: _previousSurah != null ? _navigateToPreviousSurah : null,
+                      onNext: _nextSurah != null ? _navigateToNextSurah : null,
+                      showNavigationButtons: true,
                     ),
                   ),
                 ],
@@ -356,7 +334,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       return VerseCard(
                         key: _verseKeys[verseIndex],
                         verse: widget.surah.verses[verseIndex],
-                        isCurrentVerse: verseIndex == _currentVerseIndex && _audioPlayer.playing,
+                        isCurrentVerse: verseIndex == _currentVerseIndex && _audioController.isPlaying.value,
                       );
                     }
                   }
