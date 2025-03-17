@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'dart:async';
 import '../../core/widgets/audio_controls.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/models/surah_model.dart';
@@ -30,6 +31,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   int _currentVerseIndex = 0;
   final Map<int, GlobalKey> _verseKeys = {};
   final Map<int, double> _verseTimestamps = {};
+  StreamSubscription? _playerStateSubscription;
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _durationSubscription;
 
   SurahModel? get _previousSurah {
     final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
@@ -59,16 +63,25 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   }
 
   void _setupAudioPlayer() {
-    _audioController.audioPlayer.playerStateStream.listen((state) {
+    _playerStateSubscription = _audioController.audioPlayer.playerStateStream.listen((state) {
+      if (!mounted) return;
       if (state.processingState == ProcessingState.completed) {
         setState(() {
           _currentVerseIndex = 0;
         });
         _scrollToVerse(0);
+        
+        // Auto-navigate to next surah if available
+        if (_nextSurah != null) {
+          _navigateToNextSurah();
+        } else {
+          // If no next surah, just stop playing
+          _audioController.stopPlaying();
+        }
       }
     });
 
-    _audioController.audioPlayer.positionStream.listen((position) {
+    _positionSubscription = _audioController.audioPlayer.positionStream.listen((position) {
       if (!mounted) return;
       final newIndex = _findCurrentVerseIndex(position);
       if (newIndex != _currentVerseIndex) {
@@ -79,7 +92,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
       }
     });
 
-    _audioController.audioPlayer.durationStream.listen((duration) {
+    _durationSubscription = _audioController.audioPlayer.durationStream.listen((duration) {
+      if (!mounted) return;
       if (duration != null) {
         _initializeVerseTimestamps(duration);
       }
@@ -109,8 +123,12 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   void _scrollToVerse(int index) {
     final key = _verseKeys[index];
     if (key?.currentContext != null) {
+      final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
+      final position = box.localToGlobal(Offset.zero);
+      final scrollPosition = position.dy;
+      
       _scrollController.animateTo(
-        _scrollController.position.pixels + key!.currentContext!.findRenderObject()!.paintBounds.top - 100,
+        scrollPosition - 100,  // Offset to show verse at top with some padding
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -119,6 +137,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
 
   @override
   void dispose() {
+    _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
