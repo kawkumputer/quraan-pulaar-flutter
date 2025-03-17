@@ -67,8 +67,8 @@ android {
         applicationId "mr.quran_pulaar"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 2072
-        versionName "2.7.2"
+        versionCode 2079
+        versionName "2.7.9"
         multiDexEnabled true
         ndk {
             debugSymbolLevel 'FULL'

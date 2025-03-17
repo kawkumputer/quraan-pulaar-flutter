@@ -41,7 +41,6 @@ class AdService extends GetxService {
         maxAdContentRating: MaxAdContentRating.g,
         tagForChildDirectedTreatment: TagForChildDirectedTreatment.yes,
         tagForUnderAgeOfConsent: TagForUnderAgeOfConsent.yes,
-        testDeviceIds: ['2F6E669A1C7C8E7F1D2FF5E8AFC9C4A4'],
       ),
     );
   }
