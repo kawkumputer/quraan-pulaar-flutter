@@ -138,14 +138,11 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   void _scrollToVerse(int index) {
     final key = _verseKeys[index];
     if (key?.currentContext != null) {
-      final RenderBox box = key!.currentContext!.findRenderObject() as RenderBox;
-      final position = box.localToGlobal(Offset.zero);
-      final scrollPosition = position.dy;
-      
-      _scrollController.animateTo(
-        scrollPosition - 100,  // Offset to show verse at top with some padding
+      Scrollable.ensureVisible(
+        key!.currentContext!,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
+        alignment: 0.2, // Position verse 20% from the top of the screen
       );
     }
   }
