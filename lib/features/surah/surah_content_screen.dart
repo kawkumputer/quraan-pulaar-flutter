@@ -167,7 +167,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 800),
         curve: Curves.easeInOut,
         alignment: 0.3, // Align verse towards the top third of screen
       );
