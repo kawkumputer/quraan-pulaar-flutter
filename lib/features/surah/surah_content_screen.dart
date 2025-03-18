@@ -116,46 +116,50 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   }
 
   void _initializeVerseTimestamps(Duration totalDuration) {
-    final verseCount = widget.surah.verses.length;
-    if (verseCount == 0) return;
+    final int totalVerses = widget.surah.verses.length;
+    // Calculate approximate verse durations based on verse lengths
+    int totalTextLength = widget.surah.verses.fold(0, (sum, verse) => sum + verse.arabic.length);
 
-    final totalMs = totalDuration.inMilliseconds;
-    double currentTime = 0;
-
-    // For all surahs except Al-Fatiha, allocate time for Basmala
+    // Add Basmala length for non-Fatiha surahs
     if (widget.surah.number != 1) {
-      _verseTimestamps[-1] = 0; // Basmala starts at 0
-      currentTime = totalMs * 0.05; // Allocate 5% of total time for Basmala
+      totalTextLength += 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length;
     }
 
-    // Calculate remaining time for verses
-    final remainingTime = totalMs - currentTime;
-    final baseTimePerVerse = remainingTime / verseCount;
+    double currentTime = 0;
 
-    // First verse (or introduction) gets extra time
-    _verseTimestamps[0] = currentTime;
-    currentTime += baseTimePerVerse * 0.5;
+    // Account for Basmala timing in non-Fatiha surahs
+    if (widget.surah.number != 1) {
+      final double basmalaDuration = ('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length / totalTextLength) * totalDuration.inMilliseconds;
+      currentTime += basmalaDuration;
+    }
 
-    // Distribute remaining time among other verses
-    final remainingVerses = verseCount - 1;
-    if (remainingVerses > 0) {
-      final timePerRemainingVerse = (totalMs - currentTime) / remainingVerses;
-      for (var i = 1; i < verseCount; i++) {
-        _verseTimestamps[i] = currentTime;
-        currentTime += timePerRemainingVerse;
-      }
+    for (int i = 0; i < totalVerses; i++) {
+      final verse = widget.surah.verses[i];
+      final double verseDuration = (verse.arabic.length / totalTextLength) * totalDuration.inMilliseconds;
+      _verseTimestamps[i] = currentTime;
+      currentTime += verseDuration;
     }
   }
 
   int _findCurrentVerseIndex(Duration position) {
-    if (_verseTimestamps.isEmpty) return 0;
+    final currentTime = position.inMilliseconds.toDouble();
 
-    for (var i = widget.surah.verses.length - 1; i >= 0; i--) {
-      if (position.inMilliseconds >= _verseTimestamps[i]!) {
-        return i;
+    // Find the verse whose timestamp is closest to but not exceeding current time
+    int targetIndex = 0;
+    for (int i = 0; i < _verseTimestamps.length; i++) {
+      if (_verseTimestamps[i]! <= currentTime) {
+        targetIndex = i;
+      } else {
+        break;
       }
     }
-    return 0;
+
+    // Don't highlight any verse during Basmala for non-Fatiha surahs
+    if (widget.surah.number != 1 && currentTime < _verseTimestamps[0]!) {
+      return -1;
+    }
+
+    return targetIndex;
   }
 
   void _scrollToVerse(int index) {
@@ -163,9 +167,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOutCubic,
-        alignment: 0.2,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        alignment: 0.3, // Align verse towards the top third of screen
       );
     }
   }
