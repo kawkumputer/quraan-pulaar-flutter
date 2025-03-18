@@ -86,7 +86,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
           _currentVerseIndex = 0;
         });
         _scrollToVerse(0);
-        
+
         // Auto-navigate to next surah if available
         if (_nextSurah != null) {
           await _navigateToNextSurah(autoPlay: true);
@@ -117,10 +117,33 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
 
   void _initializeVerseTimestamps(Duration totalDuration) {
     final verseCount = widget.surah.verses.length;
-    final timePerVerse = totalDuration.inMilliseconds ~/ verseCount;
+    if (verseCount == 0) return;
 
-    for (var i = 0; i < verseCount; i++) {
-      _verseTimestamps[i] = i * timePerVerse.toDouble();
+    final totalMs = totalDuration.inMilliseconds;
+    double currentTime = 0;
+
+    // For all surahs except Al-Fatiha, allocate time for Basmala
+    if (widget.surah.number != 1) {
+      _verseTimestamps[-1] = 0; // Basmala starts at 0
+      currentTime = totalMs * 0.05; // Allocate 5% of total time for Basmala
+    }
+
+    // Calculate remaining time for verses
+    final remainingTime = totalMs - currentTime;
+    final baseTimePerVerse = remainingTime / verseCount;
+
+    // First verse (or introduction) gets extra time
+    _verseTimestamps[0] = currentTime;
+    currentTime += baseTimePerVerse * 0.5;
+
+    // Distribute remaining time among other verses
+    final remainingVerses = verseCount - 1;
+    if (remainingVerses > 0) {
+      final timePerRemainingVerse = (totalMs - currentTime) / remainingVerses;
+      for (var i = 1; i < verseCount; i++) {
+        _verseTimestamps[i] = currentTime;
+        currentTime += timePerRemainingVerse;
+      }
     }
   }
 
@@ -140,9 +163,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        alignment: 0.2, // Position verse 20% from the top of the screen
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.2,
       );
     }
   }
