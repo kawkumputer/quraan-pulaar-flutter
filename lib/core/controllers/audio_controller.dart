@@ -33,6 +33,9 @@ class AudioController extends GetxController {
   final RxMap<int, bool> downloadedSurahs = <int, bool>{}.obs;
   final RxMap<int, bool> downloadingSurahs = <int, bool>{}.obs;
 
+  // Track app lifecycle state
+  final Rx<AppLifecycleState> _lifecycleState = AppLifecycleState.resumed.obs;
+
   AudioController() {
     _prepareArtwork();
     _initializeServices();
@@ -41,7 +44,27 @@ class AudioController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Initialize audio player
     _setupAudioPlayer();
+    
+    // Listen to app lifecycle changes
+    SystemChannels.lifecycle.setMessageHandler((msg) async {
+      switch (msg) {
+        case "AppLifecycleState.paused":
+          _lifecycleState.value = AppLifecycleState.paused;
+          break;
+        case "AppLifecycleState.resumed":
+          _lifecycleState.value = AppLifecycleState.resumed;
+          break;
+        case "AppLifecycleState.inactive":
+          _lifecycleState.value = AppLifecycleState.inactive;
+          break;
+        case "AppLifecycleState.detached":
+          _lifecycleState.value = AppLifecycleState.detached;
+          break;
+      }
+      return null;
+    });
   }
 
   @override
@@ -223,16 +246,27 @@ class AudioController extends GetxController {
           orElse: () => _quranService.surahs.first,
         );
         
-        // Navigate to next surah and wait for the navigation to complete
-        await Get.offNamed('/surah/${nextSurah.number}', arguments: nextSurah);
+        // Check if app is in foreground or background
+        final isBackground = _lifecycleState.value == AppLifecycleState.paused;
         
-        // Play the next surah
-        await playUrl(
-          nextSurah.number,
-          nextSurah.audioUrl,
-          surahName: nextSurah.namePulaar,
-          surahNameArabic: nextSurah.nameArabic,
-        );
+        if (isBackground) {
+          // In background, just play next surah without navigation
+          await playUrl(
+            nextSurah.number,
+            nextSurah.audioUrl,
+            surahName: nextSurah.namePulaar,
+            surahNameArabic: nextSurah.nameArabic,
+          );
+        } else {
+          // In foreground, navigate and play
+          await Get.offNamed('/surah/${nextSurah.number}', arguments: nextSurah);
+          await playUrl(
+            nextSurah.number,
+            nextSurah.audioUrl,
+            surahName: nextSurah.namePulaar,
+            surahNameArabic: nextSurah.nameArabic,
+          );
+        }
       }
     }
   }
@@ -261,7 +295,7 @@ class AudioController extends GetxController {
         }
 
         // If not in background, navigate to the next surah screen
-        if (!_isInBackground) {
+        if (_lifecycleState.value != AppLifecycleState.paused) {
           Get.off(
             () => SurahContentScreen(surah: nextSurah),
             transition: Transition.rightToLeft,
@@ -297,7 +331,7 @@ class AudioController extends GetxController {
         }
 
         // If not in background, navigate to the previous surah screen
-        if (!_isInBackground) {
+        if (_lifecycleState.value != AppLifecycleState.paused) {
           Get.off(
             () => SurahContentScreen(surah: previousSurah),
             transition: Transition.leftToRight,
