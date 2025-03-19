@@ -1,28 +1,78 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/surah_model.dart';
+import '../services/quran_service.dart';
+import '../../features/surah/surah_content_screen.dart';
 
 class AudioController extends GetxController {
-  final audioPlayer = AudioPlayer();  // Made public for AudioControls widget
+  final audioPlayer = AudioPlayer();
+  final QuranService _quranService = Get.find<QuranService>();
   int? _currentId;
   final RxInt currentlyPlayingId = RxInt(-1);
   final RxBool isLoading = RxBool(false);
   final RxBool isPlaying = RxBool(false);
   String? _artworkPath;
+  bool _isInBackground = false;
 
   AudioController() {
+    _prepareArtwork();
+    _setupAudioPlayer();
+  }
+
+  void _setupAudioPlayer() {
     // Listen to player state changes
-    audioPlayer.playerStateStream.listen((state) {
+    audioPlayer.playerStateStream.listen((state) async {
       if (state.processingState == ProcessingState.completed) {
-        _resetState();
+        // Handle auto-play to next surah
+        if (_currentId != null) {
+          final currentSurah = _quranService.surahs.firstWhere(
+            (s) => s.number == _currentId,
+            orElse: () => _quranService.surahs.first,
+          );
+          final currentIndex = _quranService.surahs.indexOf(currentSurah);
+          
+          if (currentIndex < _quranService.surahs.length - 1) {
+            final nextSurah = _quranService.surahs[currentIndex + 1];
+            await playUrl(
+              nextSurah.number,
+              nextSurah.audioUrl,
+              surahName: nextSurah.namePulaar,
+              surahNameArabic: nextSurah.nameArabic,
+            );
+            
+            // Update the current surah in QuranService
+            _quranService.setCurrentSurah(nextSurah);
+            
+            // If not in background, navigate to the next surah screen
+            if (!_isInBackground) {
+              Get.off(
+                () => SurahContentScreen(surah: nextSurah),
+                transition: Transition.rightToLeft,
+                preventDuplicates: false,
+              );
+            }
+          } else {
+            _resetState();
+          }
+        }
       }
       isPlaying.value = state.playing;
     });
-    _prepareArtwork();
+
+    // Listen to app lifecycle changes
+    SystemChannels.lifecycle.setMessageHandler((msg) async {
+      if (msg == AppLifecycleState.paused.toString()) {
+        _isInBackground = true;
+      } else if (msg == AppLifecycleState.resumed.toString()) {
+        _isInBackground = false;
+      }
+      return null;
+    });
   }
 
   Future<void> _prepareArtwork() async {
@@ -47,6 +97,7 @@ class AudioController extends GetxController {
     currentlyPlayingId.value = -1;
     isPlaying.value = false;
     isLoading.value = false;
+    _currentId = null;
   }
 
   Future<void> playUrl(int id, String url, {String? surahName, String? surahNameArabic}) async {
