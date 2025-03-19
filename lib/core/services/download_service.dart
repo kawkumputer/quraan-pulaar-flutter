@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import '../models/surah_model.dart';
 
 class DownloadService extends GetxService {
-  final Map<int, RxBool> _downloadedSurahs = {};
-  final Map<int, RxBool> _downloadingSurahs = {};
+  // Using RxMap instead of Map<int, RxBool>
+  final _downloadedSurahs = <int, bool>{}.obs;
+  final _downloadingSurahs = <int, bool>{}.obs;
+  final _downloadProgress = <int, double>{}.obs;
   
   DownloadService() {
     init();
@@ -32,7 +34,8 @@ class DownloadService extends GetxService {
           final fileName = file.path.split('/').last;
           final surahNumber = int.tryParse(fileName.split('.').first);
           if (surahNumber != null) {
-            _downloadedSurahs[surahNumber] = RxBool(true);
+            _downloadedSurahs[surahNumber] = true;
+            _downloadProgress[surahNumber] = 1.0; // 100% for completed downloads
           }
         }
       }
@@ -40,11 +43,15 @@ class DownloadService extends GetxService {
   }
 
   bool isDownloaded(int surahNumber) {
-    return _downloadedSurahs[surahNumber]?.value ?? false;
+    return _downloadedSurahs[surahNumber] ?? false;
   }
 
   bool isDownloading(int surahNumber) {
-    return _downloadingSurahs[surahNumber]?.value ?? false;
+    return _downloadingSurahs[surahNumber] ?? false;
+  }
+
+  double getProgress(int surahNumber) {
+    return _downloadProgress[surahNumber] ?? 0.0;
   }
 
   Future<String?> getOfflineUrl(int surahNumber) async {
@@ -62,36 +69,58 @@ class DownloadService extends GetxService {
     }
 
     try {
-      _downloadingSurahs[surah.number] = RxBool(true);
+      _downloadingSurahs[surah.number] = true;
+      _downloadProgress[surah.number] = 0.0;
       
-      final response = await http.get(Uri.parse(surah.audioUrl));
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(surah.audioUrl));
+      final response = await client.send(request);
+      
       if (response.statusCode == 200) {
         final dir = await _downloadDir;
         final file = File('$dir/${surah.number}.mp3');
-        await file.writeAsBytes(response.bodyBytes);
+        final sink = file.openWrite();
         
-        _downloadedSurahs[surah.number] = RxBool(true);
-        _downloadingSurahs[surah.number] = RxBool(false);
+        final contentLength = response.contentLength ?? 0;
+        var downloaded = 0;
+        
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          downloaded += chunk.length;
+          if (contentLength > 0) {
+            _downloadProgress[surah.number] = downloaded / contentLength;
+          }
+        }
+        
+        await sink.close();
+        _downloadedSurahs[surah.number] = true;
+        _downloadProgress[surah.number] = 1.0;
+        _downloadingSurahs[surah.number] = false;
         return true;
       }
+      
+      _downloadingSurahs[surah.number] = false;
+      return false;
     } catch (e) {
       print('Error downloading surah ${surah.number}: $e');
+      _downloadingSurahs[surah.number] = false;
+      return false;
     }
-    
-    _downloadingSurahs[surah.number] = RxBool(false);
-    return false;
   }
 
-  Future<void> deleteSurah(int surahNumber) async {
+  Future<bool> deleteSurah(int surahNumber) async {
     try {
       final dir = await _downloadDir;
       final file = File('$dir/$surahNumber.mp3');
       if (await file.exists()) {
         await file.delete();
-        _downloadedSurahs[surahNumber]?.value = false;
       }
+      _downloadedSurahs.remove(surahNumber);
+      _downloadProgress.remove(surahNumber);
+      return true;
     } catch (e) {
       print('Error deleting surah $surahNumber: $e');
+      return false;
     }
   }
 }

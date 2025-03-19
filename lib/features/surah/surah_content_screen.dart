@@ -10,6 +10,7 @@ import '../../core/controllers/audio_controller.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/routes/app_routes.dart';
 import 'widgets/verse_card.dart';
+import 'widgets/download_button.dart';
 
 class SurahContentScreen extends StatefulWidget {
   final SurahModel surah;
@@ -252,72 +253,84 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
           centerTitle: false,
           actions: [
             // Download button
-            GetX<AudioController>(
-              builder: (controller) {
-                if (controller.isSurahDownloaded(widget.surah.number)) {
-                  return IconButton(
-                    icon: const Icon(Icons.download_done),
-                    onPressed: () {
-                      Get.dialog(
-                        AlertDialog(
-                          title: const Text('Momtu Simoore'),
-                          content: const Text('Aɗa yiɗi momtude simoore nde?'),
-                          actions: [
-                            TextButton(
-                              child: const Text('Alaa'),
-                              onPressed: () => Get.back(),
-                            ),
-                            TextButton(
-                              child: const Text('Eyy'),
-                              onPressed: () async {
-                                await controller.deleteSurah(widget.surah.number);
-                                Get.back();
-                              },
-                            ),
-                          ],
+            Obx(() {
+              final controller = Get.find<AudioController>();
+              if (controller.isSurahDownloaded(widget.surah.number)) {
+                return IconButton(
+                  icon: const Icon(Icons.download_done),
+                  onPressed: () {
+                    Get.dialog(
+                      AlertDialog(
+                        title: const Text('Momtu Simoore'),
+                        content: const Text('Aɗa yiɗi momtude simoore nde?'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Alaa'),
+                            onPressed: () => Get.back(),
+                          ),
+                          TextButton(
+                            child: const Text('Eyy'),
+                            onPressed: () async {
+                              await controller.deleteSurah(widget.surah.number);
+                              Get.back();
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              } else if (controller.isSurahDownloading(widget.surah.number)) {
+                return IconButton(
+                  onPressed: null,
+                  icon: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          value: controller.getSurahDownloadProgress(widget.surah.number),
+                          strokeWidth: 2,
+                          backgroundColor: Colors.grey.withOpacity(0.3),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.primary,
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.download_outlined),
+                  onPressed: () async {
+                    final success = await controller.downloadSurah(widget.surah.number);
+                    if (!success) {
+                      Get.snackbar(
+                        'Juumre',
+                        'Roŋki aawde simoore nde',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Get.theme.colorScheme.error,
+                        colorText: Get.theme.colorScheme.onError,
                       );
-                    },
-                  );
-                } else if (controller.isSurahDownloading(widget.surah.number)) {
-                  return const IconButton(
-                    icon: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    onPressed: null,
-                  );
-                } else {
-                  return IconButton(
-                    icon: const Icon(Icons.download_outlined),
-                    onPressed: () async {
-                      final success = await controller.downloadSurah(widget.surah.number);
-                      if (!success) {
-                        Get.snackbar(
-                          'Juumre',
-                          'Roŋki aawde simoore nde',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Get.theme.colorScheme.error,
-                          colorText: Get.theme.colorScheme.onError,
-                        );
-                      }
-                    },
-                  );
-                }
-              },
-            ),
+                    }
+                  },
+                );
+              }
+            }),
             // Bookmark button
-            GetX<BookmarkService>(
-              builder: (controller) => IconButton(
+            Obx(() {
+              final controller = Get.find<BookmarkService>();
+              return IconButton(
                 icon: Icon(
                   controller.isBookmarked(widget.surah.number)
                     ? Icons.bookmark
                     : Icons.bookmark_border
                 ),
                 onPressed: () => controller.toggleBookmark(widget.surah.number),
-              ),
-            ),
+              );
+            }),
           ],
         ),
         body: Column(

@@ -346,33 +346,24 @@ class AudioController extends GetxController {
   }
 
   bool isSurahDownloaded(int surahNumber) {
-    return downloadedSurahs[surahNumber] ?? false;
+    return _downloadService.isDownloaded(surahNumber);
   }
 
   bool isSurahDownloading(int surahNumber) {
-    return downloadingSurahs[surahNumber] ?? false;
+    return _downloadService.isDownloading(surahNumber);
+  }
+
+  double getSurahDownloadProgress(int surahNumber) {
+    return _downloadService.getProgress(surahNumber);
   }
 
   Future<bool> downloadSurah(int surahNumber) async {
-    if (downloadingSurahs[surahNumber] == true) return false;
-    if (downloadedSurahs[surahNumber] == true) return true;
-
     try {
-      downloadingSurahs[surahNumber] = true;
-      final surah = _quranService.surahs.firstWhere(
-        (s) => s.number == surahNumber,
-        orElse: () => throw Exception('Surah not found'),
-      );
-      final success = await _downloadService.downloadSurah(surah);
-      if (success) {
-        downloadedSurahs[surahNumber] = true;
-      }
-      return success;
+      final surah = _quranService.surahs.firstWhere((s) => s.number == surahNumber);
+      return await _downloadService.downloadSurah(surah);
     } catch (e) {
       print('Error downloading surah: $e');
       return false;
-    } finally {
-      downloadingSurahs[surahNumber] = false;
     }
   }
 
