@@ -30,35 +30,7 @@ class AudioController extends GetxController {
       if (state.processingState == ProcessingState.completed) {
         // Handle auto-play to next surah
         if (_currentId != null) {
-          final currentSurah = _quranService.surahs.firstWhere(
-            (s) => s.number == _currentId,
-            orElse: () => _quranService.surahs.first,
-          );
-          final currentIndex = _quranService.surahs.indexOf(currentSurah);
-          
-          if (currentIndex < _quranService.surahs.length - 1) {
-            final nextSurah = _quranService.surahs[currentIndex + 1];
-            await playUrl(
-              nextSurah.number,
-              nextSurah.audioUrl,
-              surahName: nextSurah.namePulaar,
-              surahNameArabic: nextSurah.nameArabic,
-            );
-            
-            // Update the current surah in QuranService
-            _quranService.setCurrentSurah(nextSurah);
-            
-            // If not in background, navigate to the next surah screen
-            if (!_isInBackground) {
-              Get.off(
-                () => SurahContentScreen(surah: nextSurah),
-                transition: Transition.rightToLeft,
-                preventDuplicates: false,
-              );
-            }
-          } else {
-            _resetState();
-          }
+          await navigateToNextSurah(autoPlay: true);
         }
       }
       isPlaying.value = state.playing;
@@ -168,6 +140,78 @@ class AudioController extends GetxController {
       currentlyPlayingId.value = -1;
     } catch (e) {
       print('Error stopping playback: $e');
+    }
+  }
+
+  Future<void> navigateToNextSurah({bool autoPlay = true}) async {
+    if (_currentId != null) {
+      final currentSurah = _quranService.surahs.firstWhere(
+        (s) => s.number == _currentId,
+        orElse: () => _quranService.surahs.first,
+      );
+      final currentIndex = _quranService.surahs.indexOf(currentSurah);
+      
+      if (currentIndex < _quranService.surahs.length - 1) {
+        final nextSurah = _quranService.surahs[currentIndex + 1];
+        
+        // Update the current surah in QuranService
+        _quranService.setCurrentSurah(nextSurah);
+        
+        if (autoPlay) {
+          await playUrl(
+            nextSurah.number,
+            nextSurah.audioUrl,
+            surahName: nextSurah.namePulaar,
+            surahNameArabic: nextSurah.nameArabic,
+          );
+        }
+        
+        // If not in background, navigate to the next surah screen
+        if (!_isInBackground) {
+          Get.off(
+            () => SurahContentScreen(surah: nextSurah),
+            transition: Transition.rightToLeft,
+            preventDuplicates: false,
+            arguments: autoPlay ? {'autoPlay': true} : null,
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> navigateToPreviousSurah({bool autoPlay = true}) async {
+    if (_currentId != null) {
+      final currentSurah = _quranService.surahs.firstWhere(
+        (s) => s.number == _currentId,
+        orElse: () => _quranService.surahs.first,
+      );
+      final currentIndex = _quranService.surahs.indexOf(currentSurah);
+      
+      if (currentIndex > 0) {
+        final previousSurah = _quranService.surahs[currentIndex - 1];
+        
+        // Update the current surah in QuranService
+        _quranService.setCurrentSurah(previousSurah);
+        
+        if (autoPlay) {
+          await playUrl(
+            previousSurah.number,
+            previousSurah.audioUrl,
+            surahName: previousSurah.namePulaar,
+            surahNameArabic: previousSurah.nameArabic,
+          );
+        }
+        
+        // If not in background, navigate to the previous surah screen
+        if (!_isInBackground) {
+          Get.off(
+            () => SurahContentScreen(surah: previousSurah),
+            transition: Transition.leftToRight,
+            preventDuplicates: false,
+            arguments: autoPlay ? {'autoPlay': true} : null,
+          );
+        }
+      }
     }
   }
 }
