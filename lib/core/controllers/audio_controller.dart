@@ -7,14 +7,21 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../models/surah_model.dart';
 import '../services/quran_service.dart';
+import '../services/download_service.dart';
 import '../../features/surah/surah_content_screen.dart';
 
 // Track content type to handle different playback behaviors
 enum AudioContentType { surah, hadith }
 
 class AudioController extends GetxController {
-  final audioPlayer = AudioPlayer();
-  final QuranService _quranService = Get.find<QuranService>();
+  AudioPlayer? _audioPlayer;
+  AudioPlayer get audioPlayer {
+    _audioPlayer ??= AudioPlayer();
+    return _audioPlayer!;
+  }
+  
+  late final QuranService _quranService;
+  late final DownloadService _downloadService;
   int? _currentId;
   final RxInt currentlyPlayingId = RxInt(-1);
   final RxBool isLoading = RxBool(false);
@@ -22,67 +29,72 @@ class AudioController extends GetxController {
   String? _artworkPath;
   bool _isInBackground = false;
   AudioContentType _currentContentType = AudioContentType.surah;
+  final RxBool isInitialized = RxBool(false);
+  final RxMap<int, bool> downloadedSurahs = <int, bool>{}.obs;
+  final RxMap<int, bool> downloadingSurahs = <int, bool>{}.obs;
 
   AudioController() {
     _prepareArtwork();
+    _initializeServices();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
     _setupAudioPlayer();
   }
 
-  void _setupAudioPlayer() {
-    // Listen to player state changes
-    audioPlayer.playerStateStream.listen((state) async {
-      if (state.processingState == ProcessingState.completed) {
-        // Only handle auto-play for surahs
-        if (_currentId != null && _currentContentType == AudioContentType.surah) {
-          // Reset state before navigating to ensure clean state
-          final currentId = _currentId;  // Store current ID before reset
-          _resetState();
-          
-          // Find and play next surah
-          final currentSurah = _quranService.surahs.firstWhere(
-            (s) => s.number == currentId,
-            orElse: () => _quranService.surahs.first,
-          );
-          final currentIndex = _quranService.surahs.indexOf(currentSurah);
-          
-          if (currentIndex < _quranService.surahs.length - 1) {
-            final nextSurah = _quranService.surahs[currentIndex + 1];
-            _quranService.setCurrentSurah(nextSurah);
-            
-            // Play next surah immediately
-            await playUrl(
-              nextSurah.number,
-              nextSurah.audioUrl,
-              surahName: nextSurah.namePulaar,
-              surahNameArabic: nextSurah.nameArabic,
-            );
-            
-            // Only navigate if app is in foreground
-            if (!_isInBackground) {
-              Get.off(
-                () => SurahContentScreen(surah: nextSurah),
-                transition: Transition.rightToLeft,
-                preventDuplicates: false,
-                arguments: {'autoPlay': true},
-              );
-            }
-          }
-        } else {
-          _resetState();
+  @override
+  void onClose() {
+    _audioPlayer?.dispose();
+    _audioPlayer = null;
+    super.onClose();
+  }
+
+  void _initializeServices() {
+    try {
+      _quranService = Get.find<QuranService>();
+      _downloadService = Get.find<DownloadService>();
+      _loadDownloadedSurahs();
+      isInitialized.value = true;
+    } catch (e) {
+      print('Error initializing AudioController services: $e');
+      // Retry after a short delay
+      Future.delayed(const Duration(milliseconds: 100), _initializeServices);
+    }
+  }
+
+  Future<void> _loadDownloadedSurahs() async {
+    try {
+      for (var i = 1; i <= _quranService.surahs.length; i++) {
+        if (_downloadService.isDownloaded(i)) {
+          downloadedSurahs[i] = true;
         }
       }
-      isPlaying.value = state.playing;
-    });
+    } catch (e) {
+      print('Error loading downloaded surahs: $e');
+    }
+  }
 
-    // Listen to app lifecycle changes
-    SystemChannels.lifecycle.setMessageHandler((msg) async {
-      if (msg == AppLifecycleState.paused.toString()) {
-        _isInBackground = true;
-      } else if (msg == AppLifecycleState.resumed.toString()) {
-        _isInBackground = false;
-      }
-      return null;
-    });
+  void _setupAudioPlayer() {
+    if (!isInitialized.value) {
+      Future.delayed(const Duration(milliseconds: 100), _setupAudioPlayer);
+      return;
+    }
+
+    try {
+      audioPlayer.playerStateStream.listen((state) {
+        isPlaying.value = state.playing;
+      });
+
+      audioPlayer.processingStateStream.listen((state) {
+        if (state == ProcessingState.completed) {
+          _onPlaybackComplete();
+        }
+      });
+    } catch (e) {
+      print('Error setting up audio player: $e');
+    }
   }
 
   Future<void> _prepareArtwork() async {
@@ -95,12 +107,6 @@ class AudioController extends GetxController {
     } catch (e) {
       print('Error preparing artwork: $e');
     }
-  }
-
-  @override
-  void onClose() {
-    audioPlayer.dispose();
-    super.onClose();
   }
 
   void _resetState() {
@@ -117,33 +123,47 @@ class AudioController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      if (_currentId != id) {
-        await stopPlaying();
-        _currentId = id;
-        _currentContentType = contentType;
+      _currentId = id;
+      _currentContentType = contentType;
 
-        // Set audio source with metadata for background playback
-        final audioSource = AudioSource.uri(
-          Uri.parse(url),
-          tag: MediaItem(
-            id: id.toString(),
-            title: contentType == AudioContentType.surah
-              ? (surahName ?? 'Simoore $id')
-              : 'Hadiis $id',
-            artist: 'Quraan Pulaar',
-            album: contentType == AudioContentType.surah ? 'Quraan Pulaar' : 'Hadiisaaji',
-            displayTitle: contentType == AudioContentType.surah ? '$surahName - $surahNameArabic' : null,
-            artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
-          ),
-        );
-
-        await audioPlayer.setAudioSource(audioSource);
+      // Check for offline file first
+      String audioUrl = url;
+      if (contentType == AudioContentType.surah) {
+        final offlineUrl = await _downloadService.getOfflineUrl(id);
+        if (offlineUrl != null) {
+          audioUrl = offlineUrl;
+        }
       }
+
+      // Set audio source with metadata for background playback
+      final audioSource = AudioSource.uri(
+        Uri.parse(audioUrl),
+        tag: MediaItem(
+          id: id.toString(),
+          title: contentType == AudioContentType.surah
+            ? (surahName ?? 'Simoore $id')
+            : 'Hadiis $id',
+          artist: 'Quraan Pulaar',
+          album: contentType == AudioContentType.surah ? 'Quraan Pulaar' : 'Hadiisaaji',
+          displayTitle: contentType == AudioContentType.surah ? '$surahName - $surahNameArabic' : null,
+          artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
+        ),
+      );
+
+      await audioPlayer.setAudioSource(audioSource);
       await audioPlayer.play();
       isPlaying.value = true;
       currentlyPlayingId.value = id;
+
+      // If online and not downloaded, try to download for next time
+      if (contentType == AudioContentType.surah && !(downloadedSurahs[id] ?? false)) {
+        final surah = _quranService.surahs.firstWhere((s) => s.number == id);
+        downloadSurah(id); // Don't await, let it download in background
+      }
     } catch (e) {
       print('Error playing audio: $e');
+      isPlaying.value = false;
+      currentlyPlayingId.value = -1;
       Get.snackbar(
         'Juumre',
         'Roŋki aawtaade ${_currentContentType == AudioContentType.surah ? "simoore" : "hadiisa"} nde',
@@ -188,10 +208,23 @@ class AudioController extends GetxController {
     try {
       await audioPlayer.stop();
       isPlaying.value = false;
-      _currentId = null;
       currentlyPlayingId.value = -1;
     } catch (e) {
-      print('Error stopping playback: $e');
+      print('Error stopping audio: $e');
+    }
+  }
+
+  void _onPlaybackComplete() async {
+    if (_currentContentType == AudioContentType.surah) {
+      // Auto-play next surah
+      final nextSurahNumber = (_currentId ?? 0) + 1;
+      if (nextSurahNumber <= _quranService.surahs.length) {
+        final nextSurah = _quranService.surahs.firstWhere(
+          (s) => s.number == nextSurahNumber,
+          orElse: () => _quranService.surahs.first,
+        );
+        Get.offNamed('/surah/${nextSurah.number}', arguments: nextSurah);
+      }
     }
   }
 
@@ -264,6 +297,46 @@ class AudioController extends GetxController {
           );
         }
       }
+    }
+  }
+
+  bool isSurahDownloaded(int surahNumber) {
+    return downloadedSurahs[surahNumber] ?? false;
+  }
+
+  bool isSurahDownloading(int surahNumber) {
+    return downloadingSurahs[surahNumber] ?? false;
+  }
+
+  Future<bool> downloadSurah(int surahNumber) async {
+    if (downloadingSurahs[surahNumber] == true) return false;
+    if (downloadedSurahs[surahNumber] == true) return true;
+
+    try {
+      downloadingSurahs[surahNumber] = true;
+      final surah = _quranService.surahs.firstWhere(
+        (s) => s.number == surahNumber,
+        orElse: () => throw Exception('Surah not found'),
+      );
+      final success = await _downloadService.downloadSurah(surah);
+      if (success) {
+        downloadedSurahs[surahNumber] = true;
+      }
+      return success;
+    } catch (e) {
+      print('Error downloading surah: $e');
+      return false;
+    } finally {
+      downloadingSurahs[surahNumber] = false;
+    }
+  }
+
+  Future<void> deleteSurah(int surahNumber) async {
+    try {
+      await _downloadService.deleteSurah(surahNumber);
+      downloadedSurahs[surahNumber] = false;
+    } catch (e) {
+      print('Error deleting surah: $e');
     }
   }
 }

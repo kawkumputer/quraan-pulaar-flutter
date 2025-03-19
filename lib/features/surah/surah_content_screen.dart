@@ -24,9 +24,9 @@ class SurahContentScreen extends StatefulWidget {
 }
 
 class _SurahContentScreenState extends State<SurahContentScreen> {
-  final AudioController _audioController = Get.find<AudioController>();
-  final BookmarkService _bookmarkService = Get.find<BookmarkService>();
-  final QuranService _quranService = Get.find<QuranService>();
+  late final AudioController _audioController;
+  late final BookmarkService _bookmarkService;
+  late final QuranService _quranService;
   final ScrollController _scrollController = ScrollController();
   int _currentVerseIndex = 0;
   final Map<int, GlobalKey> _verseKeys = {};
@@ -34,61 +34,51 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _positionSubscription;
   StreamSubscription? _durationSubscription;
-
-  SurahModel? get _previousSurah {
-    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
-    if (currentIndex > 0) {
-      return _quranService.surahs[currentIndex - 1];
-    }
-    return null;
-  }
-
-  SurahModel? get _nextSurah {
-    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
-    if (currentIndex < _quranService.surahs.length - 1) {
-      return _quranService.surahs[currentIndex + 1];
-    }
-    return null;
-  }
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _setupAudioPlayer();
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
+    try {
+      _audioController = Get.find<AudioController>();
+      _bookmarkService = Get.find<BookmarkService>();
+      _quranService = Get.find<QuranService>();
+      
+      // Wait for AudioController to be fully initialized
+      if (!_audioController.isInitialized.value) {
+        ever(_audioController.isInitialized, (bool initialized) {
+          if (initialized && !_isInitialized) {
+            _isInitialized = true;
+            _setupSubscriptions();
+            setState(() {});
+          }
+        });
+        return;
+      }
+      
+      _isInitialized = true;
+      _setupSubscriptions();
+    } catch (e) {
+      print('Error initializing controllers: $e');
+      Future.delayed(const Duration(milliseconds: 100), _initializeControllers);
+    }
+  }
+
+  void _setupSubscriptions() {
     // Initialize verse keys
     for (int i = 0; i < widget.surah.verses.length; i++) {
       _verseKeys[i] = GlobalKey();
     }
     _verseKeys[-1] = GlobalKey(); // Special key for Basmala
 
-    // Auto-play if coming from previous surah completion
-    final arguments = Get.arguments;
-    if (arguments != null && arguments is Map<String, dynamic> && arguments['autoPlay'] == true) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _audioController.playUrl(
-          widget.surah.number,
-          widget.surah.audioUrl,
-          surahName: widget.surah.namePulaar,
-          surahNameArabic: widget.surah.nameArabic,
-        );
-      });
-    }
-  }
+    _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
 
-  Future<void> _initializeAudioAndPlay() async {
-    try {
-      await _audioController.playUrl(
-        widget.surah.number,
-        widget.surah.audioUrl,
-        surahName: widget.surah.namePulaar,
-        surahNameArabic: widget.surah.nameArabic,
-      );
-    } catch (e) {
-      print('Error initializing audio: $e');
-    }
-  }
-
-  void _setupAudioPlayer() {
     _playerStateSubscription = _audioController.audioPlayer.playerStateStream.listen((state) async {
       if (!mounted) return;
       if (state.processingState == ProcessingState.completed) {
@@ -123,6 +113,35 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         _initializeVerseTimestamps(duration);
       }
     });
+  }
+
+  SurahModel? get _previousSurah {
+    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
+    if (currentIndex > 0) {
+      return _quranService.surahs[currentIndex - 1];
+    }
+    return null;
+  }
+
+  SurahModel? get _nextSurah {
+    final currentIndex = _quranService.surahs.indexWhere((s) => s.number == widget.surah.number);
+    if (currentIndex < _quranService.surahs.length - 1) {
+      return _quranService.surahs[currentIndex + 1];
+    }
+    return null;
+  }
+
+  Future<void> _initializeAudioAndPlay() async {
+    try {
+      await _audioController.playUrl(
+        widget.surah.number,
+        widget.surah.audioUrl,
+        surahName: widget.surah.namePulaar,
+        surahNameArabic: widget.surah.nameArabic,
+      );
+    } catch (e) {
+      print('Error initializing audio: $e');
+    }
   }
 
   void _initializeVerseTimestamps(Duration totalDuration) {
@@ -185,55 +204,15 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   }
 
   @override
-  void dispose() {
-    _playerStateSubscription?.cancel();
-    _positionSubscription?.cancel();
-    _durationSubscription?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _navigateToNextSurah({bool autoPlay = false}) async {
-    if (_nextSurah != null) {
-      await _audioController.stopPlaying();
-      _quranService.setCurrentSurah(_nextSurah!);
-      await Get.off(
-        () => SurahContentScreen(surah: _nextSurah!),
-        transition: Transition.rightToLeft,
-        preventDuplicates: false,
-        arguments: autoPlay ? {'autoPlay': true} : null
-      );
-    }
-  }
-
-  void _navigateToPreviousSurah({bool autoPlay = false}) {
-    if (_previousSurah != null) {
-      _audioController.stopPlaying();
-      _quranService.setCurrentSurah(_previousSurah!);
-      Get.off(
-        () => SurahContentScreen(surah: _previousSurah!),
-        transition: Transition.leftToRight,
-        preventDuplicates: false,
-        arguments: autoPlay ? {'autoPlay': true} : null
-      );
-    }
-  }
-
-  void _togglePlay() {
-    _audioController.togglePlay(
-      widget.surah.number,
-      widget.surah.audioUrl,
-      surahName: widget.surah.namePulaar,
-      surahNameArabic: widget.surah.nameArabic,
-    );
-  }
-
-  void _stopPlaying() {
-    _audioController.stopPlaying();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     final screenHeight = MediaQuery.of(context).size.height;
 
     return WillPopScope(
@@ -272,14 +251,73 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
           ),
           centerTitle: false,
           actions: [
-            Obx(() => IconButton(
-              icon: Icon(
-                _bookmarkService.isBookmarked(widget.surah.number)
-                  ? Icons.bookmark
-                  : Icons.bookmark_border
+            // Download button
+            GetX<AudioController>(
+              builder: (controller) {
+                if (controller.isSurahDownloaded(widget.surah.number)) {
+                  return IconButton(
+                    icon: const Icon(Icons.download_done),
+                    onPressed: () {
+                      Get.dialog(
+                        AlertDialog(
+                          title: const Text('Momtu Simoore'),
+                          content: const Text('Aɗa yiɗi momtude simoore nde?'),
+                          actions: [
+                            TextButton(
+                              child: const Text('Alaa'),
+                              onPressed: () => Get.back(),
+                            ),
+                            TextButton(
+                              child: const Text('Eyy'),
+                              onPressed: () async {
+                                await controller.deleteSurah(widget.surah.number);
+                                Get.back();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                } else if (controller.isSurahDownloading(widget.surah.number)) {
+                  return const IconButton(
+                    icon: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    onPressed: null,
+                  );
+                } else {
+                  return IconButton(
+                    icon: const Icon(Icons.download_outlined),
+                    onPressed: () async {
+                      final success = await controller.downloadSurah(widget.surah.number);
+                      if (!success) {
+                        Get.snackbar(
+                          'Juumre',
+                          'Roŋki aawde simoore nde',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Get.theme.colorScheme.error,
+                          colorText: Get.theme.colorScheme.onError,
+                        );
+                      }
+                    },
+                  );
+                }
+              },
+            ),
+            // Bookmark button
+            GetX<BookmarkService>(
+              builder: (controller) => IconButton(
+                icon: Icon(
+                  controller.isBookmarked(widget.surah.number)
+                    ? Icons.bookmark
+                    : Icons.bookmark_border
+                ),
+                onPressed: () => controller.toggleBookmark(widget.surah.number),
               ),
-              onPressed: () => _bookmarkService.toggleBookmark(widget.surah.number),
-            )),
+            ),
           ],
         ),
         body: Column(
@@ -422,5 +460,53 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _navigateToNextSurah({bool autoPlay = false}) async {
+    if (_nextSurah != null) {
+      await _audioController.stopPlaying();
+      _quranService.setCurrentSurah(_nextSurah!);
+      await Get.off(
+        () => SurahContentScreen(surah: _nextSurah!),
+        transition: Transition.rightToLeft,
+        preventDuplicates: false,
+        arguments: autoPlay ? {'autoPlay': true} : null
+      );
+    }
+  }
+
+  void _navigateToPreviousSurah({bool autoPlay = false}) {
+    if (_previousSurah != null) {
+      _audioController.stopPlaying();
+      _quranService.setCurrentSurah(_previousSurah!);
+      Get.off(
+        () => SurahContentScreen(surah: _previousSurah!),
+        transition: Transition.leftToRight,
+        preventDuplicates: false,
+        arguments: autoPlay ? {'autoPlay': true} : null
+      );
+    }
+  }
+
+  void _togglePlay() {
+    _audioController.togglePlay(
+      widget.surah.number,
+      widget.surah.audioUrl,
+      surahName: widget.surah.namePulaar,
+      surahNameArabic: widget.surah.nameArabic,
+    );
+  }
+
+  void _stopPlaying() {
+    _audioController.stopPlaying();
+  }
+
+  @override
+  void dispose() {
+    _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
+    _scrollController.dispose();
+    super.dispose();
   }
 }

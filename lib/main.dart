@@ -1,43 +1,47 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
-import 'core/services/hadith_service.dart';
-import 'core/services/app_initialization_service.dart';
-import 'features/surah/models/surah.dart';
+import 'core/services/download_service.dart';
 import 'core/controllers/audio_controller.dart';
+import 'core/services/hadith_service.dart';
 import 'core/routes/route_observer.dart';
+import 'features/surah/models/surah.dart';
+import 'features/surah/models/verse.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize background playback
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'mr.quraanpulaar.audio',
-    androidNotificationChannelName: 'Quraan Pulaar Audio',
-    androidNotificationChannelDescription: 'Audio playback notifications for Quraan Pulaar',
-    androidNotificationOngoing: false,  // Changed to false to work with stopForegroundOnPause
-    androidShowNotificationBadge: true,
-    androidStopForegroundOnPause: true,  // Changed back to true
-    fastForwardInterval: const Duration(seconds: 10),
-    rewindInterval: const Duration(seconds: 10),
-    preloadArtwork: true,
-  );
-  
-  // Initialize app with tracking permission request
-  await AppInitializationService.initialize();
   
   // Initialize Hive
   await Hive.initFlutter();
   
   // Register Hive Adapters
-  Hive.registerAdapter(SurahAdapter());
-  Hive.registerAdapter(VerseAdapter());
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(SurahAdapter());
+  }
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(VerseAdapter());
+  }
+  
+  // Delete existing Hive boxes if they exist
+  final appDir = await getApplicationDocumentsDirectory();
+  final surahsPath = '${appDir.path}/surahs.hive';
+  final metadataPath = '${appDir.path}/metadata.hive';
+  
+  if (await File(surahsPath).exists()) {
+    await File(surahsPath).delete();
+  }
+  if (await File(metadataPath).exists()) {
+    await File(metadataPath).delete();
+  }
   
   // Open Hive Boxes
   await Hive.openBox<Surah>('surahs');
@@ -63,16 +67,29 @@ void main() async {
           ),
   );
   
+  // Initialize Mobile Ads
+  await MobileAds.instance.initialize();
+  
+  // Initialize background audio service
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.kawkumputer.quraan_pulaar.channel.audio',
+    androidNotificationChannelName: 'Quraan Pulaar',
+    androidNotificationOngoing: false,
+    androidShowNotificationBadge: true,
+    androidStopForegroundOnPause: true,
+    fastForwardInterval: const Duration(seconds: 10),
+    rewindInterval: const Duration(seconds: 10),
+    preloadArtwork: true,
+  );
+  
   // Initialize all services
   InitialBinding().dependencies();
-  Get.put(HadithService());
-  Get.put(AudioController()); 
   
   runApp(const QuranApp());
 }
 
 class QuranApp extends StatelessWidget {
-  const QuranApp({super.key});
+  const QuranApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -80,14 +97,13 @@ class QuranApp extends StatelessWidget {
       title: 'Quraan Pulaar',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      initialBinding: InitialBinding(),
-      getPages: AppRoutes.pages,
+      themeMode: ThemeMode.system,
       initialRoute: AppRoutes.splash,
+      getPages: AppRoutes.pages,
       navigatorObservers: [
-        AudioRouteObserver(), 
+        AudioRouteObserver(),
       ],
-      debugShowCheckedModeBanner: false,
+      defaultTransition: Transition.cupertino,
     );
   }
 }

@@ -16,6 +16,7 @@ class QuranService extends GetxService {
   final _error = Rx<String?>(null);
   final _settingsInitialized = false.obs;
   final _isSyncing = false.obs;
+  final isInitialized = false.obs;
 
   final FirebaseService _firebaseService;
   final SettingsService _settingsService;
@@ -29,65 +30,28 @@ class QuranService extends GetxService {
     required CacheService cacheService,
   }) : _firebaseService = firebaseService,
        _settingsService = settingsService,
-       _cacheService = cacheService;
+       _cacheService = cacheService {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await loadSurahs();
+      isInitialized.value = true;
+    } catch (e) {
+      print('Error initializing QuranService: $e');
+      // Retry initialization after a delay
+      Future.delayed(const Duration(seconds: 1), _initialize);
+    }
+  }
 
   List<SurahModel> get surahs => _surahs;
   SurahModel? get currentSurah => _currentSurah.value;
   int get currentVerseIndex => _currentVerseIndex.value;
   bool get isLoading => _isLoading.value;
-  bool get isSyncing => _isSyncing.value;
   String? get error => _error.value;
-
-  @override
-  void onInit() {
-    super.onInit();
-    // Listen to activation status changes
-    ever(_settingsService.isActivatedRx, (bool activated) {
-      print('Activation status changed: $activated');
-      if (activated && _settingsInitialized.value) {
-        print('Device activated, reloading surahs...');
-        loadSurahs();
-      }
-    });
-
-    // Setup periodic sync check for activated users
-    _setupPeriodicSyncCheck();
-
-    // Try to load immediately if settings are already initialized
-    if (_settingsService.isActivated) {
-      print('Settings already initialized on QuranService init');
-      onSettingsInitialized();
-    }
-  }
-
-  @override
-  void onClose() {
-    _syncCheckTimer?.cancel();
-    super.onClose();
-  }
-
-  void _setupPeriodicSyncCheck() {
-    // Check every 30 minutes if we need to sync
-    _syncCheckTimer?.cancel();
-    _syncCheckTimer = Timer.periodic(const Duration(minutes: 30), (timer) async {
-      if (!_settingsService.isActivated) return;
-
-      final connectivityResult = await _connectivity.checkConnectivity();
-      if (connectivityResult == ConnectivityResult.none) return;
-
-      final timeSinceLastSync = _cacheService.getTimeSinceLastSync();
-      if (timeSinceLastSync.inHours >= 6) {
-        print('Periodic sync check: Last sync was ${timeSinceLastSync.inHours} hours ago, initiating sync...');
-        loadSurahs(forceSync: true);
-      }
-    });
-  }
-
-  void onSettingsInitialized() {
-    print('Settings initialized, activation status: ${_settingsService.isActivated}');
-    _settingsInitialized.value = true;
-    loadSurahs();
-  }
+  bool get settingsInitialized => _settingsInitialized.value;
+  bool get isSyncing => _isSyncing.value;
 
   Future<void> loadSurahs({bool forceSync = false}) async {
     if (!_settingsInitialized.value) {
@@ -216,5 +180,56 @@ class QuranService extends GetxService {
     if (currentSurah != null && currentVerseIndex > 0) {
       _currentVerseIndex.value--;
     }
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Listen to activation status changes
+    ever(_settingsService.isActivatedRx, (bool activated) {
+      print('Activation status changed: $activated');
+      if (activated && _settingsInitialized.value) {
+        print('Device activated, reloading surahs...');
+        loadSurahs();
+      }
+    });
+
+    // Setup periodic sync check for activated users
+    _setupPeriodicSyncCheck();
+
+    // Try to load immediately if settings are already initialized
+    if (_settingsService.isActivated) {
+      print('Settings already initialized on QuranService init');
+      onSettingsInitialized();
+    }
+  }
+
+  @override
+  void onClose() {
+    _syncCheckTimer?.cancel();
+    super.onClose();
+  }
+
+  void _setupPeriodicSyncCheck() {
+    // Check every 30 minutes if we need to sync
+    _syncCheckTimer?.cancel();
+    _syncCheckTimer = Timer.periodic(const Duration(minutes: 30), (timer) async {
+      if (!_settingsService.isActivated) return;
+
+      final connectivityResult = await _connectivity.checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) return;
+
+      final timeSinceLastSync = _cacheService.getTimeSinceLastSync();
+      if (timeSinceLastSync.inHours >= 6) {
+        print('Periodic sync check: Last sync was ${timeSinceLastSync.inHours} hours ago, initiating sync...');
+        loadSurahs(forceSync: true);
+      }
+    });
+  }
+
+  void onSettingsInitialized() {
+    print('Settings initialized, activation status: ${_settingsService.isActivated}');
+    _settingsInitialized.value = true;
+    loadSurahs();
   }
 }

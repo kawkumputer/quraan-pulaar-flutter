@@ -9,12 +9,14 @@ import '../../features/hadith/hadith_screen.dart';
 import '../../features/activation/activation_screen.dart';
 import '../../features/about/about_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../services/quran_service.dart';
+import '../models/surah_model.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
   static const String home = '/home';
   static const String allSurahs = '/all-surahs';
-  static const String surah = '/surah';
+  static const String surah = '/surah/:number';
   static const String bookmarks = '/bookmarks';
   static const String settings = '/settings';
   static const String search = '/search';
@@ -37,9 +39,23 @@ class AppRoutes {
     ),
     GetPage(
       name: surah,
-      page: () => SurahContentScreen(
-        surah: Get.arguments,
-      ),
+      page: () {
+        final surah = Get.arguments as SurahModel?;
+        if (surah == null) {
+          final number = int.tryParse(Get.parameters['number'] ?? '');
+          if (number != null) {
+            final quranService = Get.find<QuranService>();
+            return SurahContentScreen(
+              surah: quranService.surahs.firstWhere(
+                (s) => s.number == number,
+                orElse: () => quranService.surahs.first,
+              ),
+            );
+          }
+          return const HomeScreen(); // Fallback if no valid surah
+        }
+        return SurahContentScreen(surah: surah);
+      },
     ),
     GetPage(
       name: bookmarks,
