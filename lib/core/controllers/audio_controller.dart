@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -9,6 +12,7 @@ class AudioController extends GetxController {
   final RxInt currentlyPlayingId = RxInt(-1);
   final RxBool isLoading = RxBool(false);
   final RxBool isPlaying = RxBool(false);
+  String? _artworkPath;
 
   AudioController() {
     // Listen to player state changes
@@ -18,6 +22,19 @@ class AudioController extends GetxController {
       }
       isPlaying.value = state.playing;
     });
+    _prepareArtwork();
+  }
+
+  Future<void> _prepareArtwork() async {
+    try {
+      final bytes = await rootBundle.load('assets/icon/original.png');
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/app_icon.png');
+      await file.writeAsBytes(bytes.buffer.asUint8List());
+      _artworkPath = file.path;
+    } catch (e) {
+      print('Error preparing artwork: $e');
+    }
   }
 
   @override
@@ -48,7 +65,7 @@ class AudioController extends GetxController {
             artist: 'Quraan Pulaar',
             album: 'Quraan Pulaar',
             displayTitle: surahNameArabic,
-            artUri: Uri.parse('asset:///assets/icon/original.png'),
+            artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
           ),
         );
         
