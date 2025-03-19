@@ -34,7 +34,39 @@ class AudioController extends GetxController {
       if (state.processingState == ProcessingState.completed) {
         // Only handle auto-play for surahs
         if (_currentId != null && _currentContentType == AudioContentType.surah) {
-          await navigateToNextSurah(autoPlay: true);
+          // Reset state before navigating to ensure clean state
+          final currentId = _currentId;  // Store current ID before reset
+          _resetState();
+          
+          // Find and play next surah
+          final currentSurah = _quranService.surahs.firstWhere(
+            (s) => s.number == currentId,
+            orElse: () => _quranService.surahs.first,
+          );
+          final currentIndex = _quranService.surahs.indexOf(currentSurah);
+          
+          if (currentIndex < _quranService.surahs.length - 1) {
+            final nextSurah = _quranService.surahs[currentIndex + 1];
+            _quranService.setCurrentSurah(nextSurah);
+            
+            // Play next surah immediately
+            await playUrl(
+              nextSurah.number,
+              nextSurah.audioUrl,
+              surahName: nextSurah.namePulaar,
+              surahNameArabic: nextSurah.nameArabic,
+            );
+            
+            // Only navigate if app is in foreground
+            if (!_isInBackground) {
+              Get.off(
+                () => SurahContentScreen(surah: nextSurah),
+                transition: Transition.rightToLeft,
+                preventDuplicates: false,
+                arguments: {'autoPlay': true},
+              );
+            }
+          }
         } else {
           _resetState();
         }
