@@ -79,7 +79,7 @@ class AudioController extends GetxController {
   }
 
   Future<void> playUrl(int id, String url, {
-    String? surahName, 
+    String? surahName,
     String? surahNameArabic,
     AudioContentType contentType = AudioContentType.surah,
   }) async {
@@ -89,22 +89,22 @@ class AudioController extends GetxController {
         await stopPlaying();
         _currentId = id;
         _currentContentType = contentType;
-        
+
         // Set audio source with metadata for background playback
         final audioSource = AudioSource.uri(
           Uri.parse(url),
           tag: MediaItem(
             id: id.toString(),
-            title: contentType == AudioContentType.surah 
+            title: contentType == AudioContentType.surah
               ? (surahName ?? 'Simoore $id')
-              : 'Hadiisa $id',
+              : 'Hadiis $id',
             artist: 'Quraan Pulaar',
             album: contentType == AudioContentType.surah ? 'Quraan Pulaar' : 'Hadiisaaji',
-            displayTitle: contentType == AudioContentType.surah ? surahNameArabic : null,
+            displayTitle: contentType == AudioContentType.surah ? '$surahName - $surahNameArabic' : null,
             artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
           ),
         );
-        
+
         await audioPlayer.setAudioSource(audioSource);
       }
       await audioPlayer.play();
@@ -125,7 +125,7 @@ class AudioController extends GetxController {
   }
 
   void togglePlay(int id, String url, {
-    String? surahName, 
+    String? surahName,
     String? surahNameArabic,
     AudioContentType contentType = AudioContentType.surah,
   }) {
@@ -134,8 +134,8 @@ class AudioController extends GetxController {
       isPlaying.value = false;
     } else {
       playUrl(
-        id, 
-        url, 
+        id,
+        url,
         surahName: surahName,
         surahNameArabic: surahNameArabic,
         contentType: contentType,
@@ -170,13 +170,13 @@ class AudioController extends GetxController {
         orElse: () => _quranService.surahs.first,
       );
       final currentIndex = _quranService.surahs.indexOf(currentSurah);
-      
+
       if (currentIndex < _quranService.surahs.length - 1) {
         final nextSurah = _quranService.surahs[currentIndex + 1];
-        
+
         // Update the current surah in QuranService
         _quranService.setCurrentSurah(nextSurah);
-        
+
         if (autoPlay) {
           await playUrl(
             nextSurah.number,
@@ -185,7 +185,7 @@ class AudioController extends GetxController {
             surahNameArabic: nextSurah.nameArabic,
           );
         }
-        
+
         // If not in background, navigate to the next surah screen
         if (!_isInBackground) {
           Get.off(
@@ -206,13 +206,13 @@ class AudioController extends GetxController {
         orElse: () => _quranService.surahs.first,
       );
       final currentIndex = _quranService.surahs.indexOf(currentSurah);
-      
+
       if (currentIndex > 0) {
         final previousSurah = _quranService.surahs[currentIndex - 1];
-        
+
         // Update the current surah in QuranService
         _quranService.setCurrentSurah(previousSurah);
-        
+
         if (autoPlay) {
           await playUrl(
             previousSurah.number,
@@ -221,7 +221,7 @@ class AudioController extends GetxController {
             surahNameArabic: previousSurah.nameArabic,
           );
         }
-        
+
         // If not in background, navigate to the previous surah screen
         if (!_isInBackground) {
           Get.off(
