@@ -55,6 +55,8 @@ class AudioController extends GetxController {
           break;
         case "AppLifecycleState.resumed":
           _lifecycleState.value = AppLifecycleState.resumed;
+          // Sync UI with current playback when app resumes
+          _syncUIWithCurrentPlayback();
           break;
         case "AppLifecycleState.inactive":
           _lifecycleState.value = AppLifecycleState.inactive;
@@ -238,9 +240,9 @@ class AudioController extends GetxController {
 
   void _onPlaybackComplete() async {
     if (_currentContentType == AudioContentType.surah) {
-      // Auto-play next surah
-      final nextSurahNumber = (_currentId ?? 0) + 1;
-      if (nextSurahNumber <= _quranService.surahs.length) {
+      // Auto-play next surah (in reverse order since we're starting from An-Naas)
+      final nextSurahNumber = (_currentId ?? 0) - 1;
+      if (nextSurahNumber > 0) {  // Stop at Al-Fatiha (1)
         final nextSurah = _quranService.surahs.firstWhere(
           (s) => s.number == nextSurahNumber,
           orElse: () => _quranService.surahs.first,
@@ -380,6 +382,77 @@ class AudioController extends GetxController {
       downloadedSurahs[surahNumber] = false;
     } catch (e) {
       print('Error deleting surah: $e');
+    }
+  }
+
+  // Sync UI with current playback state
+  void _syncUIWithCurrentPlayback() async {
+    if (_currentContentType == AudioContentType.surah && _currentId != null) {
+      final currentSurah = _quranService.surahs.firstWhere(
+        (s) => s.number == _currentId,
+        orElse: () => _quranService.surahs.first,
+      );
+      
+      // Only navigate if we're on a different surah screen
+      if (Get.currentRoute != '/surah/${currentSurah.number}') {
+        await Get.offNamed('/surah/${currentSurah.number}', arguments: currentSurah);
+      }
+    }
+  }
+
+  Future<void> playNext() async {
+    if (_currentContentType == AudioContentType.surah && _currentId != null) {
+      final nextSurahNumber = _currentId! - 1;  // Play in reverse order
+      if (nextSurahNumber > 0) {  // Stop at Al-Fatiha (1)
+        final nextSurah = _quranService.surahs.firstWhere(
+          (s) => s.number == nextSurahNumber,
+          orElse: () => _quranService.surahs.first,
+        );
+
+        // If not in background, navigate to the next surah screen
+        if (_lifecycleState.value != AppLifecycleState.paused) {
+          Get.off(
+            () => SurahContentScreen(surah: nextSurah),
+            transition: Transition.rightToLeft,
+          );
+        }
+
+        // Play the next surah
+        await playUrl(
+          nextSurah.number,
+          nextSurah.audioUrl,
+          surahName: nextSurah.namePulaar,
+          surahNameArabic: nextSurah.nameArabic,
+        );
+      }
+    }
+  }
+
+  Future<void> playPrevious() async {
+    if (_currentContentType == AudioContentType.surah && _currentId != null) {
+      final previousSurahNumber = _currentId! + 1;  // Play in reverse order
+      if (previousSurahNumber <= _quranService.surahs.length) {  // Stop at An-Naas (114)
+        final previousSurah = _quranService.surahs.firstWhere(
+          (s) => s.number == previousSurahNumber,
+          orElse: () => _quranService.surahs.last,
+        );
+
+        // If not in background, navigate to the previous surah screen
+        if (_lifecycleState.value != AppLifecycleState.paused) {
+          Get.off(
+            () => SurahContentScreen(surah: previousSurah),
+            transition: Transition.leftToRight,
+          );
+        }
+
+        // Play the previous surah
+        await playUrl(
+          previousSurah.number,
+          previousSurah.audioUrl,
+          surahName: previousSurah.namePulaar,
+          surahNameArabic: previousSurah.nameArabic,
+        );
+      }
     }
   }
 }
