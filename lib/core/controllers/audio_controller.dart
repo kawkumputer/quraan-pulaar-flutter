@@ -165,10 +165,23 @@ class AudioController extends GetxController {
       }
 
       // Set audio source with metadata for background playback
+      final Uri uri;
+      if (audioUrl.startsWith('http')) {
+        // Online URL (hadiths or online surahs)
+        uri = Uri.parse(audioUrl);
+      } else {
+        // Local file (downloaded surahs)
+        if (Platform.isIOS) {
+          // iOS needs file:// scheme for local files
+          uri = Uri.parse('file://$audioUrl');
+        } else {
+          // Android can use direct file path
+          uri = Uri.file(audioUrl);
+        }
+      }
+
       final audioSource = AudioSource.uri(
-        Platform.isIOS && !audioUrl.startsWith('http') 
-          ? Uri.parse('file://$audioUrl')  // Add file:// for local files on iOS
-          : Uri.parse(audioUrl),           // Use URL as is for online files or Android
+        uri,
         tag: MediaItem(
           id: id.toString(),
           title: contentType == AudioContentType.surah
