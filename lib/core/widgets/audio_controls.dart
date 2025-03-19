@@ -8,6 +8,7 @@ class AudioControls extends StatelessWidget {
   final VoidCallback onPreviousPressed;
   final VoidCallback onNextPressed;
   final VoidCallback onStopPressed;
+  final bool showNavigationButtons;
 
   const AudioControls({
     super.key,
@@ -17,6 +18,7 @@ class AudioControls extends StatelessWidget {
     required this.onPreviousPressed,
     required this.onNextPressed,
     required this.onStopPressed,
+    this.showNavigationButtons = true,
   });
 
   String _formatDuration(Duration duration) {
@@ -100,10 +102,11 @@ class AudioControls extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              IconButton(
-                icon: const Icon(Icons.skip_previous),
-                onPressed: onPreviousPressed,
-              ),
+              if (showNavigationButtons) 
+                IconButton(
+                  icon: const Icon(Icons.skip_previous),
+                  onPressed: onPreviousPressed,
+                ),
               StreamBuilder<PlayerState>(
                 stream: audioPlayer.playerStateStream,
                 builder: (context, snapshot) {
@@ -140,10 +143,11 @@ class AudioControls extends StatelessWidget {
                 icon: const Icon(Icons.stop),
                 onPressed: onStopPressed,
               ),
-              IconButton(
-                icon: const Icon(Icons.skip_next),
-                onPressed: onNextPressed,
-              ),
+              if (showNavigationButtons) 
+                IconButton(
+                  icon: const Icon(Icons.skip_next),
+                  onPressed: onNextPressed,
+                ),
             ],
           ),
         ],

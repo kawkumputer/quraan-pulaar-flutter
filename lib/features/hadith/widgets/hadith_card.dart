@@ -4,6 +4,7 @@ import '../../../core/controllers/audio_controller.dart';
 import '../../../core/widgets/audio_controls.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/hadith.dart';
+import 'package:flutter/material.dart' as prefix0;
 
 class HadithCard extends StatelessWidget {
   final Hadith hadith;
@@ -26,7 +27,11 @@ class HadithCard extends StatelessWidget {
       child: Column(
         children: [
           InkWell(
-            onTap: () => audioController.togglePlay(hadith.id, hadith.url),
+            onTap: () => audioController.togglePlay(
+              hadith.id, 
+              hadith.url,
+              contentType: AudioContentType.hadith,
+            ),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -92,11 +97,20 @@ class HadithCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: AudioControls(
                 audioPlayer: audioController.audioPlayer,
-                onPlayPressed: () => audioController.togglePlay(hadith.id, hadith.url),
-                onPausePressed: () => audioController.togglePlay(hadith.id, hadith.url),
+                onPlayPressed: () => audioController.togglePlay(
+                  hadith.id, 
+                  hadith.url,
+                  contentType: AudioContentType.hadith,
+                ),
+                onPausePressed: () => audioController.togglePlay(
+                  hadith.id, 
+                  hadith.url,
+                  contentType: AudioContentType.hadith,
+                ),
                 onStopPressed: () => audioController.stopPlaying(),
-                onPreviousPressed: () {},
-                onNextPressed: () {},
+                onPreviousPressed: () {},  // Hadiths don't support navigation
+                onNextPressed: () {},      // Hadiths don't support navigation
+                showNavigationButtons: false, // Hide navigation buttons for hadiths
               ),
             );
           }),

@@ -9,6 +9,9 @@ import '../models/surah_model.dart';
 import '../services/quran_service.dart';
 import '../../features/surah/surah_content_screen.dart';
 
+// Track content type to handle different playback behaviors
+enum AudioContentType { surah, hadith }
+
 class AudioController extends GetxController {
   final audioPlayer = AudioPlayer();
   final QuranService _quranService = Get.find<QuranService>();
@@ -18,6 +21,7 @@ class AudioController extends GetxController {
   final RxBool isPlaying = RxBool(false);
   String? _artworkPath;
   bool _isInBackground = false;
+  AudioContentType _currentContentType = AudioContentType.surah;
 
   AudioController() {
     _prepareArtwork();
@@ -28,9 +32,11 @@ class AudioController extends GetxController {
     // Listen to player state changes
     audioPlayer.playerStateStream.listen((state) async {
       if (state.processingState == ProcessingState.completed) {
-        // Handle auto-play to next surah
-        if (_currentId != null) {
+        // Only handle auto-play for surahs
+        if (_currentId != null && _currentContentType == AudioContentType.surah) {
           await navigateToNextSurah(autoPlay: true);
+        } else {
+          _resetState();
         }
       }
       isPlaying.value = state.playing;
@@ -72,22 +78,29 @@ class AudioController extends GetxController {
     _currentId = null;
   }
 
-  Future<void> playUrl(int id, String url, {String? surahName, String? surahNameArabic}) async {
+  Future<void> playUrl(int id, String url, {
+    String? surahName, 
+    String? surahNameArabic,
+    AudioContentType contentType = AudioContentType.surah,
+  }) async {
     try {
       isLoading.value = true;
       if (_currentId != id) {
         await stopPlaying();
         _currentId = id;
+        _currentContentType = contentType;
         
         // Set audio source with metadata for background playback
         final audioSource = AudioSource.uri(
           Uri.parse(url),
           tag: MediaItem(
             id: id.toString(),
-            title: surahName ?? 'Simoore $id',
+            title: contentType == AudioContentType.surah 
+              ? (surahName ?? 'Simoore $id')
+              : 'Hadiisa $id',
             artist: 'Quraan Pulaar',
-            album: 'Quraan Pulaar',
-            displayTitle: surahNameArabic,
+            album: contentType == AudioContentType.surah ? 'Quraan Pulaar' : 'Hadiisaaji',
+            displayTitle: contentType == AudioContentType.surah ? surahNameArabic : null,
             artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
           ),
         );
@@ -101,7 +114,7 @@ class AudioController extends GetxController {
       print('Error playing audio: $e');
       Get.snackbar(
         'Juumre',
-        'Roŋki aawtaade simoore nde',
+        'Roŋki aawtaade ${_currentContentType == AudioContentType.surah ? "simoore" : "hadiisa"} nde',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
@@ -111,15 +124,22 @@ class AudioController extends GetxController {
     }
   }
 
-  Future<void> togglePlay(int id, String url, {String? surahName, String? surahNameArabic}) async {
-    try {
-      if (audioPlayer.playing) {
-        await pause();
-      } else {
-        await playUrl(id, url, surahName: surahName, surahNameArabic: surahNameArabic);
-      }
-    } catch (e) {
-      print('Error toggling play: $e');
+  void togglePlay(int id, String url, {
+    String? surahName, 
+    String? surahNameArabic,
+    AudioContentType contentType = AudioContentType.surah,
+  }) {
+    if (currentlyPlayingId.value == id && isPlaying.value) {
+      audioPlayer.pause();
+      isPlaying.value = false;
+    } else {
+      playUrl(
+        id, 
+        url, 
+        surahName: surahName,
+        surahNameArabic: surahNameArabic,
+        contentType: contentType,
+      );
     }
   }
 
