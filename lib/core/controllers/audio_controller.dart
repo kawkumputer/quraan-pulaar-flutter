@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import '../models/surah_model.dart';
 
 class AudioController extends GetxController {
   final audioPlayer = AudioPlayer();  // Made public for AudioControls widget
@@ -30,16 +32,31 @@ class AudioController extends GetxController {
     isLoading.value = false;
   }
 
-  Future<void> playUrl(int id, String url) async {
+  Future<void> playUrl(int id, String url, {String? surahName, String? surahNameArabic}) async {
     try {
       isLoading.value = true;
       if (_currentId != id) {
         await stopPlaying();
         _currentId = id;
-        await audioPlayer.setUrl(url);
+        
+        // Set audio source with metadata for background playback
+        final audioSource = AudioSource.uri(
+          Uri.parse(url),
+          tag: MediaItem(
+            id: id.toString(),
+            title: surahName ?? 'Simoore $id',
+            artist: 'Quraan Pulaar',
+            album: 'Quraan Pulaar',
+            displayTitle: surahNameArabic,
+            artUri: Uri.parse('asset:///assets/icon/original.png'),
+          ),
+        );
+        
+        await audioPlayer.setAudioSource(audioSource);
       }
       await audioPlayer.play();
       isPlaying.value = true;
+      currentlyPlayingId.value = id;
     } catch (e) {
       print('Error playing audio: $e');
       Get.snackbar(
@@ -54,12 +71,12 @@ class AudioController extends GetxController {
     }
   }
 
-  Future<void> togglePlay(int id, String url) async {
+  Future<void> togglePlay(int id, String url, {String? surahName, String? surahNameArabic}) async {
     try {
       if (audioPlayer.playing) {
         await pause();
       } else {
-        await playUrl(id, url);
+        await playUrl(id, url, surahName: surahName, surahNameArabic: surahNameArabic);
       }
     } catch (e) {
       print('Error toggling play: $e');
@@ -80,6 +97,7 @@ class AudioController extends GetxController {
       await audioPlayer.stop();
       isPlaying.value = false;
       _currentId = null;
+      currentlyPlayingId.value = -1;
     } catch (e) {
       print('Error stopping playback: $e');
     }

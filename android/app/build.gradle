@@ -65,7 +65,7 @@ android {
 
     defaultConfig {
         applicationId "mr.quran_pulaar"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 23 // Increased for better background service support
         targetSdkVersion flutter.targetSdkVersion
         versionCode 2079
         versionName "2.7.9"
@@ -96,4 +96,6 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.7.2')
     implementation 'com.google.android.gms:play-services-ads:22.6.0'
     implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.media:media:1.6.0'  // Required for background audio
+    implementation 'androidx.core:core:1.10.0'   // Required for notification support
 }

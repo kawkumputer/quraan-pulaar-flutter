@@ -65,14 +65,24 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     final arguments = Get.arguments;
     if (arguments != null && arguments is Map<String, dynamic> && arguments['autoPlay'] == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _audioController.playUrl(widget.surah.number, widget.surah.audioUrl);
+        _audioController.playUrl(
+          widget.surah.number,
+          widget.surah.audioUrl,
+          surahName: widget.surah.namePulaar,
+          surahNameArabic: widget.surah.nameArabic,
+        );
       });
     }
   }
 
   Future<void> _initializeAudioAndPlay() async {
     try {
-      await _audioController.playUrl(widget.surah.number, widget.surah.audioUrl);
+      await _audioController.playUrl(
+        widget.surah.number,
+        widget.surah.audioUrl,
+        surahName: widget.surah.namePulaar,
+        surahNameArabic: widget.surah.nameArabic,
+      );
     } catch (e) {
       print('Error initializing audio: $e');
     }
@@ -210,7 +220,12 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   }
 
   void _togglePlay() {
-    _audioController.togglePlay(widget.surah.number, widget.surah.audioUrl);
+    _audioController.togglePlay(
+      widget.surah.number,
+      widget.surah.audioUrl,
+      surahName: widget.surah.namePulaar,
+      surahNameArabic: widget.surah.nameArabic,
+    );
   }
 
   void _stopPlaying() {

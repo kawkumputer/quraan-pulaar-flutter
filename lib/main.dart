@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
@@ -14,6 +15,19 @@ import 'core/routes/route_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize background playback
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'mr.quraanpulaar.audio',
+    androidNotificationChannelName: 'Quraan Pulaar Audio',
+    androidNotificationChannelDescription: 'Audio playback notifications for Quraan Pulaar',
+    androidNotificationOngoing: false,  // Changed to false to work with stopForegroundOnPause
+    androidShowNotificationBadge: true,
+    androidStopForegroundOnPause: true,  // Changed back to true
+    fastForwardInterval: const Duration(seconds: 10),
+    rewindInterval: const Duration(seconds: 10),
+    preloadArtwork: true,
+  );
   
   // Initialize app with tracking permission request
   await AppInitializationService.initialize();
