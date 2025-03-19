@@ -166,7 +166,9 @@ class AudioController extends GetxController {
 
       // Set audio source with metadata for background playback
       final audioSource = AudioSource.uri(
-        Uri.parse(audioUrl.startsWith('file://') ? audioUrl : 'file://${audioUrl}'), // Add file:// scheme for iOS
+        Platform.isIOS && !audioUrl.startsWith('http') 
+          ? Uri.parse('file://$audioUrl')  // Add file:// for local files on iOS
+          : Uri.parse(audioUrl),           // Use URL as is for online files or Android
         tag: MediaItem(
           id: id.toString(),
           title: contentType == AudioContentType.surah
