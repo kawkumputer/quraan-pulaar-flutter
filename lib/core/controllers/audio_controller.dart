@@ -157,6 +157,10 @@ class AudioController extends GetxController {
         final offlineUrl = await _downloadService.getOfflineUrl(id);
         if (offlineUrl != null) {
           audioUrl = offlineUrl;
+        } else {
+          // Start downloading if not available offline
+          downloadSurah(id);
+          return; // Don't play until downloaded
         }
       }
 
@@ -179,11 +183,6 @@ class AudioController extends GetxController {
       await audioPlayer.play();
       isPlaying.value = true;
       currentlyPlayingId.value = id;
-
-      // If online and not downloaded, try to download for next time
-      if (contentType == AudioContentType.surah && !(downloadedSurahs[id] ?? false)) {
-        downloadSurah(id); // Don't await, let it download in background
-      }
     } catch (e) {
       print('Error playing audio: $e');
       isPlaying.value = false;
