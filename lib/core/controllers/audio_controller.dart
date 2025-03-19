@@ -157,7 +157,6 @@ class AudioController extends GetxController {
 
       // If online and not downloaded, try to download for next time
       if (contentType == AudioContentType.surah && !(downloadedSurahs[id] ?? false)) {
-        final surah = _quranService.surahs.firstWhere((s) => s.number == id);
         downloadSurah(id); // Don't await, let it download in background
       }
     } catch (e) {
@@ -223,7 +222,17 @@ class AudioController extends GetxController {
           (s) => s.number == nextSurahNumber,
           orElse: () => _quranService.surahs.first,
         );
-        Get.offNamed('/surah/${nextSurah.number}', arguments: nextSurah);
+        
+        // Navigate to next surah and wait for the navigation to complete
+        await Get.offNamed('/surah/${nextSurah.number}', arguments: nextSurah);
+        
+        // Play the next surah
+        await playUrl(
+          nextSurah.number,
+          nextSurah.audioUrl,
+          surahName: nextSurah.namePulaar,
+          surahNameArabic: nextSurah.nameArabic,
+        );
       }
     }
   }
