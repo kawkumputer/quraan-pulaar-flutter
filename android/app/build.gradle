@@ -67,8 +67,8 @@ android {
         applicationId "mr.quran_pulaar"
         minSdkVersion 23 // Minimum SDK for background service support
         targetSdkVersion 34 // Target Android 14 for proper permission handling
-        versionCode 2079
-        versionName "2.7.9"
+        versionCode 2080
+        versionName "2.8.0"
         multiDexEnabled true
         ndk {
             debugSymbolLevel 'FULL'

@@ -1,7 +1,7 @@
 name: quraan_pulaar
 description: A Pulaar translation of the Holy Quran
 publish_to: 'none'
-version: 2.6.14
+version: 2.6.15
 
 environment:
   sdk: '>=3.2.3 <4.0.0'
