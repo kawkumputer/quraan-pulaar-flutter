@@ -99,17 +99,16 @@ class QuranService extends GetxService {
         throw 'Invalid JSON format: missing "surahs" key';
       }
 
-      final List<dynamic> surahsData = List.from(jsonData['surahs']);
+      final List<dynamic> surahsJson = jsonData['surahs'];
+      final List<SurahModel> loadedSurahs = surahsJson
+          .map((surah) => SurahModel.fromJson(surah))
+          .toList();
 
-      // Sort after filtering to maintain correct order
-      //surahsData.sort((a, b) => (b['number'] as int).compareTo(a['number'] as int)); // Sort descending
-
-      _surahs.value = surahsData.map((surah) {
-        final model = SurahModel.fromJson(surah);
-        return model;
-      }).toList();
-
-      print('Loaded ${_surahs.length} surahs from local JSON');
+      // Sort surahs in descending order by number (from An-Naas to Al-Fatiha)
+      loadedSurahs.sort((a, b) => b.number.compareTo(a.number));
+      
+      _surahs.value = loadedSurahs;
+      _isLoading.value = false;
     } catch (e, stackTrace) {
       print('Error loading surahs: $e');
       print('Stack trace: $stackTrace');

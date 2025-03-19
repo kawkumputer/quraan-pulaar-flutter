@@ -157,6 +157,7 @@ class AudioController extends GetxController {
         final offlineUrl = await _downloadService.getOfflineUrl(id);
         if (offlineUrl != null) {
           audioUrl = offlineUrl;
+          print('Playing from offline URL: $audioUrl'); // Debug log
         } else if (!_downloadService.isDownloading(id)) {
           // Start downloading in background if not already downloading
           downloadSurah(id); // Don't await, let it download in background
@@ -165,7 +166,7 @@ class AudioController extends GetxController {
 
       // Set audio source with metadata for background playback
       final audioSource = AudioSource.uri(
-        Uri.parse(audioUrl),
+        Uri.parse(audioUrl.startsWith('file://') ? audioUrl : 'file://${audioUrl}'), // Add file:// scheme for iOS
         tag: MediaItem(
           id: id.toString(),
           title: contentType == AudioContentType.surah

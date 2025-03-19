@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import '../models/surah_model.dart';
 
 class DownloadService extends GetxService {
-  // Using RxMap instead of Map<int, RxBool>
   final _downloadedSurahs = <int, bool>{}.obs;
   final _downloadingSurahs = <int, bool>{}.obs;
   final _downloadProgress = <int, double>{}.obs;
@@ -24,21 +23,25 @@ class DownloadService extends GetxService {
   }
 
   Future<void> init() async {
-    // Check existing downloads
-    final dir = await _downloadDir;
-    final directory = Directory(dir);
-    if (await directory.exists()) {
-      final files = directory.listSync();
-      for (var file in files) {
-        if (file is File && file.path.endsWith('.mp3')) {
-          final fileName = file.path.split('/').last;
-          final surahNumber = int.tryParse(fileName.split('.').first);
-          if (surahNumber != null) {
-            _downloadedSurahs[surahNumber] = true;
-            _downloadProgress[surahNumber] = 1.0; // 100% for completed downloads
+    try {
+      // Check existing downloads
+      final dir = await _downloadDir;
+      final directory = Directory(dir);
+      if (await directory.exists()) {
+        final files = directory.listSync();
+        for (var file in files) {
+          if (file is File && file.path.endsWith('.mp3')) {
+            final fileName = file.path.split(Platform.pathSeparator).last;
+            final surahNumber = int.tryParse(fileName.split('.').first);
+            if (surahNumber != null) {
+              _downloadedSurahs[surahNumber] = true;
+              _downloadProgress[surahNumber] = 1.0; // 100% for completed downloads
+            }
           }
         }
       }
+    } catch (e) {
+      print('Error initializing DownloadService: $e');
     }
   }
 
@@ -55,10 +58,18 @@ class DownloadService extends GetxService {
   }
 
   Future<String?> getOfflineUrl(int surahNumber) async {
-    final dir = await _downloadDir;
-    final file = File('$dir/$surahNumber.mp3');
-    if (await file.exists()) {
-      return file.path;
+    try {
+      final dir = await _downloadDir;
+      final file = File('$dir${Platform.pathSeparator}$surahNumber.mp3');
+      if (await file.exists()) {
+        // For iOS, use file:// scheme
+        if (Platform.isIOS) {
+          return 'file://${file.path}';
+        }
+        return file.path;
+      }
+    } catch (e) {
+      print('Error getting offline URL: $e');
     }
     return null;
   }
@@ -78,7 +89,7 @@ class DownloadService extends GetxService {
       
       if (response.statusCode == 200) {
         final dir = await _downloadDir;
-        final file = File('$dir/${surah.number}.mp3');
+        final file = File('$dir${Platform.pathSeparator}${surah.number}.mp3');
         final sink = file.openWrite();
         
         final contentLength = response.contentLength ?? 0;
@@ -111,7 +122,7 @@ class DownloadService extends GetxService {
   Future<bool> deleteSurah(int surahNumber) async {
     try {
       final dir = await _downloadDir;
-      final file = File('$dir/$surahNumber.mp3');
+      final file = File('$dir${Platform.pathSeparator}$surahNumber.mp3');
       if (await file.exists()) {
         await file.delete();
       }
