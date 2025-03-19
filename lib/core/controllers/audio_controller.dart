@@ -157,10 +157,9 @@ class AudioController extends GetxController {
         final offlineUrl = await _downloadService.getOfflineUrl(id);
         if (offlineUrl != null) {
           audioUrl = offlineUrl;
-        } else {
-          // Start downloading if not available offline
-          downloadSurah(id);
-          return; // Don't play until downloaded
+        } else if (!_downloadService.isDownloading(id)) {
+          // Start downloading in background if not already downloading
+          downloadSurah(id); // Don't await, let it download in background
         }
       }
 
