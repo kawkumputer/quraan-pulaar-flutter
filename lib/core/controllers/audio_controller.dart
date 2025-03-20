@@ -171,14 +171,17 @@ class AudioController extends GetxController {
         uri = Uri.parse(audioUrl);
       } else {
         // Local file (downloaded surahs)
+        final file = File(audioUrl);
         if (Platform.isIOS) {
           // iOS needs file:// scheme for local files
-          uri = Uri.parse('file://$audioUrl');
+          uri = Uri.parse('file://${file.absolute.path}');
         } else {
           // Android can use direct file path
           uri = Uri.file(audioUrl);
         }
       }
+
+      print('Playing audio with URI: $uri'); // Debug log
 
       final audioSource = AudioSource.uri(
         uri,

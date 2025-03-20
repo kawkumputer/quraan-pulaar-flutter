@@ -14,17 +14,25 @@ class DownloadService extends GetxService {
   }
   
   Future<String> get _downloadDir async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final downloadDir = Directory('${appDir.path}/audio_downloads');
-    if (!await downloadDir.exists()) {
-      await downloadDir.create(recursive: true);
+    if (Platform.isIOS) {
+      final appDir = await getApplicationSupportDirectory();
+      final downloadDir = Directory('${appDir.path}/audio_downloads');
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+      return downloadDir.path;
+    } else {
+      final appDir = await getApplicationDocumentsDirectory();
+      final downloadDir = Directory('${appDir.path}/audio_downloads');
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+      return downloadDir.path;
     }
-    return downloadDir.path;
   }
 
   Future<void> init() async {
     try {
-      // Check existing downloads
       final dir = await _downloadDir;
       final directory = Directory(dir);
       if (await directory.exists()) {
@@ -35,7 +43,7 @@ class DownloadService extends GetxService {
             final surahNumber = int.tryParse(fileName.split('.').first);
             if (surahNumber != null) {
               _downloadedSurahs[surahNumber] = true;
-              _downloadProgress[surahNumber] = 1.0; // 100% for completed downloads
+              _downloadProgress[surahNumber] = 1.0;
             }
           }
         }
@@ -62,10 +70,6 @@ class DownloadService extends GetxService {
       final dir = await _downloadDir;
       final file = File('$dir${Platform.pathSeparator}$surahNumber.mp3');
       if (await file.exists()) {
-        // For iOS, use file:// scheme
-        if (Platform.isIOS) {
-          return 'file://${file.path}';
-        }
         return file.path;
       }
     } catch (e) {
