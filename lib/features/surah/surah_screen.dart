@@ -5,6 +5,7 @@ import '../../core/models/surah_model.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/ad_service.dart';
+import '../../core/controllers/audio_controller.dart';
 
 class SurahScreen extends StatelessWidget {
   const SurahScreen({super.key});
