@@ -6,6 +6,7 @@ import '../../core/services/settings_service.dart';
 import '../../core/controllers/activation_controller.dart';
 import 'widgets/daily_verse_widget.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,6 +129,58 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                       )),
+
+                  // Donation Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(12),
+                      elevation: 2,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () async {
+                          final uri = Uri.parse('https://kawkumputer.github.io/hadisaaji/donation.html');
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        },
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFD4AF37), Color(0xFFB8860B)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.favorite, color: Colors.white, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Wallit Golle ɗe',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                '- Soutenir nos projets',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                   // Daily Verse Section
                   DailyVerseWidget(),
