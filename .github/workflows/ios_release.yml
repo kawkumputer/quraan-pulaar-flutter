@@ -19,13 +19,13 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.2'
+          flutter-version: '3.38.9'
           channel: 'stable'
 
       - name: Install Flutter dependencies
         run: |
           flutter pub get
-          flutter pub run build_runner build --delete-conflicting-outputs
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Restore GoogleService-Info.plist
         env:
@@ -97,7 +97,7 @@ jobs:
                 target.build_configurations.each do |config|
                   config.build_settings["CODE_SIGN_STYLE"] = "Manual"
                   config.build_settings["DEVELOPMENT_TEAM"] = "94VW99RYDQ"
-                  config.build_settings["PROVISIONING_PROFILE_SPECIFIER"] = "Quraan Pulaar App2"
+                  config.build_settings["PROVISIONING_PROFILE_SPECIFIER"] = "Quraan Pulaar App Store 2026"
                   config.build_settings["CODE_SIGN_IDENTITY"] = "iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)"
                 end
               end
@@ -126,7 +126,7 @@ jobs:
             -destination "generic/platform=iOS" -sdk iphoneos -archivePath "build/Runner.xcarchive" \
             -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
             DEVELOPMENT_TEAM="94VW99RYDQ" \
-            PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App2" \
+            PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App Store 2026" \
             CODE_SIGN_IDENTITY="iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)" \
             CODE_SIGN_STYLE=Manual \
             ENABLE_BITCODE=NO \
