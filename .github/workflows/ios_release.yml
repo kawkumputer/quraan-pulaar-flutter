@@ -63,9 +63,12 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -t 3600 -l build.keychain
 
-          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-          echo "P12 file size: $(wc -c < certificate.p12) bytes"
-          openssl pkcs12 -in certificate.p12 -noout -passin pass:$P12_PASSWORD && echo "P12 password OK" || echo "P12 password WRONG"
+          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > certificate_orig.p12
+          echo "P12 file size: $(wc -c < certificate_orig.p12) bytes"
+          # Re-export with legacy format compatible with macOS security tool
+          openssl pkcs12 -in certificate_orig.p12 -out cert_temp.pem -passin pass:$P12_PASSWORD -passout pass:$P12_PASSWORD -nodes
+          openssl pkcs12 -export -in cert_temp.pem -out certificate.p12 -passin pass:$P12_PASSWORD -passout pass:$P12_PASSWORD -legacy
+          rm cert_temp.pem certificate_orig.p12
           security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign -A
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
           rm certificate.p12
