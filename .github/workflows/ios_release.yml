@@ -131,16 +131,10 @@ jobs:
           xcodebuild clean -workspace Runner.xcworkspace -scheme Runner -destination "generic/platform=iOS"
           xcodebuild archive -workspace Runner.xcworkspace -scheme Runner -configuration Release \
             -destination "generic/platform=iOS" -sdk iphoneos -archivePath "build/Runner.xcarchive" \
-            -allowProvisioningUpdates -allowProvisioningDeviceRegistration \
-            DEVELOPMENT_TEAM="94VW99RYDQ" \
-            PROVISIONING_PROFILE_SPECIFIER="Quraan Pulaar App Store 2026" \
-            CODE_SIGN_IDENTITY="iPhone Distribution: Hamath Moussa Kane (94VW99RYDQ)" \
-            CODE_SIGN_STYLE=Manual \
             ENABLE_BITCODE=NO \
             DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" \
             ARCHS="arm64" \
-            ONLY_ACTIVE_ARCH=NO \
-            CODE_SIGNING_ALLOWED=YES
+            ONLY_ACTIVE_ARCH=NO
 
       - name: Verify GoogleService-Info.plist in the archive
         run: |
