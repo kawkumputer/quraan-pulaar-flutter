@@ -140,7 +140,7 @@ jobs:
             DEBUG_INFORMATION_FORMAT="dwarf-with-dsym" \
             ARCHS="arm64" \
             ONLY_ACTIVE_ARCH=NO \
-            archive CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=YES
 
       - name: Verify GoogleService-Info.plist in the archive
         run: |
