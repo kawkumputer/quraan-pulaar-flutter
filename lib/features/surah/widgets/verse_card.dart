@@ -16,13 +16,14 @@ class VerseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -64,10 +65,11 @@ class VerseCard extends StatelessWidget {
           Text(
             verse.arabic,
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               height: 1.5,
               fontFamily: 'Uthmani',
+              color: colorScheme.onSurface,
             ),
           ),
           if (verse.pulaar.isNotEmpty) ...[
@@ -75,10 +77,10 @@ class VerseCard extends StatelessWidget {
             Text(
               verse.pulaar,
               textAlign: TextAlign.left,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 height: 1.4,
-                color: Colors.black87,
+                color: colorScheme.onSurface.withOpacity(0.85),
                 fontWeight: FontWeight.w400,
               ),
             ),

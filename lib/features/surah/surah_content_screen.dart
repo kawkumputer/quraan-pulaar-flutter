@@ -376,7 +376,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
-                padding: EdgeInsets.zero,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
                 itemCount: widget.surah.verses.isEmpty
                     ? (widget.surah.number == 1 ? 1 : 2)  // Empty surah: 1 item for Fatiha, 2 for others (Basmala + message)
                     : (widget.surah.number == 1 ? widget.surah.verses.length : widget.surah.verses.length + 1), // Normal case

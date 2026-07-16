@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'core/routes/app_routes.dart';
@@ -66,9 +65,6 @@ void main() async {
             storageBucket: 'quran-pulaar-dmwdqo.firebasestorage.app',
           ),
   );
-  
-  // Initialize Mobile Ads
-  await MobileAds.instance.initialize();
   
   // Initialize background audio service
   await JustAudioBackground.init(

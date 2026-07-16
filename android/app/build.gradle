@@ -43,8 +43,8 @@ android {
         applicationId "mr.quran_pulaar"
         minSdkVersion flutter.minSdkVersion // Minimum SDK for background service support
         targetSdkVersion 35 // Target Android 15 as required by Google Play
-        versionCode 2091
-        versionName "2.9.0"
+        versionCode 2092
+        versionName "2.9.1"
         multiDexEnabled true
         ndk {
             debugSymbolLevel 'FULL'

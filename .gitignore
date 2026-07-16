@@ -74,3 +74,8 @@ key.properties
 
 # Local configuration
 local.properties
+
+# Data export/migration staging (contains credentials and business data)
+firestore/
+old_data/
+supabase_migration/
