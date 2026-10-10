@@ -6,6 +6,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'core/config/supabase_config.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
@@ -66,6 +67,9 @@ void main() async {
           ),
   );
   
+  // Initialize Supabase (activation par code)
+  await initSupabase();
+
   // Initialize background audio service
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.kawkumputer.quraan_pulaar.channel.audio',

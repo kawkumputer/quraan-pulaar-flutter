@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:android_id/android_id.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:get/get.dart';
 import '../models/device_info.dart';
@@ -6,6 +7,7 @@ import 'tracking_permission_service.dart';
 
 class DeviceService extends GetxService {
   final _deviceInfo = DeviceInfoPlugin();
+  static const _androidId = AndroidId();
   bool _hasRequestedPermission = false;
 
   Future<DeviceInfo> getDeviceInfo() async {
@@ -27,7 +29,14 @@ class DeviceService extends GetxService {
 
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
-        deviceId = androidInfo.id;
+        // ANDROID_ID : propre à l'appareil, stable aux réinstallations et mises à jour.
+        // (androidInfo.id est Build.ID, la version du firmware, partagée par
+        // de nombreux téléphones : ne pas l'utiliser comme identifiant.)
+        final androidId = await _androidId.getId();
+        if (androidId == null || androidId.isEmpty) {
+          throw StateError('ANDROID_ID unavailable');
+        }
+        deviceId = androidId;
         baseOs = 'Android ${androidInfo.version.release}';
         deviceName = androidInfo.device;
         deviceModel = androidInfo.model;

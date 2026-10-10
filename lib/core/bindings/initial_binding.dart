@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import '../services/quran_service.dart';
 import '../services/bookmark_service.dart';
 import '../services/download_service.dart';
-import '../services/api_service.dart';
+import '../services/activation_api_service.dart';
 import '../services/device_service.dart';
 import '../services/ad_service.dart';
 import '../services/firebase_service.dart';
@@ -17,7 +17,7 @@ class InitialBinding extends Bindings {
   void dependencies() {
     // Initialize core services first
     Get.put<CacheService>(CacheService(), permanent: true);
-    Get.put<ApiService>(ApiService(), permanent: true);
+    Get.put<ActivationApiService>(ActivationApiService(), permanent: true);
     Get.put<DeviceService>(DeviceService(), permanent: true);
     Get.put<DownloadService>(DownloadService(), permanent: true);
     Get.put<BookmarkService>(BookmarkService(), permanent: true);

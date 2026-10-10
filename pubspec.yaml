@@ -1,7 +1,7 @@
 name: quraan_pulaar
 description: A Pulaar translation of the Holy Quran
 publish_to: 'none'
-version: 2.9.1+30
+version: 2.10.0+31
 
 environment:
   sdk: '>=3.2.3 <4.0.0'
@@ -30,6 +30,8 @@ dependencies:
   app_tracking_transparency: ^2.0.3
   google_mobile_ads: ^4.0.0
   http: ^1.2.0
+  supabase_flutter: ^2.18.2
+  android_id: ^0.5.2+1
 
 dev_dependencies:
   flutter_test:

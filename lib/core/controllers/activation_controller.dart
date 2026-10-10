@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
-import '../services/api_service.dart';
+import '../services/activation_api_service.dart';
 import '../services/settings_service.dart';
 import '../services/device_service.dart';
 import '../services/quran_service.dart';
 import '../../features/activation/activation_dialog.dart';
 
 class ActivationController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final ActivationApiService _apiService = Get.find<ActivationApiService>();
   final DeviceService _deviceService = Get.find<DeviceService>();
   final SettingsService _settingsService = Get.find<SettingsService>();
   QuranService? _quranService;
@@ -61,7 +60,7 @@ class ActivationController extends GetxController {
 
         try {
           final deviceInfo = await _deviceService.getDeviceInfo();
-          final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+          final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId, _settingsService.activationCode);
 
           if (validityStatus == true) {
             print('Device activation confirmed valid');

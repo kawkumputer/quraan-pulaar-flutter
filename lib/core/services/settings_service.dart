@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'api_service.dart';
+import 'activation_api_service.dart';
 import 'device_service.dart';
 import 'quran_service.dart';
 import 'tracking_permission_service.dart';
@@ -24,7 +24,7 @@ class SettingsService extends GetxService {
   final RxBool _isFirstLaunch = true.obs;
   SharedPreferences? _prefs;
 
-  late final ApiService _apiService;
+  late final ActivationApiService _apiService;
   late final DeviceService _deviceService;
 
   ThemeMode get themeMode => _themeMode.value;
@@ -48,7 +48,7 @@ class SettingsService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    _apiService = Get.find<ApiService>();
+    _apiService = Get.find<ActivationApiService>();
     _deviceService = Get.find<DeviceService>();
     _initPrefs();
     ever(_themeMode, _onThemeModeChanged);
@@ -95,7 +95,7 @@ class SettingsService extends GetxService {
       }
 
       final deviceInfo = await _deviceService.getDeviceInfo();
-      final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId);
+      final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId, _activationCode.value);
 
       if (validityStatus == false) {
         print('Device activation is explicitly invalid, clearing activation status');
