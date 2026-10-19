@@ -24,6 +24,10 @@ jobs:
 
       - name: Install Flutter dependencies
         run: |
+          # Flutter 3.44 active Swift Package Manager par défaut : certains plugins
+          # passent alors hors CocoaPods, et google_mobile_ads ne trouve plus son pod
+          # webview_flutter_wkwebview. On reste en CocoaPods (comme avant la 2.11).
+          flutter config --no-enable-swift-package-manager
           flutter pub get
           dart run build_runner build --delete-conflicting-outputs
 
