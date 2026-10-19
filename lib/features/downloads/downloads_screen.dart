@@ -49,10 +49,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
   Future<void> _confirmDeleteAll() async {
     final ok = await Get.dialog<bool>(AlertDialog(
-      content: const Text(S.deleteAllConfirm),
+      content: Text(S.deleteAllConfirm),
       actions: [
-        TextButton(onPressed: () => Get.back(result: false), child: const Text(S.no)),
-        TextButton(onPressed: () => Get.back(result: true), child: const Text(S.yes)),
+        TextButton(onPressed: () => Get.back(result: false), child: Text(S.no)),
+        TextButton(onPressed: () => Get.back(result: true), child: Text(S.yes)),
       ],
     ));
     if (ok == true) {
@@ -65,7 +65,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(S.downloads)),
+      appBar: AppBar(title: Text(S.downloads)),
       body: Column(
         children: [
           Card(
@@ -74,12 +74,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               children: [
                 Obx(() => ListTile(
                       leading: const Icon(Icons.sd_storage),
-                      title: const Text(S.storageUsed),
+                      title: Text(S.storageUsed),
                       trailing: Text(formatBytes(_usedBytes.value)),
                     )),
                 Obx(() => SwitchListTile(
                       secondary: const Icon(Icons.wifi),
-                      title: const Text(S.wifiOnly),
+                      title: Text(S.wifiOnly),
                       value: _downloads.wifiOnly.value,
                       onChanged: _downloads.setWifiOnly,
                     )),
@@ -90,7 +90,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                       Expanded(
                         child: FilledButton.icon(
                           icon: const Icon(Icons.download),
-                          label: const Text(S.downloadAll),
+                          label: Text(S.downloadAll),
                           onPressed: () => _downloads.downloadAll(_surahs),
                         ),
                       ),
@@ -98,7 +98,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text(S.deleteAll),
+                          label: Text(S.deleteAll),
                           onPressed: _confirmDeleteAll,
                         ),
                       ),
@@ -185,7 +185,7 @@ class _DownloadTile extends StatelessWidget {
                 builder: (_, s) => Text(s.hasData ? formatBytes(s.data!) : ''),
               )
             : waiting
-                ? const Text(S.waitingNetwork)
+                ? Text(S.waitingNetwork)
                 : downloading
                     ? Text('${(progress * 100).round()} %')
                     : FutureBuilder<int?>(

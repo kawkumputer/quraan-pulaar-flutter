@@ -5,6 +5,7 @@ import '../../../core/widgets/audio_controls.dart';
 import '../../../core/widgets/audio_options_sheet.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/hadith.dart';
+import '../../../core/constants/strings.dart';
 
 class HadithCard extends StatelessWidget {
   final Hadith hadith;
@@ -75,7 +76,7 @@ class HadithCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          hadith.title,
+                          S.hadithN(hadith.id),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

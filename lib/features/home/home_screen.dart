@@ -10,6 +10,7 @@ import '../../core/services/settings_service.dart';
 import '../../core/controllers/activation_controller.dart';
 import 'widgets/daily_verse_widget.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
+import '../../core/constants/strings.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('Jokkondiral'),
+              title: Text(S.contact),
               onTap: () {
                 Get.back();
                 Get.toNamed(AppRoutes.about);
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Teelte'),
+              title: Text(S.settings),
               onTap: () {
                 Get.back();
                 Get.toNamed(AppRoutes.settings);
@@ -106,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: Colors.green.shade700),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Yamre Huuɓtunde',
+                                      S.fullVersion,
                                       style: TextStyle(
                                         color: Colors.green.shade700,
                                         fontWeight: FontWeight.bold,
@@ -124,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Icon(Icons.info_outline,
                                         color: Colors.amber.shade900),
                                     const SizedBox(width: 8),
-                                    const Text(
-                                      'Yamre Ɓolnde',
+                                    Text(
+                                      S.freeVersion,
                                       style: TextStyle(
                                         color: Colors.amber,
                                         fontWeight: FontWeight.bold,
@@ -134,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Spacer(),
                                     TextButton.icon(
                                       icon: const Icon(Icons.lock_open),
-                                      label: const Text('Huuɓnu'),
+                                      label: Text(S.activate),
                                       onPressed: () =>
                                           Get.toNamed(AppRoutes.activation),
                                     ),
@@ -155,29 +156,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         _buildNavigationCard(
-                          title: 'Cimooje',
-                          subtitle: 'Yiy cimooje ɗe fof',
+                          title: S.surahs,
+                          subtitle: S.surahsSubtitle,
                           icon: Icons.menu_book,
                           onTap: () => Get.toNamed(AppRoutes.allSurahs),
                         ),
                         const SizedBox(height: 16),
                         _buildNavigationCard(
-                          title: 'Njangtuuji (Hadiisaaji)',
-                          subtitle: 'Heɗto njangtuuji nulaaɗo',
+                          title: S.hadithsMenu,
+                          subtitle: S.hadithsSubtitle,
                           icon: Icons.record_voice_over,
                           onTap: () => Get.toNamed(AppRoutes.hadith),
                         ),
                         const SizedBox(height: 16),
                         _buildNavigationCard(
-                          title: 'Maanto',
-                          subtitle: 'Yiy cimooje ɗe maanitiɗa',
+                          title: S.bookmarksMenu,
+                          subtitle: S.bookmarksSubtitle,
                           icon: Icons.bookmark,
                           onTap: () => Get.toNamed(AppRoutes.bookmarks),
                         ),
                         const SizedBox(height: 16),
                         _buildNavigationCard(
-                          title: 'Yiylo',
-                          subtitle: 'Yiylo cimooje walla maandeeji',
+                          title: S.search,
+                          subtitle: S.searchSubtitle,
                           icon: Icons.search,
                           onTap: () => Get.toNamed(AppRoutes.search),
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/services/quran_service.dart';
+import '../../core/services/settings_service.dart';
 import '../../core/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -32,7 +33,9 @@ class _SplashScreenState extends State<SplashScreen> {
         loaded.timeout(const Duration(seconds: 8), onTimeout: () {}),
       ]);
       if (mounted) {
-        Get.offNamed(AppRoutes.home);
+        // Premier lancement : choix de la langue de l'interface.
+        final hasLanguage = Get.find<SettingsService>().language != null;
+        Get.offNamed(hasLanguage ? AppRoutes.home : AppRoutes.language);
       }
     } catch (e) {
       debugPrint('Error navigating to home: $e');

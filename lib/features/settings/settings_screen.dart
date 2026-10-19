@@ -5,6 +5,7 @@ import '../../core/utils/messenger.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/strings.dart';
+import '../../core/l10n/app_language.dart';
 import '../../core/services/reminder_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/routes/app_routes.dart';
@@ -39,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Teelte'),
+        title: Text(S.settings),
       ),
       body: Column(
         children: [
@@ -51,22 +52,37 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
+                        leading: const Icon(Icons.translate),
+                        title: Text(S.language),
+                        trailing: Obx(() => DropdownButton<AppLanguage>(
+                              value: settingsService.language ?? AppLanguage.pulaar,
+                              items: [
+                                for (final l in AppLanguage.values)
+                                  DropdownMenuItem(value: l, child: Text(l.nativeName)),
+                              ],
+                              onChanged: (AppLanguage? l) {
+                                if (l != null) settingsService.setLanguage(l);
+                              },
+                            )),
+                      ),
+                      const Divider(),
+                      ListTile(
                         leading: const Icon(Icons.dark_mode),
-                        title: const Text('Goobu'),
+                        title: Text(S.theme),
                         trailing: Obx(() => DropdownButton<ThemeMode>(
                               value: settingsService.themeMode,
-                              items: const [
+                              items: [
                                 DropdownMenuItem(
                                   value: ThemeMode.system,
                                   child: Text(S.themeSystem),
                                 ),
                                 DropdownMenuItem(
                                   value: ThemeMode.light,
-                                  child: Text('Jalbugol'),
+                                  child: Text(S.themeLight),
                                 ),
                                 DropdownMenuItem(
                                   value: ThemeMode.dark,
-                                  child: Text('Niɓɓiɗgol'),
+                                  child: Text(S.themeDark),
                                 ),
                               ],
                               onChanged: (ThemeMode? mode) {
@@ -79,7 +95,7 @@ class SettingsScreen extends StatelessWidget {
                       const Divider(),
                       ListTile(
                         leading: const Icon(Icons.text_fields),
-                        title: const Text('Ɓeydugol binndi'),
+                        title: Text(S.fontSize),
                         subtitle: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -109,7 +125,7 @@ class SettingsScreen extends StatelessWidget {
                       const Divider(),
                       ListTile(
                         leading: const Icon(Icons.sort),
-                        title: const Text(S.surahOrder),
+                        title: Text(S.surahOrder),
                         trailing: Obx(() => DropdownButton<SurahOrder>(
                               value: settingsService.surahOrder,
                               items: const [
@@ -136,7 +152,7 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           SwitchListTile(
                             secondary: const Icon(Icons.notifications),
-                            title: const Text(S.reminder),
+                            title: Text(S.reminder),
                             value: settingsService.reminderEnabled,
                             onChanged: (value) => _toggleReminder(context, value),
                           ),
@@ -156,14 +172,14 @@ class SettingsScreen extends StatelessWidget {
                     children: [
                       ListTile(
                         leading: const Icon(Icons.download_for_offline_outlined),
-                        title: const Text(S.downloads),
+                        title: Text(S.downloads),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => Get.toNamed(AppRoutes.downloads),
                       ),
                       const Divider(),
                       ListTile(
                         leading: const Icon(Icons.share),
-                        title: const Text(S.share),
+                        title: Text(S.share),
                         onTap: _shareApp,
                       ),
                       Obx(() => !settingsService.isActivated
@@ -172,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
                                 const Divider(),
                                 ListTile(
                                   leading: const Icon(Icons.device_unknown),
-                                  title: const Text('Kuɓnugol Kaɓirgal'),
+                                  title: Text(S.activateDevice),
                                   trailing: const Icon(Icons.chevron_right),
                                   onTap: () => Get.toNamed(AppRoutes.activation),
                                 ),

@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/supabase_config.dart';
 import 'core/constants/app_constants.dart';
+import 'core/l10n/app_language.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
@@ -61,7 +63,10 @@ void main() async {
   final settings = Get.find<SettingsService>();
   await settings.ready;
 
-  runApp(QuranApp(initialThemeMode: settings.themeMode));
+  runApp(QuranApp(
+    initialThemeMode: settings.themeMode,
+    initialLocale: (settings.language ?? AppLanguage.pulaar).materialLocale,
+  ));
 }
 
 /// Ouvre les boxes Hive. Le cache n'est vidé que si son format change
@@ -98,8 +103,9 @@ Future<void> _openBox<T>(String name) async {
 
 class QuranApp extends StatelessWidget {
   final ThemeMode initialThemeMode;
+  final Locale initialLocale;
 
-  const QuranApp({super.key, required this.initialThemeMode});
+  const QuranApp({super.key, required this.initialThemeMode, required this.initialLocale});
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +114,16 @@ class QuranApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: initialThemeMode,
+      // Langue de l'interface (S) ; la locale Material gère le sens d'écriture (arabe RTL)
+      // et les composants système. Le Pulaar utilise la locale française.
+      locale: initialLocale,
+      fallbackLocale: const Locale('fr'),
+      supportedLocales: const [Locale('fr'), Locale('ar')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: AppRoutes.splash,
       getPages: AppRoutes.pages,
       navigatorObservers: [AppRouteObserver()],

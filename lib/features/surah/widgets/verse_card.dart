@@ -101,6 +101,7 @@ class VerseCard extends StatelessWidget {
                     Text(
                       verse.pulaar,
                       textAlign: TextAlign.left,
+                      textDirection: TextDirection.ltr,
                       style: TextStyle(
                         fontSize: fontSize + 1,
                         height: 1.4,

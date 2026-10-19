@@ -159,7 +159,7 @@ class AudioController extends GetxController {
       _uriFor(offline ?? surah.audioUrl),
       tag: MediaItem(
         id: 'surah-${surah.number}',
-        title: surah.namePulaar.isNotEmpty ? surah.namePulaar : 'Simoore ${surah.number}',
+        title: surah.namePulaar.isNotEmpty ? S.surahName(surah) : S.surahN(surah.number),
         artist: 'Quraan Pulaar',
         album: 'Quraan Pulaar',
         displayTitle: '${surah.namePulaar} - ${surah.nameArabic}',
@@ -300,9 +300,9 @@ class AudioController extends GetxController {
               _uriFor(h.url),
               tag: MediaItem(
                 id: 'hadith-${h.id}',
-                title: 'Njangtuwol ${h.id}',
+                title: S.hadithN(h.id),
                 artist: 'Quraan Pulaar',
-                album: 'Hadiisaaji',
+                album: S.hadithsTitle,
                 artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
               ),
             ),
@@ -441,7 +441,7 @@ class AudioController extends GetxController {
     showMessage(
       network
           ? S.noConnection
-          : 'Roŋki aawtaade ${contentType.value == AudioContentType.surah ? "simoore" : "hadiisa"} nde',
+          : (contentType.value == AudioContentType.surah ? S.playSurahError : S.playHadithError),
       error: true,
     );
   }

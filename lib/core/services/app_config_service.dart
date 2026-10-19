@@ -60,14 +60,14 @@ class AppConfigService extends GetxService {
       PopScope(
         canPop: !blocking,
         child: AlertDialog(
-          title: const Text(S.updateTitle),
+          title: Text(S.updateTitle),
           content: Text(message),
           actions: [
             if (!blocking)
-              TextButton(onPressed: Get.back, child: const Text(S.later)),
+              TextButton(onPressed: Get.back, child: Text(S.later)),
             ElevatedButton(
               onPressed: () => launchUrl(Uri.parse(storeUrl), mode: LaunchMode.externalApplication),
-              child: const Text(S.updateButton),
+              child: Text(S.updateButton),
             ),
           ],
         ),

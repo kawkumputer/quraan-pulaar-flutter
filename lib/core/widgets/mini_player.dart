@@ -4,6 +4,7 @@ import 'audio_options_sheet.dart';
 import '../controllers/audio_controller.dart';
 import '../routes/app_routes.dart';
 import '../routes/route_observer.dart';
+import '../constants/strings.dart';
 
 /// Barre de lecture affichée en bas de l'app quand une sourate joue ailleurs
 /// que sur son propre écran. Un appui rouvre la sourate.
@@ -27,9 +28,9 @@ class MiniPlayer extends StatelessWidget {
           keyboardOpen;
       if (hidden) return const SizedBox.shrink();
       final title = isHadith
-          ? 'Njangtuwol ${controller.currentlyPlayingId.value}'
-          : surah!.namePulaar;
-      final subtitle = isHadith ? 'Hadiisaaji' : surah!.nameArabic;
+          ? S.hadithN(controller.currentlyPlayingId.value)
+          : S.surahName(surah!);
+      final subtitle = isHadith ? S.hadithsTitle : surah!.nameArabic;
 
       final theme = Theme.of(context);
       return Material(

@@ -7,6 +7,7 @@ import '../../../core/services/bookmark_service.dart';
 import '../../../core/services/quran_service.dart';
 import '../../../core/utils/daily_verse.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/constants/strings.dart';
 
 class DailyVerseWidget extends StatefulWidget {
   const DailyVerseWidget({super.key});
@@ -56,8 +57,8 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
 
     final isBookmarked = _bookmarkService.isBookmarked(surahNumber);
     showMessage(isBookmarked
-        ? 'Simoore nde ɓeydaama e maantaaɗi'
-        : 'Simoore nde ittaama e maantaaɗi');
+        ? S.surahBookmarked
+        : S.surahUnbookmarked);
   }
 
   @override
@@ -76,7 +77,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
                 Icon(Icons.wb_sunny, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'Maande hannde ko',
+                  S.dailyVerse,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -125,8 +126,8 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
                     color: AppTheme.dailyVerseColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Roŋkii heɓde maande hannde',
+                  child: Text(
+                    S.dailyVerseError,
                     style: TextStyle(color: Colors.white),
                   ),
                 );
@@ -157,6 +158,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
                       Text(
                         v['translation'] ?? '',
                         textAlign: TextAlign.left,
+                        textDirection: TextDirection.ltr,
                         style: const TextStyle(
                           fontSize: 16,
                           height: 1.5,

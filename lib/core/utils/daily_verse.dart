@@ -1,6 +1,7 @@
 import 'dart:math';
 import '../models/surah_model.dart';
 import '../models/verse_model.dart';
+import '../constants/strings.dart';
 
 /// Verset du jour : le même pour une date donnée, quel que soit l'ordre d'affichage.
 /// Utilisé par l'accueil et par le rappel quotidien.
@@ -21,7 +22,7 @@ class DailyVerse {
     return DailyVerse(surah, verse);
   }
 
-  String get reference => '${surah.namePulaar}, Maande ${verse.number}';
+  String get reference => S.verseRef(surah, verse.number);
 
   String get shareText => '''${verse.arabic}
 
@@ -29,5 +30,5 @@ ${verse.pulaar}
 
 - $reference
 
-Ummoraade e Quraan Pulaar''';
+${S.source}''';
 }

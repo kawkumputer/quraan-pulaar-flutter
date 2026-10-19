@@ -9,6 +9,7 @@ import '../routes/app_routes.dart';
 import '../utils/daily_verse.dart';
 import 'quran_service.dart';
 import 'settings_service.dart';
+import '../constants/strings.dart';
 
 /// Rappel quotidien local avec le verset du jour.
 /// Une notification a un contenu fixe : on programme donc les 14 prochains jours,
@@ -32,6 +33,7 @@ class ReminderService extends GetxService {
     // Les sourates accessibles changent (chargement, activation) : nouveaux versets.
     debounce(_quranService.surahsRx, (_) => reschedule(), time: const Duration(seconds: 2));
     _lifecycleListener = AppLifecycleListener(onResume: reschedule);
+    ever(_settings.languageRx, (_) => reschedule());
   }
 
   @override
@@ -140,8 +142,8 @@ class ReminderService extends GetxService {
         final details = NotificationDetails(
           android: AndroidNotificationDetails(
             'daily_verse',
-            'Maande ñalnde',
-            channelDescription: 'Ciftinal maande hannde',
+            S.reminder,
+            channelDescription: S.reminderChannelDescription,
             importance: Importance.defaultImportance,
             styleInformation: BigTextStyleInformation(daily.verse.pulaar),
           ),
@@ -153,7 +155,7 @@ class ReminderService extends GetxService {
           scheduledDate: day,
           notificationDetails: details,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-          title: 'Maande hannde · ${daily.reference}',
+          title: '${S.dailyVerse} · ${daily.reference}',
           body: daily.verse.pulaar,
           payload: 'surah:${daily.surah.number}:${daily.surah.verses.indexOf(daily.verse)}',
         );

@@ -53,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
         if (didPop) _leave();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Yiylo cimooje')),
+        appBar: AppBar(title: Text(S.searchTitle)),
         body: Column(
           children: [
             Padding(
@@ -77,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 if (_results.isEmpty) {
                   return _searchService.isIndexing.value
                       ? const Center(child: CircularProgressIndicator())
-                      : const Center(child: Text('Alaa ko heɓaa'));
+                      : Center(child: Text(S.noResults));
                 }
                 final normalized =
                     TextNormalizer.normalize(_query.value.trim());
@@ -116,7 +116,7 @@ class _SurahList extends StatelessWidget {
       return Center(
         child: TextButton.icon(
           icon: const Icon(Icons.refresh),
-          label: const Text(S.retry),
+          label: Text(S.retry),
           onPressed: () => quranService.loadSurahs(force: true),
         ),
       );
@@ -173,7 +173,7 @@ class _ResultTile extends StatelessWidget {
 
     return ListTile(
       title: Text(
-        '${result.surah.namePulaar} · ${S.verse} ${verse.number}',
+        S.verseRef(result.surah, verse.number),
         style: theme.textTheme.labelLarge
             ?.copyWith(color: theme.colorScheme.primary),
       ),

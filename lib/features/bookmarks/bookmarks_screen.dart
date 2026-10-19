@@ -26,7 +26,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Maantaaɗi'),
+          title: Text(S.bookmarksTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -56,7 +56,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'A suwa maantaade tawo',
+                          S.noBookmarks,
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     color: Colors.grey[600],
@@ -64,7 +64,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Cimooje ɗe maanti ɗaa maa a yiy ɗum en ɗo',
+                          S.noBookmarksHint,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Colors.grey[500],
@@ -122,7 +122,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                           ),
                         ),
                         title: Text(
-                          surah?.namePulaar ?? 'Simoore $surahNumber',
+                          surah != null ? S.surahName(surah) : S.surahN(surahNumber),
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -130,14 +130,14 @@ class BookmarksScreen extends GetView<BookmarkService> {
                         ),
                         subtitle: locked
                             ? const Icon(Icons.lock_outline, size: 16)
-                            : Text('Maandeeji ${surah.verses.length}'),
+                            : Text(S.versesCount(surah.verses.length)),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () async {
                             await controller.toggleBookmark(surahNumber);
                             Get.find<AdService>()
                                 .showInterstitialAd('bookmarks_screen');
-                            showMessage('Simoore nde ittaama e maantaaɗi');
+                            showMessage(S.surahUnbookmarked);
                           },
                         ),
                         onTap: locked
@@ -196,13 +196,14 @@ class _VerseBookmarkTile extends StatelessWidget {
       child: ListTile(
         title: Text(
           verse == null
-              ? 'Simoore ${bookmark.surahNumber}'
-              : '${surah!.namePulaar} · ${S.verse} ${verse.number}',
+              ? S.surahN(bookmark.surahNumber)
+              : S.verseRef(surah!, verse.number),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: verse == null
             ? const Icon(Icons.lock_outline, size: 16)
-            : Text(verse.pulaar, maxLines: 2, overflow: TextOverflow.ellipsis),
+            : Text(verse.pulaar,
+                maxLines: 2, overflow: TextOverflow.ellipsis, textDirection: TextDirection.ltr),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline),
           onPressed: () => bookmarks.toggleVerseBookmark(

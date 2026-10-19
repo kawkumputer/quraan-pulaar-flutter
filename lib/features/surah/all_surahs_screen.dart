@@ -29,8 +29,8 @@ class AllSurahsScreen extends GetView<QuranService> {
               Get.back();
             },
           ),
-          title: const Text(
-            'Cimooje',
+          title: Text(
+            S.surahs,
             textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 20,
@@ -53,7 +53,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                         Icon(Icons.verified, color: Colors.green.shade700, size: 20),
                         const SizedBox(width: 4),
                         Text(
-                          'Huuɓnaama',
+                          S.activated,
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontSize: 14,
@@ -66,7 +66,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                 : IconButton(
                     icon: const Icon(Icons.lock_outline),
                     onPressed: () => Get.toNamed(AppRoutes.activation),
-                    tooltip: 'Huuɓnu haa timma',
+                    tooltip: S.unlockAll,
                   ),
             ),
           ],
@@ -90,7 +90,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           icon: const Icon(Icons.refresh),
-                          label: const Text(S.retry),
+                          label: Text(S.retry),
                           onPressed: () => controller.loadSurahs(force: true),
                         ),
                       ],
@@ -123,7 +123,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Yamre Ɓolnde',
+                                    S.freeVersion,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.amber.shade900,
@@ -131,7 +131,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Njogiɗaa tan ko cimooje nay. Huuɓnu ngam keɓa cimooje ɗee kala.',
+                                    S.freeSurahsBanner,
                                     style: TextStyle(
                                       color: Colors.amber.shade900,
                                       fontSize: 13,
@@ -143,7 +143,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                             const SizedBox(width: 12),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.lock_open, size: 18),
-                              label: const Text('Huuɓnu'),
+                              label: Text(S.activate),
                               onPressed: () => Get.toNamed(AppRoutes.activation),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.amber.shade600,
@@ -211,7 +211,7 @@ class AllSurahsScreen extends GetView<QuranService> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                '• Maandeeji ${surah.versesCount}',
+                                                '• ${S.versesCount(surah.versesCount)}',
                                                 style: TextStyle(
                                                   color: isLocked
                                                       ? Colors.grey

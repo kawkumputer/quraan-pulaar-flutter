@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/utils/messenger.dart';
 import '../../core/controllers/activation_controller.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/constants/strings.dart';
 
 class ActivationScreen extends GetView<ActivationController> {
   const ActivationScreen({Key? key}) : super(key: key);
@@ -13,7 +14,7 @@ class ActivationScreen extends GetView<ActivationController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kuuɓnugol'),
+        title: Text(S.activationTitle),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -22,17 +23,16 @@ class ActivationScreen extends GetView<ActivationController> {
           children: [
             Column(
               children: [
-                const Text(
-                  'Naatnu doggol kuuɓnugol ngam heɓde cimooje ɗee fof.\n'
-                  'So a huuɓnaani, cimooje nay tan keɓataa.',
+                Text(
+                  S.activationScreenText,
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: codeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Doggol Kuuɓnugol',
+                  decoration: InputDecoration(
+                    labelText: S.activationCode,
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
@@ -44,7 +44,7 @@ class ActivationScreen extends GetView<ActivationController> {
                         onPressed: () async {
                           print('Attempting to verify code: ${codeController.text}');
                           if (codeController.text.isEmpty) {
-                            showMessage('Tiiɗno naatnu doggol Kuuɓnugol', error: true);
+                            showMessage(S.enterCode, error: true);
                             return;
                           }
 
@@ -52,10 +52,10 @@ class ActivationScreen extends GetView<ActivationController> {
                           print('Verification result: $success');
                           if (success) {
                             Get.back();
-                            showMessage('Kaɓirgal ngal huuɓnaama no moƴƴiri');
+                            showMessage(S.activationSuccess);
                           }
                         },
-                        child: const Text('Huuɓnu'),
+                        child: Text(S.activate),
                       )),
                 Obx(() {
                   final error = controller.verificationError;
@@ -72,12 +72,12 @@ class ActivationScreen extends GetView<ActivationController> {
                 const SizedBox(height: 24),
                 GestureDetector(
                   onTap: () => Get.toNamed(AppRoutes.about),
-                  child: const Text.rich(
+                  child: Text.rich(
                     TextSpan(
                       children: [
-                        TextSpan(text: 'So tawi a alaa doggol kuuɓnugol, yah to '),
+                        TextSpan(text: S.noCodeContact),
                         TextSpan(
-                          text: 'Jokkondiral',
+                          text: S.contact,
                           style: TextStyle(
                             color: Colors.blue,
                             decoration: TextDecoration.underline,

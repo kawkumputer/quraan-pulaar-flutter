@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/constants/strings.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -29,7 +30,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jokkondiral'),
+        title: Text(S.contact),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -85,21 +86,21 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               // Pulaar Description
-              const Text(
-                'Ngal jaaɓngal tuugnii ko e deftere Quraan teddunde nde ceerno Abuu Sih firi he ɗemngal Pulaar Fulfulde',
+              Text(
+                S.aboutTranslation,
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Baañnjitiiɗo deftere nde e mbaaydi jaaɓngal ko Hamath Kan',
+              Text(
+                S.aboutDeveloper,
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
               // Divider
-              const Text(
-                'Jokkondir - اتصل',
+              Text(
+                S.contactBilingual,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

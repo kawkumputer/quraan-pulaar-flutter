@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
+import '../l10n/app_language.dart';
 import 'activation_api_service.dart';
 import 'device_service.dart';
 import 'tracking_permission_service.dart';
 
 class SettingsService extends GetxService {
   static const String _themeKey = 'theme_mode';
+  static const String _languageKey = 'app_language';
   static const String _fontSizeKey = 'font_size';
   static const String _surahOrderKey = 'surah_order';
   static const String _reminderEnabledKey = 'reminder_enabled';
@@ -21,6 +23,8 @@ class SettingsService extends GetxService {
   static const Duration _validationInterval = Duration(hours: 24);
 
   final Rx<ThemeMode> _themeMode = ThemeMode.system.obs;
+  /// null tant que l'utilisateur n'a pas choisi (écran de choix au premier lancement).
+  final Rxn<AppLanguage> _language = Rxn<AppLanguage>();
   final RxDouble _fontSize = 16.0.obs;
   final Rx<SurahOrder> _surahOrder = SurahOrder.descending.obs;
   final RxBool _reminderEnabled = false.obs;
@@ -39,6 +43,8 @@ class SettingsService extends GetxService {
   Future<void> get ready => _ready.future;
 
   ThemeMode get themeMode => _themeMode.value;
+  AppLanguage? get language => _language.value;
+  Rxn<AppLanguage> get languageRx => _language;
   double get fontSize => _fontSize.value;
   RxDouble get fontSizeRx => _fontSize;
   SurahOrder get surahOrder => _surahOrder.value;
@@ -116,6 +122,8 @@ class SettingsService extends GetxService {
       orElse: () => ThemeMode.system,
     );
 
+    _language.value = AppLanguage.fromCode(prefs.getString(_languageKey));
+    CurrentLanguage.value = _language.value ?? AppLanguage.pulaar;
     _fontSize.value = prefs.getDouble(_fontSizeKey) ?? 16.0;
     _surahOrder.value = SurahOrder.values.firstWhere(
       (o) => o.name == prefs.getString(_surahOrderKey),
@@ -136,6 +144,14 @@ class SettingsService extends GetxService {
     _themeMode.value = mode;
     Get.changeThemeMode(mode);
     await _prefs?.setString(_themeKey, mode.name);
+  }
+
+  /// Change la langue de l'interface et reconstruit toute l'app.
+  Future<void> setLanguage(AppLanguage language) async {
+    _language.value = language;
+    CurrentLanguage.value = language;
+    await _prefs?.setString(_languageKey, language.code);
+    await Get.updateLocale(language.materialLocale);
   }
 
   Future<void> setFontSize(double size) async {

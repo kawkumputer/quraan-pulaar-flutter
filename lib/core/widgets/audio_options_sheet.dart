@@ -53,18 +53,18 @@ class AudioOptionsSheet extends StatelessWidget {
                 spacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text(S.repeatOff),
+                    label: Text(S.repeatOff),
                     selected: c.repeatMode.value == AudioRepeat.off,
                     onSelected: (_) => c.setRepeatMode(AudioRepeat.off),
                   ),
                   ChoiceChip(
-                    label: const Text(S.repeatItem),
+                    label: Text(S.repeatItem),
                     selected: c.repeatMode.value == AudioRepeat.surah,
                     onSelected: (_) => c.setRepeatMode(AudioRepeat.surah),
                   ),
                   if (isSurah)
                     ChoiceChip(
-                      label: const Text(S.repeatVerse),
+                      label: Text(S.repeatVerse),
                       selected: c.repeatMode.value == AudioRepeat.verse,
                       onSelected: (_) => c.setRepeatMode(AudioRepeat.verse),
                     ),
@@ -81,14 +81,14 @@ class AudioOptionsSheet extends StatelessWidget {
                       onPressed: () => c.setSleepTimer(Duration(minutes: minutes)),
                     ),
                   ChoiceChip(
-                    label: const Text(S.sleepEndOfItem),
+                    label: Text(S.sleepEndOfItem),
                     selected: c.sleepAtEndOfItem.value,
                     onSelected: (_) => c.setSleepTimer(null),
                   ),
                   if (sleepAt != null || c.sleepAtEndOfItem.value)
                     ActionChip(
                       avatar: const Icon(Icons.close, size: 16),
-                      label: const Text(S.cancel),
+                      label: Text(S.cancel),
                       onPressed: c.cancelSleepTimer,
                     ),
                 ],

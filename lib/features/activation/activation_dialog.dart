@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/controllers/activation_controller.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/constants/strings.dart';
 
 class ActivationDialog extends StatelessWidget {
   final bool isFirstLaunch;
@@ -24,26 +25,26 @@ class ActivationDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Kuuɓnugol',
+            Text(
+              S.activationTitle,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'A jaɓɓaama e Quraan Pulaar!\n\nHuuɓnu jaaɓnirgal ngal ngam heɓde cimooje ɗee fof. So a huuɓnaani, ko cimooje nay tan keɓataa.',
+            Text(
+              S.activationWelcome,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 24),
             TextField(
               controller: _codeController,
-              decoration: const InputDecoration(
-                labelText: 'Doggol Kuuɓnugol',
+              decoration: InputDecoration(
+                labelText: S.activationCode,
                 border: OutlineInputBorder(),
-                hintText: 'Naatnu doggol maa',
+                hintText: S.activationCodeHint,
               ),
               keyboardType: TextInputType.number,
             ),
@@ -54,12 +55,12 @@ class ActivationDialog extends StatelessWidget {
                 if (isFirstLaunch) ...[
                   TextButton(
                     onPressed: () => Get.back(result: false),
-                    child: const Text('Eto ƴeewndagol'),
+                    child: Text(S.tryFree),
                   ),
                 ] else ...[
                   TextButton(
                     onPressed: () => Get.back(result: false),
-                    child: const Text('Goɗngol'),
+                    child: Text(S.notNow),
                   ),
                 ],
                 Obx(() {
@@ -70,7 +71,7 @@ class ActivationDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
                     child: Text(
-                      isVerifying ? 'Sabbo seeɗa...' : 'Huuɓnu',
+                      isVerifying ? S.pleaseWait : S.activate,
                       style: const TextStyle(fontSize: 16),
                     ),
                   );
@@ -95,12 +96,12 @@ class ActivationDialog extends StatelessWidget {
                 Get.back();  // Close the dialog first
                 Get.toNamed(AppRoutes.about);  // Then navigate to about screen
               },
-              child: const Text.rich(
+              child: Text.rich(
                 TextSpan(
                   children: [
-                    TextSpan(text: 'So tawi a alaa doggol kuuɓnugol, yah to '),
+                    TextSpan(text: S.noCodeContact),
                     TextSpan(
-                      text: 'Jokkondiral',
+                      text: S.contact,
                       style: TextStyle(
                         color: Colors.blue,
                         decoration: TextDecoration.underline,
@@ -120,7 +121,7 @@ class ActivationDialog extends StatelessWidget {
   Future<void> _activate() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
-      _activationController.setVerificationError('Tiiɗno naatnu doggol Kuuɓnugol');
+      _activationController.setVerificationError(S.enterCode);
       return;
     }
 

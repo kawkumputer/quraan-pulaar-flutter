@@ -28,7 +28,7 @@ class VerseActionsSheet extends StatelessWidget {
   String get _text {
     final verse = surah.verses[verseIndex];
     return '${verse.arabic}\n\n${verse.pulaar}\n\n'
-        '- ${surah.namePulaar}, Maande ${verse.number}\n\nUmmoraade e Quraan Pulaar';
+        '- ${S.verseRef(surah, verse.number)}\n\n${S.source}';
   }
 
   @override
@@ -43,13 +43,13 @@ class VerseActionsSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              '${surah.namePulaar} · Maande ${verse.number}',
+              S.verseRef(surah, verse.number),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           ListTile(
             leading: const Icon(Icons.play_circle_outline),
-            title: const Text(S.playFromHere),
+            title: Text(S.playFromHere),
             onTap: () {
               Get.back();
               Get.find<AudioController>().playFromVerse(surah, verseIndex);
@@ -65,7 +65,7 @@ class VerseActionsSheet extends StatelessWidget {
           }),
           ListTile(
             leading: const Icon(Icons.copy),
-            title: const Text(S.copy),
+            title: Text(S.copy),
             onTap: () async {
               Get.back();
               await Clipboard.setData(ClipboardData(text: _text));
@@ -74,7 +74,7 @@ class VerseActionsSheet extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.share),
-            title: const Text(S.share),
+            title: Text(S.share),
             onTap: () {
               Get.back();
               SharePlus.instance.share(ShareParams(text: _text));

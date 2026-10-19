@@ -8,6 +8,7 @@ import '../../core/routes/app_routes.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
 import 'models/hadith.dart';
 import 'widgets/hadith_card.dart';
+import '../../core/constants/strings.dart';
 
 class HadithController extends GetxController {
   final HadithService _hadithService = Get.find<HadithService>();
@@ -56,8 +57,8 @@ class HadithScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Hadiisaaji',
+          title: Text(
+            S.hadithsTitle,
             textAlign: TextAlign.left,
             style: TextStyle(
               fontSize: 20,
@@ -87,7 +88,7 @@ class HadithScreen extends StatelessWidget {
                         Icon(Icons.verified, color: Colors.green.shade700, size: 20),
                         const SizedBox(width: 4),
                         Text(
-                          'Huuɓnaama',
+                          S.activated,
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontSize: 14,
@@ -100,7 +101,7 @@ class HadithScreen extends StatelessWidget {
                 : IconButton(
                     icon: const Icon(Icons.lock_outline),
                     onPressed: () => Get.toNamed(AppRoutes.activation),
-                    tooltip: 'Huuɓnu',
+                    tooltip: S.activate,
                   ),
             ),
           ],
@@ -113,8 +114,8 @@ class HadithScreen extends StatelessWidget {
           }
 
           if (controller.hadiths.isEmpty) {
-            return const Center(
-              child: Text('Alaa hadiisaaji goodɗi'),
+            return Center(
+              child: Text(S.noHadiths),
             );
           }
 
@@ -143,7 +144,7 @@ class HadithScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Yamre Ɓolnde',
+                              S.freeVersion,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.amber.shade900,
@@ -151,7 +152,7 @@ class HadithScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Njogiɗaa tan ko njangtuuji (Hadisaaji) tati. Huuɓnu ngam keɓa njangtuuji nulaaɗo ɗii kala.',
+                              S.freeHadithsBanner,
                               style: TextStyle(
                                 color: Colors.amber.shade900,
                                 fontSize: 13,
@@ -163,7 +164,7 @@ class HadithScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.lock_open, size: 18),
-                        label: const Text('Huuɓnu'),
+                        label: Text(S.activate),
                         onPressed: () => Get.toNamed(AppRoutes.activation),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber.shade600,
@@ -201,13 +202,13 @@ class HadithScreen extends StatelessWidget {
                             ),
                           ),
                           title: Text(
-                            'Hadiisa ${hadith.id}',
+                            S.hadithN(hadith.id),
                             style: TextStyle(
                               color: Colors.grey.shade400,
                             ),
                           ),
                           subtitle: Text(
-                            'Huuɓnu ngam heɗaade hadiisa oo',
+                            S.hadithLocked,
                             style: TextStyle(
                               color: Colors.grey.shade400,
                             ),

@@ -15,6 +15,7 @@ import '../../core/services/reading_progress_service.dart';
 import '../../core/utils/verse_timing.dart';
 import 'widgets/verse_actions_sheet.dart';
 import 'widgets/verse_card.dart';
+import '../../core/constants/strings.dart';
 
 class SurahContentScreen extends StatefulWidget {
   final SurahModel surah;
@@ -166,15 +167,15 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                 onPressed: () {
                   Get.dialog(
                     AlertDialog(
-                      title: const Text('Momtu Simoore'),
-                      content: const Text('Aɗa yiɗi momtude simoore nde?'),
+                      title: Text(S.deleteDownloadTitle),
+                      content: Text(S.deleteDownloadConfirm),
                       actions: [
                         TextButton(
-                          child: const Text('Alaa'),
+                          child: Text(S.no),
                           onPressed: () => Get.back(),
                         ),
                         TextButton(
-                          child: const Text('Eyy'),
+                          child: Text(S.yes),
                           onPressed: () async {
                             await controller.deleteSurah(widget.surah.number);
                             Get.back();
@@ -214,7 +215,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                   final success =
                       await controller.downloadSurah(widget.surah.number);
                   if (!success) {
-                    showMessage('Roŋki aawde simoore nde', error: true);
+                    showMessage(S.downloadFailed, error: true);
                   }
                 },
               );
@@ -277,8 +278,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       onPreviousPressed:
                           previous == null ? null : () => _goTo(previous),
                       onNextPressed: next == null ? null : () => _goTo(next),
-                      previousTooltip: previous?.namePulaar,
-                      nextTooltip: next?.namePulaar,
+                      previousTooltip: previous == null ? null : S.surahName(previous),
+                      nextTooltip: next == null ? null : S.surahName(next),
                       onStopPressed: _audioController.stopPlaying,
                     onMorePressed: active ? AudioOptionsSheet.show : null,
                     );
@@ -370,7 +371,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Maa maandeeji ɗi ɓeydoye ɗoo e yeeso',
+                          S.versesComing,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 17,
@@ -462,14 +463,14 @@ class _NeighbourCaption extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                previous == null ? '' : '‹ ${previous.namePulaar}',
+                previous == null ? '' : '‹ ${S.surahName(previous)}',
                 style: style,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Expanded(
               child: Text(
-                next == null ? '' : '${next.namePulaar} ›',
+                next == null ? '' : '${S.surahName(next)} ›',
                 style: style,
                 textAlign: TextAlign.end,
                 overflow: TextOverflow.ellipsis,

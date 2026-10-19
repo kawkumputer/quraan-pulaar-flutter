@@ -55,7 +55,7 @@ class ActivationController extends GetxController {
         await Get.find<QuranService>().loadSurahs(force: true);
         return true;
       }
-      _verificationError.value = 'Roŋki huuɓnude kaɓirgal ngal, ƴeewto tawo doggol ngol ina moƴƴi';
+      _verificationError.value = S.activationFailed;
       return false;
     } catch (e) {
       debugPrint('Error during verification: $e');
