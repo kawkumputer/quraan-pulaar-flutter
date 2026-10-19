@@ -1,28 +1,36 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import '../constants/app_constants.dart';
 import '../models/surah_model.dart';
 import '../services/firebase_service.dart';
 import '../services/settings_service.dart';
 import '../services/cache_service.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
+/// Source unique des sourates affichées : chargement (cache d'abord), rafraîchissement
+/// et ordre d'affichage.
 class QuranService extends GetxService {
+  /// Toutes les sourates disponibles, triées 1 → 114.
+  List<SurahModel> _canonical = [];
+
+  /// Sourates dans l'ordre d'affichage choisi par l'utilisateur.
   final _surahs = <SurahModel>[].obs;
   final _currentSurah = Rxn<SurahModel>();
-  final _currentVerseIndex = 0.obs;
   final _isLoading = false.obs;
   final _error = Rx<String?>(null);
-  final _settingsInitialized = false.obs;
-  final _isSyncing = false.obs;
   final isInitialized = false.obs;
 
   final FirebaseService _firebaseService;
   final SettingsService _settingsService;
   final CacheService _cacheService;
   final _connectivity = Connectivity();
-  Timer? _syncCheckTimer;
+
+  Future<void>? _loadFuture;
+  bool _refreshing = false;
+  AppLifecycleListener? _lifecycleListener;
 
   QuranService({
     required FirebaseService firebaseService,
@@ -30,113 +38,133 @@ class QuranService extends GetxService {
     required CacheService cacheService,
   }) : _firebaseService = firebaseService,
        _settingsService = settingsService,
-       _cacheService = cacheService {
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
-    try {
-      await loadSurahs();
-      isInitialized.value = true;
-    } catch (e) {
-      print('Error initializing QuranService: $e');
-      // Retry initialization after a delay
-      Future.delayed(const Duration(seconds: 1), _initialize);
-    }
-  }
+       _cacheService = cacheService;
 
   List<SurahModel> get surahs => _surahs;
+  RxList<SurahModel> get surahsRx => _surahs;
   SurahModel? get currentSurah => _currentSurah.value;
-  int get currentVerseIndex => _currentVerseIndex.value;
   bool get isLoading => _isLoading.value;
   String? get error => _error.value;
-  bool get settingsInitialized => _settingsInitialized.value;
-  bool get isSyncing => _isSyncing.value;
 
-  Future<void> loadSurahs({bool forceSync = false}) async {
-    if (!_settingsInitialized.value) {
-      print('Settings not initialized yet, deferring surah load');
-      return;
-    }
+  @override
+  void onInit() {
+    super.onInit();
 
+    ever(_settingsService.isActivatedRx, (_) => loadSurahs(force: true));
+    ever(_settingsService.surahOrderRx, (_) => _applyOrder());
+    _lifecycleListener = AppLifecycleListener(onResume: _refreshIfStale);
+
+    _settingsService.ready.then((_) async {
+      await loadSurahs();
+      isInitialized.value = true;
+    });
+  }
+
+  @override
+  void onClose() {
+    _lifecycleListener?.dispose();
+    super.onClose();
+  }
+
+  /// Charge les sourates. Plusieurs appels simultanés partagent le même chargement ;
+  /// sans [force], ne fait rien si les sourates sont déjà chargées.
+  Future<void> loadSurahs({bool force = false}) {
+    if (!force && _canonical.isNotEmpty) return Future.value();
+    return _loadFuture ??= _load().whenComplete(() => _loadFuture = null);
+  }
+
+  Future<void> _load() async {
+    _isLoading.value = true;
+    _error.value = null;
     try {
-      _isLoading.value = true;
-      _error.value = null;
-
       if (_settingsService.isActivated) {
-        print('Device is activated, attempting to load from Firebase...');
+        final local = await _firebaseService.getLocalSurahs();
+        if (local.isNotEmpty) {
+          _setSurahs(local.map(SurahModel.fromFirebase).toList());
+          _refreshIfStale();
+          return;
+        }
         try {
-          _isSyncing.value = forceSync;
-          final firebaseSurahs = await _firebaseService.getAllSurahs();
-          if (firebaseSurahs.isNotEmpty) {
-            print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase/cache');
-            _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
-            _isLoading.value = false;
-            _isSyncing.value = false;
+          final remote = await _firebaseService.fetchFromServer();
+          if (remote.isNotEmpty) {
+            _setSurahs(remote.map(SurahModel.fromFirebase).toList());
             return;
           }
-          print('No surahs found in Firebase/cache');
         } catch (e) {
-          print('Error loading from Firebase: $e');
-          _isSyncing.value = false;
-          // Start background retry after a delay
-          Future.delayed(const Duration(seconds: 2), _retryFirebaseLoad);
+          debugPrint('Error loading surahs from Firestore: $e');
         }
-      } else {
-        print('Device is not activated, loading free surahs from local JSON...');
+        // Pas de cache ni de réseau : on retombe sur les sourates gratuites.
       }
 
-      // Load from local JSON if:
-      // 1. Device is not activated (free mode)
-      // 2. Firebase load failed
-      // 3. Firebase returned empty results
-      print('Loading from local JSON...');
-      final ByteData data = await rootBundle.load('assets/data/surahs.json');
-      final String jsonString = utf8.decode(data.buffer.asUint8List());
-
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-      if (!jsonData.containsKey('surahs')) {
-        throw 'Invalid JSON format: missing "surahs" key';
-      }
-
-      final List<dynamic> surahsJson = jsonData['surahs'];
-      final List<SurahModel> loadedSurahs = surahsJson
-          .map((surah) => SurahModel.fromJson(surah))
-          .toList();
-
-      // Sort surahs in descending order by number (from An-Naas to Al-Fatiha)
-      loadedSurahs.sort((a, b) => b.number.compareTo(a.number));
-      
-      _surahs.value = loadedSurahs;
-      _isLoading.value = false;
-    } catch (e, stackTrace) {
-      print('Error loading surahs: $e');
-      print('Stack trace: $stackTrace');
-      _error.value = 'Failed to load surahs: $e';
+      _setSurahs(await _loadFreeSurahs());
+    } catch (e) {
+      debugPrint('Error loading surahs: $e');
+      _error.value = e.toString();
     } finally {
       _isLoading.value = false;
-      _isSyncing.value = false;
     }
   }
 
-  Future<void> _retryFirebaseLoad() async {
-    if (!_settingsService.isActivated || !_settingsInitialized.value) return;
+  Future<List<SurahModel>> _loadFreeSurahs() async {
+    final String jsonString = await rootBundle.loadString('assets/data/surahs.json');
+    final Map<String, dynamic> jsonData = json.decode(jsonString);
+    final List<dynamic> surahsJson = jsonData['surahs'];
+    return surahsJson.map((surah) => SurahModel.fromJson(surah)).toList();
+  }
 
+  /// Rafraîchit depuis le serveur en arrière-plan si le cache date de plus de 24 h.
+  Future<void> _refreshIfStale() async {
+    if (_refreshing || !_settingsService.isActivated) return;
+    if (_cacheService.getTimeSinceLastSync() < kContentRefreshInterval) return;
+    if (await _connectivity.checkConnectivity() == ConnectivityResult.none) return;
+
+    _refreshing = true;
     try {
-      print('Retrying Firebase load...');
-      _isSyncing.value = true;
-      final firebaseSurahs = await _firebaseService.getAllSurahs();
-      if (firebaseSurahs.isNotEmpty) {
-        print('Successfully loaded ${firebaseSurahs.length} surahs from Firebase on retry');
-        _surahs.value = firebaseSurahs.map((surah) => SurahModel.fromFirebase(surah)).toList();
-      } else {
-        print('Firebase retry returned no surahs');
+      final remote = await _firebaseService.fetchFromServer();
+      if (remote.isNotEmpty) {
+        _setSurahs(remote.map(SurahModel.fromFirebase).toList());
       }
     } catch (e) {
-      print('Firebase retry failed: $e');
+      debugPrint('Background refresh failed: $e');
     } finally {
-      _isSyncing.value = false;
+      _refreshing = false;
     }
+  }
+
+  void _setSurahs(List<SurahModel> surahs) {
+    _canonical = [...surahs]..sort((a, b) => a.number.compareTo(b.number));
+    _applyOrder();
+  }
+
+  void _applyOrder() {
+    _surahs.value = _settingsService.surahOrder == SurahOrder.ascending
+        ? [..._canonical]
+        : _canonical.reversed.toList();
+  }
+
+  SurahModel? byNumber(int number) =>
+      _canonical.firstWhereOrNull((s) => s.number == number);
+
+  /// Sourate réservée aux utilisateurs activés.
+  bool isLocked(SurahModel surah) =>
+      !_settingsService.isActivated && !kFreeSurahs.contains(surah.number);
+
+  /// Sourates accessibles, dans l'ordre d'affichage.
+  List<SurahModel> get accessibleSurahs =>
+      _surahs.where((s) => !isLocked(s)).toList();
+
+  /// Sourate suivante dans l'ordre d'affichage (verrouillées exclues).
+  SurahModel? nextOf(int number) {
+    final list = accessibleSurahs;
+    final i = list.indexWhere((s) => s.number == number);
+    return (i >= 0 && i < list.length - 1) ? list[i + 1] : null;
+  }
+
+  /// Sourate précédente dans l'ordre d'affichage (verrouillées exclues).
+  SurahModel? previousOf(int number) {
+    final list = accessibleSurahs;
+    final i = list.indexWhere((s) => s.number == number);
+    return i > 0 ? list[i - 1] : null;
   }
 
   List<SurahModel> searchSurahs(String query) {
@@ -148,7 +176,6 @@ class QuranService extends GetxService {
       final nameMatch = surah.namePulaar.toLowerCase().contains(lowercaseQuery) ||
                        surah.nameArabic.contains(query);
 
-      // Also search in verses if there's a match in the text or translation
       final versesMatch = surah.verses.any((verse) =>
         verse.pulaar.toLowerCase().contains(lowercaseQuery) ||
         verse.arabic.contains(query)
@@ -160,75 +187,5 @@ class QuranService extends GetxService {
 
   void setCurrentSurah(SurahModel surah) {
     _currentSurah.value = surah;
-    _currentVerseIndex.value = 0;
-  }
-
-  void setCurrentVerse(int index) {
-    if (currentSurah != null && index >= 0 && index < currentSurah!.verses.length) {
-      _currentVerseIndex.value = index;
-    }
-  }
-
-  void nextVerse() {
-    if (currentSurah != null && currentVerseIndex < currentSurah!.verses.length - 1) {
-      _currentVerseIndex.value++;
-    }
-  }
-
-  void previousVerse() {
-    if (currentSurah != null && currentVerseIndex > 0) {
-      _currentVerseIndex.value--;
-    }
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    // Listen to activation status changes
-    ever(_settingsService.isActivatedRx, (bool activated) {
-      print('Activation status changed: $activated');
-      if (activated && _settingsInitialized.value) {
-        print('Device activated, reloading surahs...');
-        loadSurahs();
-      }
-    });
-
-    // Setup periodic sync check for activated users
-    _setupPeriodicSyncCheck();
-
-    // Try to load immediately if settings are already initialized
-    if (_settingsService.isActivated) {
-      print('Settings already initialized on QuranService init');
-      onSettingsInitialized();
-    }
-  }
-
-  @override
-  void onClose() {
-    _syncCheckTimer?.cancel();
-    super.onClose();
-  }
-
-  void _setupPeriodicSyncCheck() {
-    // Check every 30 minutes if we need to sync
-    _syncCheckTimer?.cancel();
-    _syncCheckTimer = Timer.periodic(const Duration(minutes: 30), (timer) async {
-      if (!_settingsService.isActivated) return;
-
-      final connectivityResult = await _connectivity.checkConnectivity();
-      if (connectivityResult == ConnectivityResult.none) return;
-
-      final timeSinceLastSync = _cacheService.getTimeSinceLastSync();
-      if (timeSinceLastSync.inHours >= 6) {
-        print('Periodic sync check: Last sync was ${timeSinceLastSync.inHours} hours ago, initiating sync...');
-        loadSurahs(forceSync: true);
-      }
-    });
-  }
-
-  void onSettingsInitialized() {
-    print('Settings initialized, activation status: ${_settingsService.isActivated}');
-    _settingsInitialized.value = true;
-    loadSurahs();
   }
 }

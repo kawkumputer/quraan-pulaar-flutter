@@ -38,7 +38,7 @@ class HadithCard extends StatelessWidget {
               child: Row(
                 children: [
                   Obx(() {
-                    final isCurrentHadith = audioController.currentlyPlayingId.value == hadith.id;
+                    final isCurrentHadith = (audioController.contentType.value == AudioContentType.hadith && audioController.currentlyPlayingId.value == hadith.id);
                     final isLoading = audioController.isLoading.value && isCurrentHadith;
                     final isPlaying = audioController.isPlaying.value && isCurrentHadith;
 
@@ -78,7 +78,7 @@ class HadithCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.grey,
-                            fontFamily: 'Arabic',
+                            fontFamily: 'Amiri',
                           ),
                           textDirection: TextDirection.rtl,
                         ),
@@ -90,7 +90,7 @@ class HadithCard extends StatelessWidget {
             ),
           ),
           Obx(() {
-            final isCurrentHadith = audioController.currentlyPlayingId.value == hadith.id;
+            final isCurrentHadith = (audioController.contentType.value == AudioContentType.hadith && audioController.currentlyPlayingId.value == hadith.id);
             if (!isCurrentHadith) return const SizedBox.shrink();
 
             return Padding(

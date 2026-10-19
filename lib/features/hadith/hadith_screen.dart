@@ -37,14 +37,21 @@ class HadithController extends GetxController {
 class HadithScreen extends StatelessWidget {
   const HadithScreen({super.key});
 
+  /// En quittant l'écran, on arrête un hadith en cours (pas une sourate).
+  Future<void> _stopHadith() async {
+    final audioController = Get.find<AudioController>();
+    if (audioController.contentType.value == AudioContentType.hadith) {
+      await audioController.stopPlaying();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(HadithController());
 
     return WillPopScope(
       onWillPop: () async {
-        final audioController = Get.find<AudioController>();
-        await audioController.stopPlaying();
+        await _stopHadith();
         Get.find<AdService>().showInterstitialAd('hadith_screen');
         return true;
       },
@@ -62,8 +69,7 @@ class HadithScreen extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              final audioController = Get.find<AudioController>();
-              await audioController.stopPlaying();
+              await _stopHadith();
               Get.find<AdService>().showInterstitialAd('hadith_screen');
               Get.back();
             },

@@ -9,6 +9,8 @@ import '../services/firebase_service.dart';
 import '../services/settings_service.dart';
 import '../services/cache_service.dart';
 import '../services/hadith_service.dart';
+import '../services/reminder_service.dart';
+import '../services/app_config_service.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/activation_controller.dart';
 
@@ -27,7 +29,6 @@ class InitialBinding extends Bindings {
     Get.put<SettingsService>(SettingsService(), permanent: true);
     Get.put<FirebaseService>(FirebaseService(
       cacheService: Get.find<CacheService>(),
-      settingsService: Get.find<SettingsService>(),
     ), permanent: true);
     
     // Initialize QuranService before AudioController
@@ -38,6 +39,9 @@ class InitialBinding extends Bindings {
     );
     Get.put<QuranService>(quranService, permanent: true);
     
+    Get.put<ReminderService>(ReminderService(), permanent: true);
+    Get.put<AppConfigService>(AppConfigService(), permanent: true);
+
     // Initialize HadithService
     Get.put<HadithService>(HadithService(), permanent: true);
     

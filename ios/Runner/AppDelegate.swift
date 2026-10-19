@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 import Firebase
 
 @main
@@ -15,6 +16,8 @@ import Firebase
     } catch {
       print("Error configuring Firebase: \(error)")
     }
+    // Rappel quotidien (flutter_local_notifications) : notifications au premier plan
+    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

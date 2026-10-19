@@ -5,10 +5,16 @@ class AudioControls extends StatelessWidget {
   final AudioPlayer audioPlayer;
   final VoidCallback onPlayPressed;
   final VoidCallback onPausePressed;
-  final VoidCallback onPreviousPressed;
-  final VoidCallback onNextPressed;
+  /// null : bouton désactivé.
+  final VoidCallback? onPreviousPressed;
+  final VoidCallback? onNextPressed;
   final VoidCallback onStopPressed;
   final bool showNavigationButtons;
+  final String? previousTooltip;
+  final String? nextTooltip;
+
+  /// false : le lecteur joue autre chose ; on affiche un état « à l'arrêt ».
+  final bool active;
 
   const AudioControls({
     super.key,
@@ -19,6 +25,9 @@ class AudioControls extends StatelessWidget {
     required this.onNextPressed,
     required this.onStopPressed,
     this.showNavigationButtons = true,
+    this.previousTooltip,
+    this.nextTooltip,
+    this.active = true,
   });
 
   String _formatDuration(Duration duration) {
@@ -49,11 +58,11 @@ class AudioControls extends StatelessWidget {
           StreamBuilder<Duration?>(
             stream: audioPlayer.durationStream,
             builder: (context, snapshot) {
-              final duration = snapshot.data ?? Duration.zero;
+              final duration = active ? (snapshot.data ?? Duration.zero) : Duration.zero;
               return StreamBuilder<Duration>(
                 stream: audioPlayer.positionStream,
                 builder: (context, snapshot) {
-                  final position = snapshot.data ?? Duration.zero;
+                  final position = active ? (snapshot.data ?? Duration.zero) : Duration.zero;
                   return Column(
                     children: [
                       SliderTheme(
@@ -70,9 +79,9 @@ class AudioControls extends StatelessWidget {
                           min: 0,
                           max: duration.inMilliseconds.toDouble(),
                           value: position.inMilliseconds.toDouble().clamp(0, duration.inMilliseconds.toDouble()),
-                          onChanged: (value) {
-                            audioPlayer.seek(Duration(milliseconds: value.round()));
-                          },
+                          onChanged: active
+                              ? (value) => audioPlayer.seek(Duration(milliseconds: value.round()))
+                              : null,
                         ),
                       ),
                       Padding(
@@ -105,12 +114,13 @@ class AudioControls extends StatelessWidget {
               if (showNavigationButtons) 
                 IconButton(
                   icon: const Icon(Icons.skip_previous),
+                  tooltip: previousTooltip,
                   onPressed: onPreviousPressed,
                 ),
               StreamBuilder<PlayerState>(
                 stream: audioPlayer.playerStateStream,
                 builder: (context, snapshot) {
-                  final playerState = snapshot.data;
+                  final playerState = active ? snapshot.data : null;
                   final processingState = playerState?.processingState;
                   final playing = playerState?.playing;
 
@@ -146,6 +156,7 @@ class AudioControls extends StatelessWidget {
               if (showNavigationButtons) 
                 IconButton(
                   icon: const Icon(Icons.skip_next),
+                  tooltip: nextTooltip,
                   onPressed: onNextPressed,
                 ),
             ],

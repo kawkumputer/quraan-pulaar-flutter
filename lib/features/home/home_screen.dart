@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/services/reminder_service.dart';
+import '../../core/services/app_config_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/settings_service.dart';
@@ -21,7 +23,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Check activation after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // App ouverte depuis le rappel quotidien : on ouvre la sourate du verset.
+      Get.find<ReminderService>().handleLaunchNotification();
+      // Mise à jour obligatoire : le dialogue bloquant ne se ferme pas.
+      await Get.find<AppConfigService>().checkForUpdate();
       _activationController.checkActivation();
     });
   }

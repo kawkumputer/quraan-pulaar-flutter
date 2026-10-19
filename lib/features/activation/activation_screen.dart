@@ -23,7 +23,7 @@ class ActivationScreen extends GetView<ActivationController> {
               children: [
                 const Text(
                   'Naatnu doggol kuuɓnugol ngam heɓde cimooje ɗee fof.\n'
-                  'So a huuɓnaani, cimooje tati gadane tan keɓataa.',
+                  'So a huuɓnaani, cimooje nay tan keɓataa.',
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/constants/strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/ad_service.dart';
@@ -74,10 +75,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        Text(_quranService.error!),
+                        const Text(S.loadError),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: _quranService.loadSurahs,
+                          onPressed: () => _quranService.loadSurahs(force: true),
                           child: const Text('Fuɗɗito'),
                         ),
                       ],
@@ -134,12 +135,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                       ),
-                      onTap: () {
-                        Get.toNamed(
-                          AppRoutes.surah,
-                          arguments: surah,
-                        );
-                      },
+                      onTap: () => AppRoutes.openSurah(surah),
                     );
                   },
                 );

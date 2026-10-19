@@ -38,7 +38,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
             Expanded(
               child: Obx(() {
                 final availableBookmarks = controller.bookmarkedSurahs;
-                final allSurahs = _quranService.surahs;
+                _quranService.surahsRx.length; // recharge quand les sourates changent
 
                 if (availableBookmarks.isEmpty) {
                   return Center(
@@ -74,10 +74,9 @@ class BookmarksScreen extends GetView<BookmarkService> {
                   itemCount: availableBookmarks.length,
                   itemBuilder: (context, index) {
                     final surahNumber = availableBookmarks[index];
-                    final surah = allSurahs.firstWhere(
-                      (s) => s.number == surahNumber,
-                      orElse: () => allSurahs.first,
-                    );
+                    // Sourate absente (pas encore chargée, ou verrouillée après désactivation)
+                    final surah = _quranService.byNumber(surahNumber);
+                    final locked = surah == null || _quranService.isLocked(surah);
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -100,12 +99,14 @@ class BookmarksScreen extends GetView<BookmarkService> {
                           ),
                         ),
                         title: Text(
-                          surah.namePulaar,
+                          surah?.namePulaar ?? 'Simoore $surahNumber',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
-                        subtitle: Text('Maandeeji ${surah.verses.length}'),
+                        subtitle: locked
+                            ? const Icon(Icons.lock_outline, size: 16)
+                            : Text('Maandeeji ${surah.verses.length}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () async {
@@ -120,12 +121,9 @@ class BookmarksScreen extends GetView<BookmarkService> {
                             );
                           },
                         ),
-                        onTap: () {
-                          Get.toNamed(
-                            AppRoutes.surah,
-                            arguments: surah,
-                          );
-                        },
+                        onTap: locked
+                            ? () => Get.toNamed(AppRoutes.activation)
+                            : () => AppRoutes.openSurah(surah),
                       ),
                     );
                   },

@@ -47,7 +47,7 @@ class AboutScreen extends StatelessWidget {
                 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                 style: TextStyle(
                   fontSize: 24,
-                  fontFamily: 'Arabic',
+                  fontFamily: 'Amiri',
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -57,7 +57,7 @@ class AboutScreen extends StatelessWidget {
                 'يعتمد هذا التطبيق على ترجمة القرآن\nالكريم للسيد أبو سيح باللغة البولارية\n(الفولاني)',
                 style: TextStyle(
                   fontSize: 18,
-                  fontFamily: 'Arabic',
+                  fontFamily: 'Amiri',
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -68,7 +68,7 @@ class AboutScreen extends StatelessWidget {
                 'تم تطوير التطبيق بواسطة همات كان',
                 style: TextStyle(
                   fontSize: 18,
-                  fontFamily: 'Arabic',
+                  fontFamily: 'Amiri',
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,

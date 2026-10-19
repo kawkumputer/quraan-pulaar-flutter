@@ -24,6 +24,20 @@ class AppRoutes {
   static const String activation = '/activation';
   static const String about = '/about';
 
+  static String surahPath(int number) => '/surah/$number';
+
+  /// Ouvre l'écran d'une sourate (ou l'activation si elle est verrouillée).
+  /// [replace] remplace l'écran courant au lieu d'empiler.
+  static Future<void>? openSurah(SurahModel surah, {bool replace = false}) {
+    final quranService = Get.find<QuranService>();
+    if (quranService.isLocked(surah)) return Get.toNamed(activation);
+    quranService.setCurrentSurah(surah);
+    final path = surahPath(surah.number);
+    return replace
+        ? Get.offNamed(path, arguments: surah, preventDuplicates: false)
+        : Get.toNamed(path, arguments: surah);
+  }
+
   static final List<GetPage> pages = [
     GetPage(
       name: splash,
@@ -40,20 +54,12 @@ class AppRoutes {
     GetPage(
       name: surah,
       page: () {
-        final surah = Get.arguments as SurahModel?;
-        if (surah == null) {
-          final number = int.tryParse(Get.parameters['number'] ?? '');
-          if (number != null) {
-            final quranService = Get.find<QuranService>();
-            return SurahContentScreen(
-              surah: quranService.surahs.firstWhere(
-                (s) => s.number == number,
-                orElse: () => quranService.surahs.first,
-              ),
-            );
-          }
-          return const HomeScreen(); // Fallback if no valid surah
-        }
+        final args = Get.arguments;
+        if (args is SurahModel) return SurahContentScreen(surah: args);
+
+        final number = int.tryParse(Get.parameters['number'] ?? '');
+        final surah = number == null ? null : Get.find<QuranService>().byNumber(number);
+        if (surah == null) return const HomeScreen();
         return SurahContentScreen(surah: surah);
       },
     ),

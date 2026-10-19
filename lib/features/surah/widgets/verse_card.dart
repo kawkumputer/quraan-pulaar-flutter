@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../core/services/settings_service.dart';
 import '../../../core/models/verse_model.dart';
 
 class VerseCard extends StatelessWidget {
@@ -62,29 +64,39 @@ class VerseCard extends StatelessWidget {
             ),
             const SizedBox(height: 2),
           ],
-          Text(
-            verse.arabic,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 22,
-              height: 1.5,
-              fontFamily: 'Uthmani',
-              color: colorScheme.onSurface,
-            ),
-          ),
-          if (verse.pulaar.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              verse.pulaar,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: 17,
-                height: 1.4,
-                color: colorScheme.onSurface.withOpacity(0.85),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
+          // Taille réglable dans Teelte (16 par défaut : arabe 22, pulaar 17).
+          Obx(() {
+            final fontSize = Get.find<SettingsService>().fontSize;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  verse.arabic,
+                  textAlign: TextAlign.right,
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(
+                    fontSize: fontSize + 6,
+                    height: 1.7,
+                    fontFamily: 'Amiri',
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                if (verse.pulaar.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    verse.pulaar,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: fontSize + 1,
+                      height: 1.4,
+                      color: colorScheme.onSurface.withValues(alpha: 0.85),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
         ],
       ),
     );

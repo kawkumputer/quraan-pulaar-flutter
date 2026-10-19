@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/constants/strings.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
@@ -78,13 +79,22 @@ class AllSurahsScreen extends GetView<QuranService> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (controller.error != null) {
-                  return const Center(child: Text('Error: '));
-                }
-
                 final surahs = controller.surahs;
                 if (surahs.isEmpty) {
-                  return const Center(child: Text('No surahs found'));
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(controller.error != null ? S.loadError : S.noSurahs),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.refresh),
+                          label: const Text(S.retry),
+                          onPressed: () => controller.loadSurahs(force: true),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 return Column(
@@ -151,17 +161,14 @@ class AllSurahsScreen extends GetView<QuranService> {
                         itemCount: surahs.length,
                         itemBuilder: (context, index) {
                           final surah = surahs[index];
-                          final bool isLocked = !settingsService.isActivated && index >= 4;
+                          final bool isLocked = controller.isLocked(surah);
 
                           return Card(
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: InkWell(
                               onTap: isLocked
                                   ? () => Get.toNamed(AppRoutes.activation)
-                                  : () {
-                                      controller.setCurrentSurah(surah);
-                                      Get.toNamed(AppRoutes.surah, arguments: surah);
-                                    },
+                                  : () => AppRoutes.openSurah(surah),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Row(

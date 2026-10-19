@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import '../constants/strings.dart';
 import '../services/activation_api_service.dart';
 import '../services/settings_service.dart';
 import '../services/device_service.dart';
@@ -8,10 +8,11 @@ import '../services/quran_service.dart';
 import '../../features/activation/activation_dialog.dart';
 
 class ActivationController extends GetxController {
+  static const Duration _promptInterval = Duration(hours: 24);
+
   final ActivationApiService _apiService = Get.find<ActivationApiService>();
   final DeviceService _deviceService = Get.find<DeviceService>();
   final SettingsService _settingsService = Get.find<SettingsService>();
-  QuranService? _quranService;
 
   final _isVerifying = false.obs;
   final _verificationError = Rxn<String>();
@@ -19,95 +20,26 @@ class ActivationController extends GetxController {
   bool get isVerifying => _isVerifying.value;
   String? get verificationError => _verificationError.value;
 
-  Future<QuranService> _getQuranService() async {
-    if (_quranService != null) return _quranService!;
-
-    try {
-      _quranService = Get.find<QuranService>();
-      return _quranService!;
-    } catch (e) {
-      print('QuranService not available yet, retrying in 100ms');
-      await Future.delayed(const Duration(milliseconds: 100));
-      return _getQuranService();
-    }
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    // Removed automatic activation check
-  }
-
+  /// Appelé à l'ouverture de l'accueil. La validation serveur d'un appareil activé
+  /// est faite par SettingsService ; ici on propose seulement l'activation aux
+  /// utilisateurs gratuits, au plus une fois par 24 h et jamais au premier lancement.
   Future<void> checkActivation() async {
-    try {
-      // If already activated, only verify with backend if 24 hours have passed
-      if (_settingsService.isActivated) {
-        if (!_settingsService.needsValidation) {
-          print('Skipping activation check - last check was within 24 hours');
-          return;
-        }
+    await _settingsService.ready;
+    if (_settingsService.isActivated || _settingsService.isFirstLaunch) return;
 
-        print('Device is activated, checking validity with backend...');
+    final last = _settingsService.lastActivationPrompt;
+    if (last != null && DateTime.now().difference(last) < _promptInterval) return;
 
-        // Check connectivity first
-        final connectivityResult = await Connectivity().checkConnectivity();
-        final hasInternet = connectivityResult != ConnectivityResult.none;
-
-        if (!hasInternet) {
-          print('No internet connection, trusting existing activation');
-          return;
-        }
-
-        try {
-          final deviceInfo = await _deviceService.getDeviceInfo();
-          final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId, _settingsService.activationCode);
-
-          if (validityStatus == true) {
-            print('Device activation confirmed valid');
-            await _settingsService.setActivated(true, code: _settingsService.activationCode);
-          } else if (validityStatus == false) {
-            print('Device activation is explicitly invalid');
-            await _settingsService.clearActivation();
-            showActivationDialog();
-          } else {
-            // For null (uncertain), trust existing activation
-            print('Device status uncertain, trusting existing activation');
-            await _settingsService.setActivated(true, code: _settingsService.activationCode);
-          }
-        } catch (e) {
-          print('Error checking validity with backend: $e');
-          print('Trusting existing activation due to error');
-          return;
-        }
-      } else {
-        print('Device is not activated');
-        showActivationDialog();
-      }
-    } catch (e) {
-      print('Error checking activation: $e');
-      // Trust existing activation on error
-      if (_settingsService.isActivated) {
-        print('Trusting existing activation due to error');
-        return;
-      }
-      showActivationDialog();
+    await _settingsService.markActivationPrompted();
+    await Future.delayed(const Duration(seconds: 2));
+    if (!_settingsService.isActivated) {
+      await showActivationDialog();
     }
   }
 
+  /// Fermer le dialogue ne change jamais l'état d'activation.
   Future<void> showActivationDialog() async {
-    try {
-      final result = await Get.dialog<bool>(
-        ActivationDialog(),
-        barrierDismissible: false,
-      );
-
-      // If user dismisses the dialog or clicks "Later", ensure we're in restricted mode
-      if (result != true) {
-        await _settingsService.clearActivation();
-      }
-    } catch (e) {
-      print('Error showing activation dialog: $e');
-    }
+    await Get.dialog<bool>(ActivationDialog());
   }
 
   Future<bool> verifyActivationCode(String code) async {
@@ -115,28 +47,19 @@ class ActivationController extends GetxController {
       _isVerifying.value = true;
       _verificationError.value = null;
 
-      // Get device info for registration
       final deviceInfo = await _deviceService.getDeviceInfo();
-
-      // Register device with activation code
       final success = await _apiService.registerDevice(deviceInfo.uniqueId, code);
 
       if (success) {
-        // Set activation status and save code
         await _settingsService.setActivated(true, code: code);
-        // Reload surahs from Firebase after successful activation
-        final quranService = await _getQuranService();
-        await quranService.loadSurahs();
+        await Get.find<QuranService>().loadSurahs(force: true);
         return true;
-      } else {
-        _verificationError.value = 'Roŋki huuɓnude kaɓirgal ngal, ƴeewto tawo doggol ngol ina moƴƴi';
-        await _settingsService.clearActivation();
-        return false;
       }
+      _verificationError.value = 'Roŋki huuɓnude kaɓirgal ngal, ƴeewto tawo doggol ngol ina moƴƴi';
+      return false;
     } catch (e) {
-      print('Error during verification: $e');
-      _verificationError.value = 'Juumre e ƴeewndagol doggol: $e';
-      await _settingsService.clearActivation();
+      debugPrint('Error during verification: $e');
+      _verificationError.value = S.genericError;
       return false;
     } finally {
       _isVerifying.value = false;

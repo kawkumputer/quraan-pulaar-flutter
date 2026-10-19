@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
-import 'dart:math';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/bookmark_service.dart';
 import '../../../core/services/quran_service.dart';
-import '../../../core/models/surah_model.dart';
-import '../../../features/surah/models/surah.dart';
+import '../../../core/utils/daily_verse.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/services/settings_service.dart';
 
 class DailyVerseWidget extends StatefulWidget {
   const DailyVerseWidget({super.key});
@@ -20,128 +17,45 @@ class DailyVerseWidget extends StatefulWidget {
 class _DailyVerseWidgetState extends State<DailyVerseWidget> {
   final _bookmarkService = Get.find<BookmarkService>();
   final _quranService = Get.find<QuranService>();
-  final _dailyVerse = Rx<Map<String, dynamic>>({});
-  final _isLoading = true.obs;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadVerseData();
-  }
-
-  Future<void> _loadVerseData() async {
-    _isLoading.value = true;
-    try {
-      await _quranService.loadSurahs();
-      final surahs = _quranService.surahs;
-
-      if (surahs.isNotEmpty) {
-        _getDailyVerse(surahs);
-      }
-    } finally {
-      _isLoading.value = false;
-    }
-  }
-
-  void _getDailyVerse(List<SurahModel> surahs) {
-    if (_dailyVerse.value.isNotEmpty) {
-      return;
-    }
-
-    final settingsService = Get.find<SettingsService>();
-    final isActivated = settingsService.isActivated;
-
-    // Filter surahs based on activation status
-    final availableSurahs = surahs.where((s) => s.verses.isNotEmpty).toList();
-    if (availableSurahs.isEmpty) return;
-
-    // Use the current date as seed to ensure same verse throughout the day
-    final now = DateTime.now();
-    final seed = now.year * 10000 + now.month * 100 + now.day;
-    final random = Random(seed);
-
-    // First, randomly select a surah from available ones
-    final surah = availableSurahs[random.nextInt(availableSurahs.length)];
-
-    // Then, randomly select a verse from that surah
-    if (surah.verses.isEmpty) {
-      return;
-    }
-
-    final verse = surah.verses[random.nextInt(surah.verses.length)];
-
-    final verseData = {
-      'verse': verse.arabic,
-      'translation': verse.pulaar,
-      'surah': surah.namePulaar,
-      'verseNumber': verse.number.toString(),
-      'surahNumber': surah.number,
-      'audioUrl': surah.audioUrl,
+  /// Verset du jour parmi les sourates accessibles (recalculé quand elles changent).
+  Map<String, dynamic> get _dailyVerseData {
+    final daily =
+        DailyVerse.forDate(DateTime.now(), _quranService.accessibleSurahs);
+    if (daily == null) return {};
+    return {
+      'verse': daily.verse.arabic,
+      'translation': daily.verse.pulaar,
+      'surah': daily.surah.namePulaar,
+      'verseNumber': daily.verse.number.toString(),
+      'surahNumber': daily.surah.number,
+      'shareText': daily.shareText,
     };
-
-    _dailyVerse.value = verseData;
   }
 
   Future<void> _shareVerse(Map<String, dynamic> verse) async {
-    final shareText = '''${verse['verse']}
-
-${verse['translation']}
-
-- ${verse['surah']}, Maande ${verse['verseNumber']}
-
-Ummoraade e Quraan Pulaar''';
-
-    await Clipboard.setData(ClipboardData(text: shareText));
-    Get.snackbar(
-      'Naatii e ɗerewol',
-      'Maande nde naatnaama e ɗerewol',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+    final text = verse['shareText'] as String?;
+    if (text == null) return;
+    await SharePlus.instance.share(ShareParams(text: text));
   }
 
   void _navigateToSurah(Map<String, dynamic> verse) {
-    if (verse['surahNumber'] == null) return;
-
-    final surah = _quranService.surahs.firstWhere(
-      (s) => s.number == verse['surahNumber'],
-      orElse: () => SurahModel(
-        number: 0,
-        nameArabic: '',
-        namePulaar: '',
-        verses: [],
-      ),
-    );
-
-    if (surah.number == 0) return;
-
-    Get.toNamed(
-      AppRoutes.surah,
-      arguments: surah,
-    );
+    final surah = _quranService.byNumber(verse['surahNumber'] as int? ?? 0);
+    if (surah != null) AppRoutes.openSurah(surah);
   }
 
   Future<void> _toggleBookmark(Map<String, dynamic> verse) async {
-    final surahNumber = verse['surahNumber'] as int;
-    if (surahNumber == 0) {
-      Get.snackbar(
-        'Juumre',
-        'Roŋki maantaade maande nde e oo sahaa',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
+    final surahNumber = verse['surahNumber'] as int? ?? 0;
+    if (surahNumber == 0) return;
 
     await _bookmarkService.toggleBookmark(surahNumber);
 
     final isBookmarked = _bookmarkService.isBookmarked(surahNumber);
     Get.snackbar(
       isBookmarked ? 'Maantaama' : 'Maantol ittaama',
-      isBookmarked ? 'Simoore nde ɓeydaama e maantaaɗi' : 'Simoore nde ittaama e maantaaɗi',
+      isBookmarked
+          ? 'Simoore nde ɓeydaama e maantaaɗi'
+          : 'Simoore nde ittaama e maantaaɗi',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: isBookmarked ? Colors.green : Colors.grey,
       colorText: Colors.white,
@@ -150,144 +64,149 @@ Ummoraade e Quraan Pulaar''';
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.wb_sunny, color: AppTheme.primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                'Maande hannde ko',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+    return Obx(() {
+      // Dépendances réactives : sourates chargées et état d'activation.
+      _quranService.surahsRx.length;
+      final v = _dailyVerseData;
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.wb_sunny, color: AppTheme.primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  'Maande hannde ko',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: Icon(Icons.share, color: AppTheme.primaryColor),
-                onPressed: () => _shareVerse(_dailyVerse.value),
-              ),
-              Obx(() => IconButton(
-                icon: Icon(
-                  _bookmarkService.isBookmarked(_dailyVerse.value['surahNumber'] ?? 0)
-                      ? Icons.bookmark
-                      : Icons.bookmark_border,
-                  color: AppTheme.primaryColor,
+                const Spacer(),
+                IconButton(
+                  icon: Icon(Icons.share, color: AppTheme.primaryColor),
+                  onPressed: () => _shareVerse(v),
                 ),
-                onPressed: () => _toggleBookmark(_dailyVerse.value),
-              )),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Obx(() {
-            if (_isLoading.value) {
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.dailyVerseColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
+                Obx(() => IconButton(
+                      icon: Icon(
+                        _bookmarkService.isBookmarked(v['surahNumber'] ?? 0)
+                            ? Icons.bookmark
+                            : Icons.bookmark_border,
+                        color: AppTheme.primaryColor,
+                      ),
+                      onPressed: () => _toggleBookmark(v),
+                    )),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Obx(() {
+              if ((_quranService.isLoading && v.isEmpty)) {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.dailyVerseColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              }
+
+              if (v.isEmpty) {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.dailyVerseColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Roŋkii heɓde maande hannde',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
+
+              return GestureDetector(
+                onTap: () => _navigateToSurah(v),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.dailyVerseColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        v['verse'] ?? '',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          height: 1.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        v['translation'] ?? '',
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${v['surah']} - maande ${v['verseNumber']}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.touch_app,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               );
-            }
-
-            if (_dailyVerse.value.isEmpty) {
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.dailyVerseColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Roŋkii heɓde maande hannde',
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
-            }
-
-            return GestureDetector(
-              onTap: () => _navigateToSurah(_dailyVerse.value),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.dailyVerseColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      _dailyVerse.value['verse'] ?? '',
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        height: 1.5,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _dailyVerse.value['translation'] ?? '',
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1.5,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${_dailyVerse.value['surah']} - maande ${_dailyVerse.value['verseNumber']}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.touch_app,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
+            }),
+          ],
+        ),
+      );
+    });
   }
 }

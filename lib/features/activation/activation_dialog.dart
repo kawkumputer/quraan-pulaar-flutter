@@ -33,7 +33,7 @@ class ActivationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'A jaɓɓaama e Quraan Pulaar!\n\nHuuɓnu jaaɓnirgal ngal ngam heɓde cimooje ɗee fof. So a huuɓnaani, ko cimooje tati gadane tan keɓataa.',
+              'A jaɓɓaama e Quraan Pulaar!\n\nHuuɓnu jaaɓnirgal ngal ngam heɓde cimooje ɗee fof. So a huuɓnaani, ko cimooje nay tan keɓataa.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),

@@ -1,12 +1,36 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/constants/strings.dart';
+import '../../core/services/reminder_service.dart';
 import '../../core/services/settings_service.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
+
+  Future<void> _shareApp() async {
+    final link = Platform.isIOS ? kAppStoreUrl : kPlayStoreUrl;
+    await SharePlus.instance.share(ShareParams(text: '${S.shareText}\n$link'));
+  }
+
+  Future<void> _toggleReminder(BuildContext context, bool enabled) async {
+    final ok = await Get.find<ReminderService>().setEnabled(enabled);
+    if (!ok) {
+      Get.snackbar('', S.reminderPermissionDenied, snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  Future<void> _pickReminderTime(BuildContext context) async {
+    final settings = Get.find<SettingsService>();
+    final time = await showTimePicker(context: context, initialTime: settings.reminderTime);
+    if (time != null) {
+      await Get.find<ReminderService>().setEnabled(true, time: time);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +56,10 @@ class SettingsScreen extends StatelessWidget {
                               value: settingsService.themeMode,
                               items: const [
                                 DropdownMenuItem(
+                                  value: ThemeMode.system,
+                                  child: Text(S.themeSystem),
+                                ),
+                                DropdownMenuItem(
                                   value: ThemeMode.light,
                                   child: Text('Jalbugol'),
                                 ),
@@ -51,14 +79,50 @@ class SettingsScreen extends StatelessWidget {
                       ListTile(
                         leading: const Icon(Icons.text_fields),
                         title: const Text('Ɓeydugol binndi'),
-                        subtitle: Obx(() => Slider(
-                              value: settingsService.fontSize,
-                              min: 14,
-                              max: 30,
-                              divisions: 8,
-                              label: settingsService.fontSize.round().toString(),
-                              onChanged: (value) {
-                                settingsService.setFontSize(value);
+                        subtitle: Obx(() => Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Slider(
+                                  value: settingsService.fontSize,
+                                  min: 14,
+                                  max: 30,
+                                  divisions: 8,
+                                  label: settingsService.fontSize.round().toString(),
+                                  onChanged: settingsService.setFontSize,
+                                ),
+                                Text(
+                                  'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                    fontFamily: 'Amiri',
+                                    fontSize: settingsService.fontSize + 6,
+                                  ),
+                                ),
+                                Text(
+                                  S.fontPreview,
+                                  style: TextStyle(fontSize: settingsService.fontSize + 1),
+                                ),
+                              ],
+                            )),
+                      ),
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.sort),
+                        title: const Text(S.surahOrder),
+                        trailing: Obx(() => DropdownButton<SurahOrder>(
+                              value: settingsService.surahOrder,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: SurahOrder.descending,
+                                  child: Text('114 → 1'),
+                                ),
+                                DropdownMenuItem(
+                                  value: SurahOrder.ascending,
+                                  child: Text('1 → 114'),
+                                ),
+                              ],
+                              onChanged: (SurahOrder? order) {
+                                if (order != null) settingsService.setSurahOrder(order);
                               },
                             )),
                       ),
@@ -67,21 +131,23 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.notifications),
-                        title: const Text('Tintine'),
-                        subtitle: const Text('Tintine maande ñalnde'),
-                        trailing: Obx(() => Switch(
-                              value: settingsService.notificationsEnabled,
-                              onChanged: (value) {
-                                settingsService.setNotificationsEnabled(value);
-                              },
-                            )),
-                      ),
-                    ],
-                  ),
+                  child: Obx(() => Column(
+                        children: [
+                          SwitchListTile(
+                            secondary: const Icon(Icons.notifications),
+                            title: const Text(S.reminder),
+                            value: settingsService.reminderEnabled,
+                            onChanged: (value) => _toggleReminder(context, value),
+                          ),
+                          if (settingsService.reminderEnabled)
+                            ListTile(
+                              leading: const Icon(Icons.schedule),
+                              title: Text(settingsService.reminderTime.format(context)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => _pickReminderTime(context),
+                            ),
+                        ],
+                      )),
                 ),
                 const SizedBox(height: 16),
                 Card(
@@ -89,10 +155,8 @@ class SettingsScreen extends StatelessWidget {
                     children: [
                       ListTile(
                         leading: const Icon(Icons.share),
-                        title: const Text('Yaltinde'),
-                        onTap: () {
-                          // TODO: Implement app sharing
-                        },
+                        title: const Text(S.share),
+                        onTap: _shareApp,
                       ),
                       Obx(() => !settingsService.isActivated
                           ? Column(

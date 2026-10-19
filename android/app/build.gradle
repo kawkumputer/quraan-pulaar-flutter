@@ -13,6 +13,8 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        // Requis par flutter_local_notifications
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -43,8 +45,8 @@ android {
         applicationId "mr.quran_pulaar"
         minSdkVersion flutter.minSdkVersion // Minimum SDK for background service support
         targetSdkVersion 35 // Target Android 15 as required by Google Play
-        versionCode 2100
-        versionName "2.10.0"
+        versionCode 2110
+        versionName "2.11.0"
         multiDexEnabled true
         ndk {
             debugSymbolLevel 'FULL'
@@ -68,6 +70,7 @@ flutter {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0"
     implementation platform('com.google.firebase:firebase-bom:32.7.2')
     implementation 'com.google.android.gms:play-services-ads:22.6.0'
