@@ -19,7 +19,7 @@ class HadithService extends GetxService {
     },
     {
       'id': 3,
-      'url': 'https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/hadiis%2Fhadith_2.mp3?alt=media&token=10a3bf08-9cb6-46c8-abcc-83971e60ced3'
+      'url': 'https://firebasestorage.googleapis.com/v0/b/quran-pulaar-dmwdqo.firebasestorage.app/o/hadiis%2Fhadith_3.mp3?alt=media&token=27055e74-ee0c-4f03-8f12-fad0a980449a'
     }
   ];
 

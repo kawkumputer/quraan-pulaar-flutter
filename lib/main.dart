@@ -15,7 +15,6 @@ import 'core/controllers/audio_controller.dart';
 import 'core/services/hadith_service.dart';
 import 'core/routes/route_observer.dart';
 import 'features/surah/models/surah.dart';
-import 'features/surah/models/verse.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -10,7 +10,6 @@ import '../../core/controllers/audio_controller.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/routes/app_routes.dart';
 import 'widgets/verse_card.dart';
-import 'widgets/download_button.dart';
 
 class SurahContentScreen extends StatefulWidget {
   final SurahModel surah;
