@@ -16,6 +16,9 @@ class AudioControls extends StatelessWidget {
   /// false : le lecteur joue autre chose ; on affiche un état « à l'arrêt ».
   final bool active;
 
+  /// Réglages (vitesse, répétition, minuterie) ; masqué si null.
+  final VoidCallback? onMorePressed;
+
   const AudioControls({
     super.key,
     required this.audioPlayer,
@@ -28,6 +31,7 @@ class AudioControls extends StatelessWidget {
     this.previousTooltip,
     this.nextTooltip,
     this.active = true,
+    this.onMorePressed,
   });
 
   String _formatDuration(Duration duration) {
@@ -153,6 +157,11 @@ class AudioControls extends StatelessWidget {
                 icon: const Icon(Icons.stop),
                 onPressed: onStopPressed,
               ),
+              if (onMorePressed != null)
+                IconButton(
+                  icon: const Icon(Icons.tune),
+                  onPressed: onMorePressed,
+                ),
               if (showNavigationButtons) 
                 IconButton(
                   icon: const Icon(Icons.skip_next),

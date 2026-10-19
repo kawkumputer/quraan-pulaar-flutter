@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/widgets/audio_options_sheet.dart';
 import '../../core/utils/messenger.dart';
 import 'dart:async';
 import '../../core/widgets/audio_controls.dart';
@@ -279,6 +280,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       previousTooltip: previous?.namePulaar,
                       nextTooltip: next?.namePulaar,
                       onStopPressed: _audioController.stopPlaying,
+                    onMorePressed: active ? AudioOptionsSheet.show : null,
                     );
                   }),
                 ),

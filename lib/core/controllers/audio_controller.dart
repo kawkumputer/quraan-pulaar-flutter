@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -15,6 +16,12 @@ import '../utils/messenger.dart';
 import '../utils/verse_timing.dart';
 
 enum AudioContentType { surah, hadith }
+
+/// Répétition : aucune, la sourate en cours, ou le verset en cours (position estimée).
+enum AudioRepeat { off, surah, verse }
+
+/// Élément d'une playlist de hadiths.
+typedef HadithItem = ({int id, String url});
 
 /// Seul responsable de la lecture audio. Les sourates sont jouées comme une playlist
 /// dans l'ordre d'affichage : l'enchaînement et les boutons de la notification
@@ -32,8 +39,23 @@ class AudioController extends GetxController {
   final Rx<AudioContentType> contentType = AudioContentType.surah.obs;
   final Rxn<SurahModel> currentSurah = Rxn<SurahModel>();
 
+  /// Vitesse de lecture (mémorisée).
+  final RxDouble speed = 1.0.obs;
+  final Rx<AudioRepeat> repeatMode = AudioRepeat.off.obs;
+
+  /// Minuterie de veille : heure de mise en pause, ou fin de l'élément en cours.
+  final Rxn<DateTime> sleepAt = Rxn<DateTime>();
+  final RxBool sleepAtEndOfItem = false.obs;
+  Timer? _sleepTimer;
+
+  /// Verset répété (index) quand [repeatMode] vaut verse.
+  int? _repeatVerseIndex;
+  VerseTiming? _repeatTiming;
+  int? _lastIndex;
+
   /// Sourates de la playlist en cours, dans l'ordre de lecture.
   List<SurahModel> _queue = [];
+  List<HadithItem> _hadithQueue = [];
   String? _artworkPath;
   final List<StreamSubscription> _subscriptions = [];
 
@@ -49,8 +71,11 @@ class AudioController extends GetxController {
       if (state.processingState == ProcessingState.completed) {
         // Fin de la dernière sourate de la playlist.
         isPlaying.value = false;
+        _clearSleepTimer();
       }
     }, onError: _onPlayerError));
+    _subscriptions.add(audioPlayer.positionStream.listen(_onPosition, onError: (_) {}));
+    _loadSpeed();
     _subscriptions.add(audioPlayer.currentIndexStream.listen(_onIndexChanged, onError: (_) {}));
     // Erreurs de lecture en cours (ex. connexion perdue au milieu d'une sourate).
     _subscriptions.add(audioPlayer.playbackEventStream.listen((_) {}, onError: _onPlayerError));
@@ -95,8 +120,25 @@ class AudioController extends GetxController {
       await Connectivity().checkConnectivity() == ConnectivityResult.none;
 
   void _onIndexChanged(int? index) {
-    if (contentType.value != AudioContentType.surah) return;
-    if (index == null || index < 0 || index >= _queue.length) return;
+    if (index == null) return;
+    final itemChanged = _lastIndex != null && _lastIndex != index;
+    _lastIndex = index;
+    if (itemChanged) {
+      // Minuterie « fin de l'élément » : on s'arrête au passage au suivant.
+      if (sleepAtEndOfItem.value) {
+        audioPlayer.pause();
+        _clearSleepTimer();
+      }
+      if (repeatMode.value == AudioRepeat.verse) setRepeatMode(AudioRepeat.off);
+    }
+
+    if (contentType.value == AudioContentType.hadith) {
+      if (index >= 0 && index < _hadithQueue.length) {
+        currentlyPlayingId.value = _hadithQueue[index].id;
+      }
+      return;
+    }
+    if (index < 0 || index >= _queue.length) return;
     final surah = _queue[index];
     currentSurah.value = surah;
     currentlyPlayingId.value = surah.number;
@@ -131,6 +173,8 @@ class AudioController extends GetxController {
     try {
       isLoading.value = true;
       contentType.value = AudioContentType.surah;
+      _hadithQueue = [];
+      _lastIndex = null;
 
       final offline = await _isOffline();
       if (offline && !_downloadService.isDownloaded(surah.number)) {
@@ -156,12 +200,6 @@ class AudioController extends GetxController {
         initialPosition: startAt ?? Duration.zero,
       );
       _onIndexChanged(index);
-
-      if (!offline &&
-          !_downloadService.isDownloaded(surah.number) &&
-          !_downloadService.isDownloading(surah.number)) {
-        downloadSurah(surah.number); // en arrière-plan
-      }
 
       if (autoPlay) _play();
     } catch (e) {
@@ -244,32 +282,37 @@ class AudioController extends GetxController {
     }
   }
 
-  /// Lit un élément isolé (hadith).
-  Future<void> playUrl(int id, String url, {
-    String? surahName,
-    String? surahNameArabic,
-    AudioContentType contentType = AudioContentType.hadith,
-  }) async {
+  /// Lit les hadiths [items] à partir de [index] (playlist : précédent / suivant).
+  Future<void> playHadiths(List<HadithItem> items, int index) async {
     try {
       isLoading.value = true;
-      this.contentType.value = contentType;
+      contentType.value = AudioContentType.hadith;
       _queue = [];
       currentSurah.value = null;
+      _hadithQueue = items;
+      _lastIndex = null;
+      if (repeatMode.value == AudioRepeat.verse) setRepeatMode(AudioRepeat.off);
 
-      await audioPlayer.setAudioSource(AudioSource.uri(
-        _uriFor(url),
-        tag: MediaItem(
-          id: 'hadith-$id',
-          title: surahName ?? 'Hadiis $id',
-          artist: 'Quraan Pulaar',
-          album: 'Hadiisaaji',
-          artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
-        ),
-      ));
-      currentlyPlayingId.value = id;
+      await audioPlayer.setAudioSource(
+        ConcatenatingAudioSource(children: [
+          for (final h in items)
+            AudioSource.uri(
+              _uriFor(h.url),
+              tag: MediaItem(
+                id: 'hadith-${h.id}',
+                title: 'Njangtuwol ${h.id}',
+                artist: 'Quraan Pulaar',
+                album: 'Hadiisaaji',
+                artUri: _artworkPath != null ? Uri.file(_artworkPath!) : null,
+              ),
+            ),
+        ]),
+        initialIndex: index,
+      );
+      _onIndexChanged(index);
       _play();
     } catch (e) {
-      debugPrint('Error playing audio: $e');
+      debugPrint('Error playing hadiths: $e');
       _resetState();
       _showPlaybackError(e);
     } finally {
@@ -277,16 +320,93 @@ class AudioController extends GetxController {
     }
   }
 
-  void togglePlay(int id, String url, {
-    String? surahName,
-    String? surahNameArabic,
-    AudioContentType contentType = AudioContentType.hadith,
-  }) {
-    if (this.contentType.value == contentType && currentlyPlayingId.value == id) {
-      audioPlayer.playing ? audioPlayer.pause() : _play();
+  /// Lecture / pause du hadith [index] de [items].
+  void toggleHadith(List<HadithItem> items, int index) {
+    final isCurrent = contentType.value == AudioContentType.hadith &&
+        currentlyPlayingId.value == items[index].id &&
+        audioPlayer.processingState != ProcessingState.idle;
+    if (!isCurrent) {
+      playHadiths(items, index);
+    } else if (audioPlayer.playing) {
+      audioPlayer.pause();
     } else {
-      playUrl(id, url, surahName: surahName, surahNameArabic: surahNameArabic, contentType: contentType);
+      _play();
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vitesse, répétition, minuterie
+  // ---------------------------------------------------------------------------
+
+  static const _speedKey = 'playback_speed';
+
+  Future<void> _loadSpeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    await setSpeed(prefs.getDouble(_speedKey) ?? 1.0, save: false);
+  }
+
+  Future<void> setSpeed(double value, {bool save = true}) async {
+    speed.value = value;
+    await audioPlayer.setSpeed(value);
+    if (save) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_speedKey, value);
+    }
+  }
+
+  void setRepeatMode(AudioRepeat mode) {
+    repeatMode.value = mode;
+    audioPlayer.setLoopMode(mode == AudioRepeat.surah ? LoopMode.one : LoopMode.off);
+    _repeatVerseIndex = null;
+    _repeatTiming = null;
+    if (mode == AudioRepeat.verse) {
+      final surah = currentSurah.value;
+      final duration = audioPlayer.duration;
+      if (contentType.value != AudioContentType.surah || surah == null || duration == null) {
+        repeatMode.value = AudioRepeat.off;
+        return;
+      }
+      final timing = VerseTiming(surah, duration);
+      if (timing.length == 0) {
+        repeatMode.value = AudioRepeat.off;
+        return;
+      }
+      _repeatTiming = timing;
+      _repeatVerseIndex = timing.indexAt(audioPlayer.position).clamp(0, timing.length - 1);
+    }
+  }
+
+  /// Répétition du verset : retour à son début quand on atteint sa fin.
+  void _onPosition(Duration position) {
+    final index = _repeatVerseIndex;
+    final timing = _repeatTiming;
+    if (repeatMode.value != AudioRepeat.verse || index == null || timing == null) return;
+    if (position >= timing.endOf(index) - const Duration(milliseconds: 200)) {
+      audioPlayer.seek(timing.startOf(index));
+    }
+  }
+
+  /// Met en pause après [duration], ou à la fin de l'élément en cours si null.
+  void setSleepTimer(Duration? duration) {
+    _clearSleepTimer();
+    if (duration == null) {
+      sleepAtEndOfItem.value = true;
+      return;
+    }
+    sleepAt.value = DateTime.now().add(duration);
+    _sleepTimer = Timer(duration, () {
+      audioPlayer.pause();
+      _clearSleepTimer();
+    });
+  }
+
+  void cancelSleepTimer() => _clearSleepTimer();
+
+  void _clearSleepTimer() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    sleepAt.value = null;
+    sleepAtEndOfItem.value = false;
   }
 
   Future<void> pause() async {
@@ -307,6 +427,10 @@ class AudioController extends GetxController {
     currentSurah.value = null;
     isPlaying.value = false;
     _queue = [];
+    _hadithQueue = [];
+    _lastIndex = null;
+    if (repeatMode.value == AudioRepeat.verse) setRepeatMode(AudioRepeat.off);
+    _clearSleepTimer();
   }
 
   void _showPlaybackError([Object? error]) {

@@ -9,6 +9,7 @@ import '../../features/hadith/hadith_screen.dart';
 import '../../features/activation/activation_screen.dart';
 import '../../features/about/about_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/downloads/downloads_screen.dart';
 import '../services/quran_service.dart';
 import '../models/surah_model.dart';
 
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String hadith = '/hadith';
   static const String activation = '/activation';
   static const String about = '/about';
+  static const String downloads = '/downloads';
 
   static String surahPath(int number) => '/surah/$number';
 
@@ -94,6 +96,11 @@ class AppRoutes {
     GetPage(
       name: activation,
       page: () => const ActivationScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: downloads,
+      page: () => const DownloadsScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

@@ -33,6 +33,26 @@ class S {
   static const searchHint = 'Yiylo simoore walla maande…';
   static const offline = 'A ceŋaaki e enternet';
 
+  // Audio et téléchargements (2.13)
+  static const speed = 'Yaawre';
+  static const repeat = 'Fiilitde';
+  static const repeatOff = 'Alaa';
+  static const repeatItem = 'Ndee simoore';
+  static const repeatVerse = 'Ndee maande';
+  static const sleepTimer = 'Dartingol';
+  static const sleepEndOfItem = 'Gasirde ndee';
+  static const sleepAt = 'Dartat ko';
+  static const cancel = 'Haaytu';
+  static const downloads = 'Aawtaaɗe';
+  static const downloadAll = 'Aawto fof';
+  static const deleteAll = 'Momtu fof';
+  static const deleteAllConfirm = 'Aɗa yiɗi momtude cimooje aawtaaɗe ɗee fof?';
+  static const wifiOnly = 'Aawto e WiFi tan';
+  static const storageUsed = 'Nokku huutoraaɗo';
+  static const waitingNetwork = 'Ina sabbo ceŋagol';
+  static const yes = 'Eyy';
+  static const no = 'Alaa';
+
   // Activation
   static const later = 'Ɓooyte';
 

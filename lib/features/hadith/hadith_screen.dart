@@ -17,6 +17,14 @@ class HadithController extends GetxController {
 
   bool get isActivated => _settingsService.isActivated;
 
+  bool isLocked(int index) => !isActivated && index >= 3;
+
+  /// Hadiths accessibles, dans l'ordre : playlist (précédent / suivant).
+  List<HadithItem> get playlist => [
+        for (var i = 0; i < hadiths.length; i++)
+          if (!isLocked(i)) (id: hadiths[i].id, url: hadiths[i].url),
+      ];
+
   @override
   void onInit() {
     super.onInit();
@@ -37,21 +45,12 @@ class HadithController extends GetxController {
 class HadithScreen extends StatelessWidget {
   const HadithScreen({super.key});
 
-  /// En quittant l'écran, on arrête un hadith en cours (pas une sourate).
-  Future<void> _stopHadith() async {
-    final audioController = Get.find<AudioController>();
-    if (audioController.contentType.value == AudioContentType.hadith) {
-      await audioController.stopPlaying();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(HadithController());
 
     return WillPopScope(
       onWillPop: () async {
-        await _stopHadith();
         Get.find<AdService>().showInterstitialAd('hadith_screen');
         return true;
       },
@@ -69,7 +68,6 @@ class HadithScreen extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              await _stopHadith();
               Get.find<AdService>().showInterstitialAd('hadith_screen');
               Get.back();
             },
@@ -184,7 +182,7 @@ class HadithScreen extends StatelessWidget {
                   itemCount: controller.hadiths.length,
                   itemBuilder: (context, index) {
                     final hadith = controller.hadiths[index];
-                    final bool isLocked = !controller.isActivated && index >= 3;
+                    final bool isLocked = controller.isLocked(index);
 
                     if (isLocked) {
                       return Card(
@@ -218,7 +216,12 @@ class HadithScreen extends StatelessWidget {
                       );
                     }
 
-                    return HadithCard(hadith: hadith);
+                    final playlist = controller.playlist;
+                    return HadithCard(
+                      hadith: hadith,
+                      playlist: playlist,
+                      playlistIndex: playlist.indexWhere((h) => h.id == hadith.id),
+                    );
                   },
                 ),
               ),

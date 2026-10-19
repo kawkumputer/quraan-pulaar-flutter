@@ -155,6 +155,13 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
+                        leading: const Icon(Icons.download_for_offline_outlined),
+                        title: const Text(S.downloads),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Get.toNamed(AppRoutes.downloads),
+                      ),
+                      const Divider(),
+                      ListTile(
                         leading: const Icon(Icons.share),
                         title: const Text(S.share),
                         onTap: _shareApp,

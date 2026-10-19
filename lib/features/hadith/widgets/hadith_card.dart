@@ -2,21 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/controllers/audio_controller.dart';
 import '../../../core/widgets/audio_controls.dart';
+import '../../../core/widgets/audio_options_sheet.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/hadith.dart';
-import 'package:flutter/material.dart' as prefix0;
 
 class HadithCard extends StatelessWidget {
   final Hadith hadith;
 
+  /// Hadiths accessibles (playlist) et position de celui-ci dans la liste.
+  final List<HadithItem> playlist;
+  final int playlistIndex;
+
   const HadithCard({
     super.key,
     required this.hadith,
+    required this.playlist,
+    required this.playlistIndex,
   });
+
+  void _toggle() => Get.find<AudioController>().toggleHadith(playlist, playlistIndex);
 
   @override
   Widget build(BuildContext context) {
     final audioController = Get.find<AudioController>();
+    bool isCurrent() =>
+        audioController.contentType.value == AudioContentType.hadith &&
+        audioController.currentlyPlayingId.value == hadith.id;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -27,26 +38,24 @@ class HadithCard extends StatelessWidget {
       child: Column(
         children: [
           InkWell(
-            onTap: () => audioController.togglePlay(
-              hadith.id, 
-              hadith.url,
-              contentType: AudioContentType.hadith,
-            ),
+            onTap: _toggle,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Obx(() {
-                    final isCurrentHadith = (audioController.contentType.value == AudioContentType.hadith && audioController.currentlyPlayingId.value == hadith.id);
-                    final isLoading = audioController.isLoading.value && isCurrentHadith;
-                    final isPlaying = audioController.isPlaying.value && isCurrentHadith;
+                    final current = isCurrent();
+                    final isLoading = audioController.isLoading.value && current;
+                    final isPlaying = audioController.isPlaying.value && current;
 
                     return Container(
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: isPlaying ? AppTheme.primaryColor.withOpacity(0.8) : AppTheme.primaryColor,
+                        color: isPlaying
+                            ? AppTheme.primaryColor.withValues(alpha: 0.8)
+                            : AppTheme.primaryColor,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Icon(
@@ -90,27 +99,19 @@ class HadithCard extends StatelessWidget {
             ),
           ),
           Obx(() {
-            final isCurrentHadith = (audioController.contentType.value == AudioContentType.hadith && audioController.currentlyPlayingId.value == hadith.id);
-            if (!isCurrentHadith) return const SizedBox.shrink();
+            if (!isCurrent()) return const SizedBox.shrink();
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: AudioControls(
                 audioPlayer: audioController.audioPlayer,
-                onPlayPressed: () => audioController.togglePlay(
-                  hadith.id, 
-                  hadith.url,
-                  contentType: AudioContentType.hadith,
-                ),
-                onPausePressed: () => audioController.togglePlay(
-                  hadith.id, 
-                  hadith.url,
-                  contentType: AudioContentType.hadith,
-                ),
-                onStopPressed: () => audioController.stopPlaying(),
-                onPreviousPressed: () {},  // Hadiths don't support navigation
-                onNextPressed: () {},      // Hadiths don't support navigation
-                showNavigationButtons: false, // Hide navigation buttons for hadiths
+                onPlayPressed: _toggle,
+                onPausePressed: _toggle,
+                onStopPressed: audioController.stopPlaying,
+                onPreviousPressed:
+                    audioController.hasPrevious ? audioController.skipPrevious : null,
+                onNextPressed: audioController.hasNext ? audioController.skipNext : null,
+                onMorePressed: AudioOptionsSheet.show,
               ),
             );
           }),
