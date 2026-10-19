@@ -174,6 +174,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
   int _findCurrentVerseIndex(Duration position) {
     final currentTime = position.inMilliseconds.toDouble();
 
+    // La position peut arriver avant la durée (timestamps pas encore calculés).
+    if (_verseTimestamps[0] == null) return _currentVerseIndex;
+
     // Find the verse whose timestamp is closest to but not exceeding current time
     int targetIndex = 0;
     for (int i = 0; i < _verseTimestamps.length; i++) {
