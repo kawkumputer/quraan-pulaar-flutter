@@ -31,8 +31,6 @@ dependencies:
   google_mobile_ads: ^4.0.0
   http: ^1.2.0
   supabase_flutter: ^2.18.2
-  android_id: ^0.5.2+1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
