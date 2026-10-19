@@ -29,24 +29,44 @@ void main() {
   });
 
   group('VerseTiming', () {
-    final fatiha = SurahModel(number: 1, nameArabic: '', namePulaar: '', verses: [
-      VerseModel(number: 1, arabic: 'aaaa', pulaar: ''),
-      VerseModel(number: 2, arabic: 'aaaaaaaaaaaa', pulaar: ''),
-    ]);
+    SurahModel surah(int number, List<List<String>> verses) => SurahModel(
+          number: number,
+          nameArabic: '',
+          namePulaar: '',
+          verses: [
+            for (var i = 0; i < verses.length; i++)
+              VerseModel(number: i + 1, arabic: verses[i][0], pulaar: verses[i][1]),
+          ],
+        );
 
-    test('proportionnel à la longueur arabe', () {
-      final t = VerseTiming(fatiha, const Duration(seconds: 16));
-      expect(t.startOf(0), Duration.zero);
-      expect(t.startOf(1), const Duration(seconds: 4));
-      expect(t.endOf(1), const Duration(seconds: 16));
-      expect(t.indexAt(const Duration(seconds: 5)), 1);
-    });
-
-    test('Basmala avant le premier verset (hors Al-Fatiha)', () {
-      final other = SurahModel(number: 112, nameArabic: '', namePulaar: '', verses: fatiha.verses);
-      final t = VerseTiming(other, const Duration(seconds: 60));
+    test('introduction avant le premier verset', () {
+      final t = VerseTiming(surah(1, [['قل', 'Wiy'], ['هو', 'Ko']]), const Duration(seconds: 60));
       expect(t.indexAt(Duration.zero), -1);
       expect(t.startOf(0), greaterThan(Duration.zero));
+    });
+
+    test('la traduction Pulaar compte dans la durée du verset', () {
+      final shortPulaar = VerseTiming(
+          surah(1, [['قل', 'a'], ['قل', 'a']]), const Duration(seconds: 60));
+      final longPulaar = VerseTiming(
+          surah(1, [['قل', 'a' * 40], ['قل', 'a']]), const Duration(seconds: 60));
+      // Verset 1 plus long => le verset 2 commence plus tard.
+      expect(longPulaar.startOf(1), greaterThan(shortPulaar.startOf(1)));
+    });
+
+    test('les voyelles arabes ne rallongent pas un verset', () {
+      final withHarakat = VerseTiming(
+          surah(1, [['قُلْ هُوَ', ''], ['احد', '']]), const Duration(seconds: 60));
+      final without = VerseTiming(
+          surah(1, [['قل هو', ''], ['احد', '']]), const Duration(seconds: 60));
+      expect(withHarakat.startOf(1), without.startOf(1));
+    });
+
+    test('Basmala en plus hors Al-Fatiha', () {
+      final verses = [['قل', 'Wiy']];
+      final fatiha = VerseTiming(surah(1, verses), const Duration(seconds: 60));
+      final other = VerseTiming(surah(112, verses), const Duration(seconds: 60));
+      expect(other.startOf(0), greaterThan(fatiha.startOf(0)));
     });
   });
 }

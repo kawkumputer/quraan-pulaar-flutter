@@ -1,35 +1,60 @@
 import '../models/surah_model.dart';
+import 'text_normalizer.dart';
 
 const String kBasmalaArabic = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+const String kBasmalaPulaar = 'E innde alla Jurumdeero Jurmotooɗo';
 
-/// Minutage estimé des versets dans l'audio d'une sourate : chaque verset dure
-/// proportionnellement à la longueur de son texte arabe (la Basmala ouvre toutes
-/// les sourates sauf Al-Fatiha). Approximation, faute de minutage réel.
+/// Réglages de l'estimation (à affiner en écoutant) :
+/// l'audio d'une sourate = introduction, Basmala (sauf Al-Fatiha), puis pour
+/// chaque verset la récitation arabe suivie de la lecture en Pulaar.
+class VerseTimingConfig {
+  /// Poids d'une lettre arabe (sans voyelles) par rapport à un caractère Pulaar :
+  /// la récitation est plus lente que la lecture.
+  static const double arabicLetterWeight = 1.6;
+  static const double pulaarCharWeight = 1.0;
+
+  /// Introduction avant la Basmala (« A'oudhou billahi… » et sa traduction).
+  /// Textes utilisés seulement pour leur longueur (jamais affichés).
+  static const String introArabic = 'أعوذ بالله من الشيطان الرجيم';
+  static const String introPulaar = 'Mi hoolike e Alla e kala bonɗo Seytaane jeertaaɗo';
+}
+
+/// Minutage estimé des versets dans l'audio d'une sourate, faute de minutage réel :
+/// chaque segment dure proportionnellement à son « poids » de texte.
 class VerseTiming {
   final List<Duration> _starts;
   final Duration total;
 
   VerseTiming._(this._starts, this.total);
 
+  static double _weight(String arabic, String pulaar) {
+    final letters = TextNormalizer.normalize(arabic).replaceAll(RegExp(r'\s'), '').length;
+    final pulaarChars = pulaar.replaceAll(RegExp(r'\s'), '').length;
+    return letters * VerseTimingConfig.arabicLetterWeight +
+        pulaarChars * VerseTimingConfig.pulaarCharWeight;
+  }
+
   factory VerseTiming(SurahModel surah, Duration total) {
-    final hasBasmala = surah.number != 1;
-    var totalLength = surah.verses.fold<int>(0, (sum, v) => sum + v.arabic.length);
-    if (hasBasmala) totalLength += kBasmalaArabic.length;
-    if (totalLength == 0) return VerseTiming._([], total);
+    var before = _weight(VerseTimingConfig.introArabic, VerseTimingConfig.introPulaar);
+    if (surah.number != 1) before += _weight(kBasmalaArabic, kBasmalaPulaar);
+
+    final weights = [for (final v in surah.verses) _weight(v.arabic, v.pulaar)];
+    final totalWeight = before + weights.fold<double>(0, (a, b) => a + b);
+    if (weights.isEmpty || totalWeight == 0) return VerseTiming._([], total);
 
     final ms = total.inMilliseconds;
-    var current = hasBasmala ? kBasmalaArabic.length / totalLength * ms : 0.0;
+    var current = before / totalWeight * ms;
     final starts = <Duration>[];
-    for (final verse in surah.verses) {
+    for (final w in weights) {
       starts.add(Duration(milliseconds: current.round()));
-      current += verse.arabic.length / totalLength * ms;
+      current += w / totalWeight * ms;
     }
     return VerseTiming._(starts, total);
   }
 
   int get length => _starts.length;
 
-  /// Index du verset en cours à [position] ; -1 pendant la Basmala.
+  /// Index du verset en cours à [position] ; -1 pendant l'introduction / la Basmala.
   int indexAt(Duration position) {
     if (_starts.isEmpty || position < _starts.first) return -1;
     var index = 0;
