@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/utils/messenger.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/services/quran_service.dart';
@@ -112,13 +113,7 @@ class BookmarksScreen extends GetView<BookmarkService> {
                           onPressed: () async {
                             await controller.toggleBookmark(surahNumber);
                             Get.find<AdService>().showInterstitialAd('bookmarks_screen');
-                            Get.snackbar(
-                              'Maantol ittaama',
-                              'Simoore nde ittaama e maantaaɗi',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.grey,
-                              colorText: Colors.white,
-                            );
+                            showMessage('Simoore nde ittaama e maantaaɗi');
                           },
                         ),
                         onTap: locked

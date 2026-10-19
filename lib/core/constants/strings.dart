@@ -16,6 +16,9 @@ class S {
   static const noSurahs = 'Alaa simoore yiytaama';
   static const retry = 'Fuɗɗito';
   static const genericError = 'Juumre waɗii, fuɗɗito';
+  static const noConnection = 'Alaa ceŋagol enternet';
+  static const noConnectionNotDownloaded =
+      'Alaa ceŋagol enternet. Aawto simoore nde ngam heɗaade nde tawa a ceŋaaki.';
 
   // Activation
   static const later = 'Ɓooyte';

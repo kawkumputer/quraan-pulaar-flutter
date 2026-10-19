@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/utils/messenger.dart';
 import 'dart:async';
 import '../../core/widgets/audio_controls.dart';
 import '../../core/services/bookmark_service.dart';
@@ -246,13 +247,7 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                   final success =
                       await controller.downloadSurah(widget.surah.number);
                   if (!success) {
-                    Get.snackbar(
-                      'Juumre',
-                      'Roŋki aawde simoore nde',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Get.theme.colorScheme.error,
-                      colorText: Get.theme.colorScheme.onError,
-                    );
+                    showMessage('Roŋki aawde simoore nde', error: true);
                   }
                 },
               );

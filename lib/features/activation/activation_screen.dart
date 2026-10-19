@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/utils/messenger.dart';
 import '../../core/controllers/activation_controller.dart';
 import '../../core/routes/app_routes.dart';
 
@@ -43,11 +44,7 @@ class ActivationScreen extends GetView<ActivationController> {
                         onPressed: () async {
                           print('Attempting to verify code: ${codeController.text}');
                           if (codeController.text.isEmpty) {
-                            Get.snackbar(
-                              'Juumre',
-                              'Tiiɗno naatnu doggol Kuuɓnugol',
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
+                            showMessage('Tiiɗno naatnu doggol Kuuɓnugol', error: true);
                             return;
                           }
 
@@ -55,11 +52,7 @@ class ActivationScreen extends GetView<ActivationController> {
                           print('Verification result: $success');
                           if (success) {
                             Get.back();
-                            Get.snackbar(
-                              'Huuɓnaama',
-                              'Kaɓirgal ngal huuɓnaama no moƴƴiri',
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
+                            showMessage('Kaɓirgal ngal huuɓnaama no moƴƴiri');
                           }
                         },
                         child: const Text('Huuɓnu'),

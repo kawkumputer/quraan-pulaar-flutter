@@ -13,6 +13,7 @@ import 'core/bindings/initial_binding.dart';
 import 'core/routes/route_observer.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/settings_service.dart';
+import 'core/utils/messenger.dart';
 import 'core/widgets/mini_player.dart';
 import 'features/surah/models/surah.dart';
 
@@ -110,6 +111,7 @@ class QuranApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
       getPages: AppRoutes.pages,
       navigatorObservers: [AppRouteObserver()],
+      scaffoldMessengerKey: rootMessengerKey,
       defaultTransition: Transition.cupertino,
       builder: (context, child) => Column(
         children: [

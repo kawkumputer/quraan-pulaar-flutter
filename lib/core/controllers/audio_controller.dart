@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,8 @@ import 'package:just_audio_background/just_audio_background.dart';
 import '../models/surah_model.dart';
 import '../services/quran_service.dart';
 import '../services/download_service.dart';
+import '../constants/strings.dart';
+import '../utils/messenger.dart';
 
 enum AudioContentType { surah, hadith }
 
@@ -46,8 +49,10 @@ class AudioController extends GetxController {
         // Fin de la dernière sourate de la playlist.
         isPlaying.value = false;
       }
-    }));
-    _subscriptions.add(audioPlayer.currentIndexStream.listen(_onIndexChanged));
+    }, onError: _onPlayerError));
+    _subscriptions.add(audioPlayer.currentIndexStream.listen(_onIndexChanged, onError: (_) {}));
+    // Erreurs de lecture en cours (ex. connexion perdue au milieu d'une sourate).
+    _subscriptions.add(audioPlayer.playbackEventStream.listen((_) {}, onError: _onPlayerError));
 
     // L'ordre ou l'activation a changé : la playlist doit suivre.
     ever(_quranService.surahsRx, (_) => _rebuildQueue());
@@ -73,6 +78,20 @@ class AudioController extends GetxController {
       debugPrint('Error preparing artwork: $e');
     }
   }
+
+  void _onPlayerError(Object error, [StackTrace? stackTrace]) {
+    debugPrint('Player error: $error');
+    isPlaying.value = false;
+    _showPlaybackError(error);
+  }
+
+  /// Lance la lecture sans laisser d'erreur non gérée (elles passent par _onPlayerError).
+  void _play() {
+    audioPlayer.play().catchError((Object e) => debugPrint('play() failed: $e'));
+  }
+
+  Future<bool> _isOffline() async =>
+      await Connectivity().checkConnectivity() == ConnectivityResult.none;
 
   void _onIndexChanged(int? index) {
     if (contentType.value != AudioContentType.surah) return;
@@ -112,8 +131,16 @@ class AudioController extends GetxController {
       isLoading.value = true;
       contentType.value = AudioContentType.surah;
 
+      final offline = await _isOffline();
+      if (offline && !_downloadService.isDownloaded(surah.number)) {
+        showMessage(S.noConnectionNotDownloaded, error: true);
+        return;
+      }
+
+      // Hors ligne : seules les sourates téléchargées peuvent s'enchaîner.
       _queue = _quranService.accessibleSurahs
           .where((s) => s.audioUrl.isNotEmpty)
+          .where((s) => !offline || _downloadService.isDownloaded(s.number))
           .toList();
       var index = _queue.indexWhere((s) => s.number == surah.number);
       if (index < 0) {
@@ -129,16 +156,17 @@ class AudioController extends GetxController {
       );
       _onIndexChanged(index);
 
-      if (!_downloadService.isDownloaded(surah.number) &&
+      if (!offline &&
+          !_downloadService.isDownloaded(surah.number) &&
           !_downloadService.isDownloading(surah.number)) {
         downloadSurah(surah.number); // en arrière-plan
       }
 
-      if (autoPlay) audioPlayer.play();
+      if (autoPlay) _play();
     } catch (e) {
       debugPrint('Error playing surah: $e');
       _resetState();
-      _showPlaybackError();
+      _showPlaybackError(e);
     } finally {
       isLoading.value = false;
     }
@@ -173,7 +201,7 @@ class AudioController extends GetxController {
     } else if (audioPlayer.playing) {
       audioPlayer.pause();
     } else {
-      audioPlayer.play();
+      _play();
     }
   }
 
@@ -183,14 +211,14 @@ class AudioController extends GetxController {
   Future<void> skipNext() async {
     if (audioPlayer.hasNext) {
       await audioPlayer.seekToNext();
-      audioPlayer.play();
+      _play();
     }
   }
 
   Future<void> skipPrevious() async {
     if (audioPlayer.hasPrevious) {
       await audioPlayer.seekToPrevious();
-      audioPlayer.play();
+      _play();
     }
   }
 
@@ -217,11 +245,11 @@ class AudioController extends GetxController {
         ),
       ));
       currentlyPlayingId.value = id;
-      audioPlayer.play();
+      _play();
     } catch (e) {
       debugPrint('Error playing audio: $e');
       _resetState();
-      _showPlaybackError();
+      _showPlaybackError(e);
     } finally {
       isLoading.value = false;
     }
@@ -233,7 +261,7 @@ class AudioController extends GetxController {
     AudioContentType contentType = AudioContentType.hadith,
   }) {
     if (this.contentType.value == contentType && currentlyPlayingId.value == id) {
-      audioPlayer.playing ? audioPlayer.pause() : audioPlayer.play();
+      audioPlayer.playing ? audioPlayer.pause() : _play();
     } else {
       playUrl(id, url, surahName: surahName, surahNameArabic: surahNameArabic, contentType: contentType);
     }
@@ -259,13 +287,16 @@ class AudioController extends GetxController {
     _queue = [];
   }
 
-  void _showPlaybackError() {
-    Get.snackbar(
-      'Juumre',
-      'Roŋki aawtaade ${contentType.value == AudioContentType.surah ? "simoore" : "hadiisa"} nde',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Get.theme.colorScheme.error,
-      colorText: Get.theme.colorScheme.onError,
+  void _showPlaybackError([Object? error]) {
+    final text = error.toString();
+    final network = text.contains('UnknownHost') ||
+        text.contains('SocketException') ||
+        text.contains('Connection');
+    showMessage(
+      network
+          ? S.noConnection
+          : 'Roŋki aawtaade ${contentType.value == AudioContentType.surah ? "simoore" : "hadiisa"} nde',
+      error: true,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
+import '../../../core/utils/messenger.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/bookmark_service.dart';
 import '../../../core/services/quran_service.dart';
@@ -51,15 +52,9 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
     await _bookmarkService.toggleBookmark(surahNumber);
 
     final isBookmarked = _bookmarkService.isBookmarked(surahNumber);
-    Get.snackbar(
-      isBookmarked ? 'Maantaama' : 'Maantol ittaama',
-      isBookmarked
-          ? 'Simoore nde ɓeydaama e maantaaɗi'
-          : 'Simoore nde ittaama e maantaaɗi',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isBookmarked ? Colors.green : Colors.grey,
-      colorText: Colors.white,
-    );
+    showMessage(isBookmarked
+        ? 'Simoore nde ɓeydaama e maantaaɗi'
+        : 'Simoore nde ittaama e maantaaɗi');
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/utils/messenger.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/strings.dart';
@@ -20,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _toggleReminder(BuildContext context, bool enabled) async {
     final ok = await Get.find<ReminderService>().setEnabled(enabled);
     if (!ok) {
-      Get.snackbar('', S.reminderPermissionDenied, snackPosition: SnackPosition.BOTTOM);
+      showMessage(S.reminderPermissionDenied);
     }
   }
 
