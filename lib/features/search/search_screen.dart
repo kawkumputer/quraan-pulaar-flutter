@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/constants/strings.dart';
+import '../../core/models/surah_model.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/quran_service.dart';
+import '../../core/services/search_service.dart';
 import '../../core/services/ad_service.dart';
-import '../../core/models/surah_model.dart';
+import '../../core/utils/text_normalizer.dart';
 import '../../core/widgets/respectful_banner_ad.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -16,132 +18,77 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final QuranService _quranService = Get.find<QuranService>();
-  final RxString _searchQuery = ''.obs;
+  final SearchService _searchService = Get.find<SearchService>();
+  final RxString _input = ''.obs;
+  final RxString _query = ''.obs;
+  final RxList<SearchResult> _results = <SearchResult>[].obs;
+  late final Worker _debounce;
 
   @override
   void initState() {
     super.initState();
-    _quranService.loadSurahs();
+    // On cherche 300 ms après la dernière frappe.
+    _debounce = debounce(_input, (String q) => _query.value = q,
+        time: const Duration(milliseconds: 300));
+    ever(_query, (_) => _runSearch());
+    ever(_searchService.isIndexing, (_) => _runSearch());
+  }
+
+  void _runSearch() {
+    _results.value = _searchService.search(_query.value);
   }
 
   @override
+  void dispose() {
+    _debounce.dispose();
+    super.dispose();
+  }
+
+  void _leave() => Get.find<AdService>().showInterstitialAd('search_screen');
+
+  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Get.find<AdService>().showInterstitialAd('search_screen');
-        return true;
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _leave();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Yiylo cimooje'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Get.find<AdService>().showInterstitialAd('search_screen');
-              Get.back();
-            },
-          ),
-        ),
+        appBar: AppBar(title: const Text('Yiylo cimooje')),
         body: Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
               child: TextField(
-                onChanged: (value) => _searchQuery.value = value,
+                autofocus: true,
+                onChanged: (value) => _input.value = value,
                 decoration: InputDecoration(
-                  hintText: 'Yiylo innde simoore, tongoode walla maande',
+                  hintText: S.searchHint,
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
             Expanded(
               child: Obx(() {
-                if (_quranService.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                if (_query.value.trim().isEmpty) {
+                  return _SurahList(quranService: _quranService);
                 }
-
-                if (_quranService.error != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Waawaa heɓde cimooje',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(S.loadError),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _quranService.loadSurahs(force: true),
-                          child: const Text('Fuɗɗito'),
-                        ),
-                      ],
-                    ),
-                  );
+                if (_results.isEmpty) {
+                  return _searchService.isIndexing.value
+                      ? const Center(child: CircularProgressIndicator())
+                      : const Center(child: Text('Alaa ko heɓaa'));
                 }
-
-                final results = _searchQuery.value.isEmpty 
-                    ? _quranService.surahs
-                    : _quranService.searchSurahs(_searchQuery.value);
-
-                if (_quranService.surahs.isEmpty) {
-                  return const Center(
-                    child: Text('Waawaa heɓde cimooje'),
-                  );
-                }
-
-                if (results.isEmpty && _searchQuery.value.isNotEmpty) {
-                  return const Center(
-                    child: Text('Alaa ko heɓaa'),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: results.length,
-                  itemBuilder: (context, index) {
-                    final surah = results[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(
-                            surah.number.toString(),
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      title: Text(surah.namePulaar),
-                      subtitle: Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: Text(
-                          surah.nameArabic,
-                          style: const TextStyle(
-                            fontFamily: 'Amiri',
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      onTap: () => AppRoutes.openSurah(surah),
-                    );
-                  },
+                final normalized =
+                    TextNormalizer.normalize(_query.value.trim());
+                return ListView.separated(
+                  itemCount: _results.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) => _ResultTile(
+                      result: _results[index], normalizedQuery: normalized),
                 );
               }),
             ),
-            // Add banner at bottom, not marking as Quran section since it's just search
             const RespectfulBannerAd(
               screenId: 'search_screen',
               isQuranSection: false,
@@ -150,6 +97,127 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Sans recherche : liste des sourates.
+class _SurahList extends StatelessWidget {
+  final QuranService quranService;
+
+  const _SurahList({required this.quranService});
+
+  @override
+  Widget build(BuildContext context) => Obx(() => _build());
+
+  Widget _build() {
+    final surahs = quranService.surahs;
+    if (surahs.isEmpty) {
+      return Center(
+        child: TextButton.icon(
+          icon: const Icon(Icons.refresh),
+          label: const Text(S.retry),
+          onPressed: () => quranService.loadSurahs(force: true),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: surahs.length,
+      itemBuilder: (context, index) => _SurahTile(surah: surahs[index]),
+    );
+  }
+}
+
+class _SurahTile extends StatelessWidget {
+  final SurahModel surah;
+
+  const _SurahTile({required this.surah});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: primary.withValues(alpha: 0.1),
+        child: Text('${surah.number}',
+            style: TextStyle(color: primary, fontWeight: FontWeight.bold)),
+      ),
+      title: Text(surah.namePulaar),
+      subtitle: Text(
+        surah.nameArabic,
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(fontFamily: 'Amiri', fontSize: 16),
+      ),
+      onTap: () => AppRoutes.openSurah(surah),
+    );
+  }
+}
+
+class _ResultTile extends StatelessWidget {
+  final SearchResult result;
+  final String normalizedQuery;
+
+  const _ResultTile({required this.result, required this.normalizedQuery});
+
+  @override
+  Widget build(BuildContext context) {
+    final verseIndex = result.verseIndex;
+    if (verseIndex == null) return _SurahTile(surah: result.surah);
+
+    final verse = result.surah.verses[verseIndex];
+    final arabicRange =
+        TextNormalizer.findInOriginal(verse.arabic, normalizedQuery);
+    final pulaarRange =
+        TextNormalizer.findInOriginal(verse.pulaar, normalizedQuery);
+    final theme = Theme.of(context);
+
+    return ListTile(
+      title: Text(
+        '${result.surah.namePulaar} · ${S.verse} ${verse.number}',
+        style: theme.textTheme.labelLarge
+            ?.copyWith(color: theme.colorScheme.primary),
+      ),
+      subtitle: arabicRange != null
+          ? _highlighted(verse.arabic, arabicRange, context, arabic: true)
+          : _highlighted(verse.pulaar, pulaarRange, context),
+      onTap: () => AppRoutes.openSurah(result.surah, verseIndex: verseIndex),
+    );
+  }
+
+  /// Extrait autour de la correspondance, avec la correspondance en gras surligné.
+  Widget _highlighted(String text, (int, int)? range, BuildContext context,
+      {bool arabic = false}) {
+    final base = TextStyle(
+      fontFamily: arabic ? 'Amiri' : null,
+      fontSize: arabic ? 18 : 14,
+      color: Theme.of(context).colorScheme.onSurface,
+    );
+    if (range == null) {
+      return Text(text,
+          maxLines: 3, overflow: TextOverflow.ellipsis, style: base);
+    }
+    final (start, end) = range;
+    // Fenêtre de contexte pour que la correspondance reste visible.
+    final from = (start - 60).clamp(0, text.length);
+    final to = (end + 80).clamp(0, text.length);
+    return Text.rich(
+      TextSpan(style: base, children: [
+        if (from > 0) const TextSpan(text: '… '),
+        TextSpan(text: text.substring(from, start)),
+        TextSpan(
+          text: text.substring(start, end),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            backgroundColor:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+          ),
+        ),
+        TextSpan(text: text.substring(end, to)),
+        if (to < text.length) const TextSpan(text: ' …'),
+      ]),
+      textDirection: arabic ? TextDirection.rtl : TextDirection.ltr,
+      maxLines: 4,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

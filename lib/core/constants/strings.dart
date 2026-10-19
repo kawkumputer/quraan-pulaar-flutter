@@ -20,6 +20,19 @@ class S {
   static const noConnectionNotDownloaded =
       'Alaa ceŋagol enternet. Aawto simoore nde ngam heɗaade nde tawa a ceŋaaki.';
 
+  // Lecture (2.12)
+  static const continueReading = 'Jokku jaŋngude';
+  static const verse = 'Maande';
+  static const playFromHere = 'Heɗaade fuɗɗode ɗoo';
+  static const bookmarkVerse = 'Maantu maande nde';
+  static const removeVerseBookmark = 'Itto maantol maande nde';
+  static const copy = 'Natto';
+  static const copied = 'Maande nde nattaama';
+  static const bookmarkedVerses = 'Maandeeji maantaaɗi';
+  static const bookmarkedSurahs = 'Cimooje maantaaɗe';
+  static const searchHint = 'Yiylo simoore walla maande…';
+  static const offline = 'A ceŋaaki e enternet';
+
   // Activation
   static const later = 'Ɓooyte';
 

@@ -1,101 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/strings.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/quran_service.dart';
+import '../../../core/services/reading_progress_service.dart';
 import '../../../core/theme/app_theme.dart';
 
+/// « Continuer la lecture » : rouvre la dernière sourate au dernier verset lu.
+/// Masquée s'il n'y a rien à reprendre (ou si la sourate n'est plus accessible).
 class RecentReadingCard extends StatelessWidget {
   const RecentReadingCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: InkWell(
-        onTap: () => Get.toNamed(AppRoutes.surah),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.primaryColor,
-                AppTheme.primaryColor.withOpacity(0.8),
-              ],
+    final progressService = Get.find<ReadingProgressService>();
+    final quranService = Get.find<QuranService>();
+
+    return Obx(() {
+      final progress = progressService.last.value;
+      quranService.surahsRx.length; // dépendance : sourates chargées
+      final surah =
+          progress == null ? null : quranService.byNumber(progress.surahNumber);
+      if (progress == null || surah == null || quranService.isLocked(surah)) {
+        return const SizedBox.shrink();
+      }
+      final verseIndex = progress.verseIndex
+          .clamp(0, surah.verses.isEmpty ? 0 : surah.verses.length - 1);
+      final verseNumber =
+          surah.verses.isEmpty ? 1 : surah.verses[verseIndex].number;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            leading: CircleAvatar(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.menu_book),
             ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.book_outlined,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Last Read',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Al-Fatiha',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Verse 1',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            title: const Text(S.continueReading,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('${surah.namePulaar} · ${S.verse} $verseNumber'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => AppRoutes.openSurah(surah, verseIndex: verseIndex),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

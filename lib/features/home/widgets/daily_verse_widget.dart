@@ -30,6 +30,7 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
       'surah': daily.surah.namePulaar,
       'verseNumber': daily.verse.number.toString(),
       'surahNumber': daily.surah.number,
+      'verseIndex': daily.surah.verses.indexOf(daily.verse),
       'shareText': daily.shareText,
     };
   }
@@ -42,7 +43,9 @@ class _DailyVerseWidgetState extends State<DailyVerseWidget> {
 
   void _navigateToSurah(Map<String, dynamic> verse) {
     final surah = _quranService.byNumber(verse['surahNumber'] as int? ?? 0);
-    if (surah != null) AppRoutes.openSurah(surah);
+    if (surah != null) {
+      AppRoutes.openSurah(surah, verseIndex: verse['verseIndex'] as int?);
+    }
   }
 
   Future<void> _toggleBookmark(Map<String, dynamic> verse) async {

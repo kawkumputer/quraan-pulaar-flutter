@@ -12,6 +12,7 @@ import '../services/quran_service.dart';
 import '../services/download_service.dart';
 import '../constants/strings.dart';
 import '../utils/messenger.dart';
+import '../utils/verse_timing.dart';
 
 enum AudioContentType { surah, hadith }
 
@@ -170,6 +171,27 @@ class AudioController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Lit [surah] à partir du verset [verseIndex] (position estimée, voir VerseTiming).
+  Future<void> playFromVerse(SurahModel surah, int verseIndex) async {
+    final isCurrent = contentType.value == AudioContentType.surah &&
+        currentSurah.value?.number == surah.number &&
+        audioPlayer.duration != null;
+    if (!isCurrent) {
+      await playSurah(surah, autoPlay: false);
+      if (currentSurah.value?.number != surah.number) return; // échec (hors ligne...)
+    }
+    try {
+      final duration = audioPlayer.duration ??
+          await audioPlayer.durationStream
+              .firstWhere((d) => d != null)
+              .timeout(const Duration(seconds: 15));
+      await audioPlayer.seek(VerseTiming(surah, duration!).startOf(verseIndex));
+    } catch (e) {
+      debugPrint('Could not seek to verse: $e');
+    }
+    _play();
   }
 
   /// Reconstruit la playlist en gardant la sourate et la position en cours.

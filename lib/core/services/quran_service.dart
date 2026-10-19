@@ -167,24 +167,6 @@ class QuranService extends GetxService {
     return i > 0 ? list[i - 1] : null;
   }
 
-  List<SurahModel> searchSurahs(String query) {
-    if (query.isEmpty) return [];
-
-    final lowercaseQuery = query.toLowerCase();
-    return _surahs.where((surah) {
-      final numberMatch = surah.number.toString().contains(query);
-      final nameMatch = surah.namePulaar.toLowerCase().contains(lowercaseQuery) ||
-                       surah.nameArabic.contains(query);
-
-      final versesMatch = surah.verses.any((verse) =>
-        verse.pulaar.toLowerCase().contains(lowercaseQuery) ||
-        verse.arabic.contains(query)
-      );
-
-      return numberMatch || nameMatch || versesMatch;
-    }).toList();
-  }
-
   void setCurrentSurah(SurahModel surah) {
     _currentSurah.value = surah;
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/services/quran_service.dart';
 import '../../core/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,7 +21,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToHome() async {
     try {
-      await Future.delayed(const Duration(seconds: 4));
+      // On attend le chargement des sourates (cache local en général : rapide),
+      // avec un minimum pour l'écran d'accueil et un maximum en cas de lenteur.
+      final quranService = Get.find<QuranService>();
+      final loaded = quranService.isInitialized.value
+          ? Future<void>.value()
+          : quranService.isInitialized.stream.firstWhere((v) => v);
+      await Future.wait([
+        Future.delayed(const Duration(milliseconds: 1200)),
+        loaded.timeout(const Duration(seconds: 8), onTimeout: () {}),
+      ]);
       if (mounted) {
         Get.offNamed(AppRoutes.home);
       }

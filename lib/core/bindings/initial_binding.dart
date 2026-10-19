@@ -11,6 +11,9 @@ import '../services/cache_service.dart';
 import '../services/hadith_service.dart';
 import '../services/reminder_service.dart';
 import '../services/app_config_service.dart';
+import '../services/reading_progress_service.dart';
+import '../services/search_service.dart';
+import '../services/connectivity_service.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/activation_controller.dart';
 
@@ -19,6 +22,7 @@ class InitialBinding extends Bindings {
   void dependencies() {
     // Initialize core services first
     Get.put<CacheService>(CacheService(), permanent: true);
+    Get.put<ConnectivityService>(ConnectivityService(), permanent: true);
     Get.put<ActivationApiService>(ActivationApiService(), permanent: true);
     Get.put<DeviceService>(DeviceService(), permanent: true);
     Get.put<DownloadService>(DownloadService(), permanent: true);
@@ -41,6 +45,8 @@ class InitialBinding extends Bindings {
     
     Get.put<ReminderService>(ReminderService(), permanent: true);
     Get.put<AppConfigService>(AppConfigService(), permanent: true);
+    Get.put<ReadingProgressService>(ReadingProgressService(), permanent: true);
+    Get.put<SearchService>(SearchService(), permanent: true);
 
     // Initialize HadithService
     Get.put<HadithService>(HadithService(), permanent: true);

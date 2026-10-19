@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/widgets/offline_banner.dart';
 import '../../core/constants/strings.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/services/ad_service.dart';
@@ -73,6 +73,7 @@ class AllSurahsScreen extends GetView<QuranService> {
         ),
         body: Column(
           children: [
+            const OfflineBanner(),
             Expanded(
               child: Obx(() {
                 if (controller.isLoading) {

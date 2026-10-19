@@ -9,14 +9,22 @@ import '../../core/models/verse_model.dart';
 import '../../core/controllers/audio_controller.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/routes/app_routes.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import '../../core/services/reading_progress_service.dart';
+import '../../core/utils/verse_timing.dart';
+import 'widgets/verse_actions_sheet.dart';
 import 'widgets/verse_card.dart';
 
 class SurahContentScreen extends StatefulWidget {
   final SurahModel surah;
 
+  /// Verset (index 0-based) à afficher à l'ouverture.
+  final int? initialVerseIndex;
+
   const SurahContentScreen({
     super.key,
     required this.surah,
+    this.initialVerseIndex,
   });
 
   @override
@@ -26,12 +34,14 @@ class SurahContentScreen extends StatefulWidget {
 class _SurahContentScreenState extends State<SurahContentScreen> {
   late final AudioController _audioController;
   late final QuranService _quranService;
-  final ScrollController _scrollController = ScrollController();
-  int _currentVerseIndex = 0;
-  final Map<int, GlobalKey> _verseKeys = {};
-  final Map<int, double> _verseTimestamps = {};
+  late final ReadingProgressService _progressService;
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
+  final RxInt _currentVerseIndex = (-1).obs;
+  VerseTiming? _timing;
+  Timer? _saveProgressTimer;
   StreamSubscription? _positionSubscription;
-  StreamSubscription? _durationSubscription;
   Worker? _currentSurahWorker;
   AppLifecycleListener? _lifecycleListener;
 
@@ -45,10 +55,11 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     _audioController = Get.find<AudioController>();
     _quranService = Get.find<QuranService>();
 
-    for (int i = 0; i < widget.surah.verses.length; i++) {
-      _verseKeys[i] = GlobalKey();
+    _progressService = Get.find<ReadingProgressService>();
+    _itemPositionsListener.itemPositions.addListener(_onScroll);
+    if (widget.initialVerseIndex != null) {
+      _progressService.save(widget.surah.number, widget.initialVerseIndex!);
     }
-    _verseKeys[-1] = GlobalKey(); // Basmala
 
     _lastPlayingNumber = _audioController.currentSurah.value?.number;
     _currentSurahWorker =
@@ -58,22 +69,33 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     _positionSubscription =
         _audioController.audioPlayer.positionStream.listen((position) {
       if (!mounted || !_isThisSurahPlaying) return;
-      final newIndex = _findCurrentVerseIndex(position);
-      if (newIndex != _currentVerseIndex) {
-        setState(() {
-          _currentVerseIndex = newIndex;
-        });
-        _scrollToVerse(newIndex);
+      final duration = _audioController.audioPlayer.duration;
+      if (duration == null) return;
+      if (_timing?.total != duration)
+        _timing = VerseTiming(widget.surah, duration);
+      final newIndex = _timing!.indexAt(position);
+      if (newIndex != _currentVerseIndex.value) {
+        _currentVerseIndex.value = newIndex;
+        if (newIndex >= 0) _scrollToVerse(newIndex);
       }
-    });
+    }, onError: (_) {});
+  }
 
-    _durationSubscription =
-        _audioController.audioPlayer.durationStream.listen((duration) {
-      if (!mounted || !_isThisSurahPlaying) return;
-      if (duration != null) {
-        _initializeVerseTimestamps(duration);
-      }
-    });
+  /// Basmala en tête pour toutes les sourates sauf Al-Fatiha.
+  int get _offset => widget.surah.number == 1 ? 0 : 1;
+
+  /// Position de lecture : premier verset visible, enregistré après 1 s d'arrêt.
+  void _onScroll() {
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty || widget.surah.verses.isEmpty) return;
+    final first = positions.where((p) => p.itemTrailingEdge > 0.05).fold<int?>(
+        null, (min, p) => min == null || p.index < min ? p.index : min);
+    if (first == null) return;
+    final verseIndex =
+        (first - _offset).clamp(0, widget.surah.verses.length - 1);
+    _saveProgressTimer?.cancel();
+    _saveProgressTimer = Timer(const Duration(seconds: 1),
+        () => _progressService.save(widget.surah.number, verseIndex));
   }
 
   bool get _isThisSurahPlaying =>
@@ -98,70 +120,14 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     }
   }
 
-  void _initializeVerseTimestamps(Duration totalDuration) {
-    final int totalVerses = widget.surah.verses.length;
-    // Calculate approximate verse durations based on verse lengths
-    int totalTextLength =
-        widget.surah.verses.fold(0, (sum, verse) => sum + verse.arabic.length);
-
-    // Add Basmala length for non-Fatiha surahs
-    if (widget.surah.number != 1) {
-      totalTextLength += 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length;
-    }
-
-    double currentTime = 0;
-
-    // Account for Basmala timing in non-Fatiha surahs
-    if (widget.surah.number != 1) {
-      final double basmalaDuration =
-          ('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'.length / totalTextLength) *
-              totalDuration.inMilliseconds;
-      currentTime += basmalaDuration;
-    }
-
-    for (int i = 0; i < totalVerses; i++) {
-      final verse = widget.surah.verses[i];
-      final double verseDuration = (verse.arabic.length / totalTextLength) *
-          totalDuration.inMilliseconds;
-      _verseTimestamps[i] = currentTime;
-      currentTime += verseDuration;
-    }
-  }
-
-  int _findCurrentVerseIndex(Duration position) {
-    final currentTime = position.inMilliseconds.toDouble();
-
-    // La position peut arriver avant la durée (timestamps pas encore calculés).
-    if (_verseTimestamps[0] == null) return _currentVerseIndex;
-
-    // Find the verse whose timestamp is closest to but not exceeding current time
-    int targetIndex = 0;
-    for (int i = 0; i < _verseTimestamps.length; i++) {
-      if (_verseTimestamps[i]! <= currentTime) {
-        targetIndex = i;
-      } else {
-        break;
-      }
-    }
-
-    // Don't highlight any verse during Basmala for non-Fatiha surahs
-    if (widget.surah.number != 1 && currentTime < _verseTimestamps[0]!) {
-      return -1;
-    }
-
-    return targetIndex;
-  }
-
-  void _scrollToVerse(int index) {
-    final key = _verseKeys[index];
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 1200),
-        curve: Curves.easeInOut,
-        alignment: 0.3, // Align verse towards the top third of screen
-      );
-    }
+  void _scrollToVerse(int verseIndex) {
+    if (!_itemScrollController.isAttached) return;
+    _itemScrollController.scrollTo(
+      index: verseIndex + _offset,
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+      alignment: 0.2,
+    );
   }
 
   @override
@@ -322,8 +288,15 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
+            child: ScrollablePositionedList.builder(
+              itemScrollController: _itemScrollController,
+              itemPositionsListener: _itemPositionsListener,
+              initialScrollIndex: widget.initialVerseIndex == null ||
+                      widget.surah.verses.isEmpty
+                  ? 0
+                  : (widget.initialVerseIndex!
+                          .clamp(0, widget.surah.verses.length - 1) +
+                      _offset),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).padding.bottom + 16,
               ),
@@ -343,10 +316,9 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8.0, vertical: 12.0),
                       child: VerseCard(
-                        key: _verseKeys[-1], // Special key for Basmala
                         verse: VerseModel(
                           number: 0,
-                          arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                          arabic: kBasmalaArabic,
                           pulaar: 'E innde alla Jurumdeero Jurmotooɗo',
                         ),
                         isCurrentVerse: false,
@@ -418,12 +390,17 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
                       widget.surah.number == 1 ? index : index - 1;
                   if (verseIndex >= 0 &&
                       verseIndex < widget.surah.verses.length) {
-                    return VerseCard(
-                      key: _verseKeys[verseIndex],
-                      verse: widget.surah.verses[verseIndex],
-                      isCurrentVerse: verseIndex == _currentVerseIndex &&
-                          _isThisSurahPlaying,
-                    );
+                    return Obx(() => VerseCard(
+                          verse: widget.surah.verses[verseIndex],
+                          isCurrentVerse:
+                              verseIndex == _currentVerseIndex.value &&
+                                  _isThisSurahPlaying,
+                          isBookmarked: Get.find<BookmarkService>()
+                              .isVerseBookmarked(
+                                  widget.surah.number, verseIndex),
+                          onTap: () =>
+                              VerseActionsSheet.show(widget.surah, verseIndex),
+                        ));
                   }
                 }
 
@@ -457,8 +434,8 @@ class _SurahContentScreenState extends State<SurahContentScreen> {
     _currentSurahWorker?.dispose();
     _lifecycleListener?.dispose();
     _positionSubscription?.cancel();
-    _durationSubscription?.cancel();
-    _scrollController.dispose();
+    _saveProgressTimer?.cancel();
+    _itemPositionsListener.itemPositions.removeListener(_onScroll);
     super.dispose();
   }
 }

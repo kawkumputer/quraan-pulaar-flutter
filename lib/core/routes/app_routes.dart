@@ -28,14 +28,16 @@ class AppRoutes {
 
   /// Ouvre l'écran d'une sourate (ou l'activation si elle est verrouillée).
   /// [replace] remplace l'écran courant au lieu d'empiler.
-  static Future<void>? openSurah(SurahModel surah, {bool replace = false}) {
+  /// [verseIndex] : verset (index 0-based) à afficher en arrivant.
+  static Future<void>? openSurah(SurahModel surah, {int? verseIndex, bool replace = false}) {
     final quranService = Get.find<QuranService>();
     if (quranService.isLocked(surah)) return Get.toNamed(activation);
     quranService.setCurrentSurah(surah);
     final path = surahPath(surah.number);
+    final args = {'surah': surah, 'verse': verseIndex};
     return replace
-        ? Get.offNamed(path, arguments: surah, preventDuplicates: false)
-        : Get.toNamed(path, arguments: surah);
+        ? Get.offNamed(path, arguments: args, preventDuplicates: false)
+        : Get.toNamed(path, arguments: args, preventDuplicates: false);
   }
 
   static final List<GetPage> pages = [
@@ -56,6 +58,12 @@ class AppRoutes {
       page: () {
         final args = Get.arguments;
         if (args is SurahModel) return SurahContentScreen(surah: args);
+        if (args is Map && args['surah'] is SurahModel) {
+          return SurahContentScreen(
+            surah: args['surah'] as SurahModel,
+            initialVerseIndex: args['verse'] as int?,
+          );
+        }
 
         final number = int.tryParse(Get.parameters['number'] ?? '');
         final surah = number == null ? null : Get.find<QuranService>().byNumber(number);

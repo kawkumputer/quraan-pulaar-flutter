@@ -82,11 +82,15 @@ class ReminderService extends GetxService {
   }
 
   Future<void> _openPayload(String? payload) async {
-    final number = int.tryParse(payload?.split(':').elementAtOrNull(1) ?? '');
+    // payload : « surah:<numéro>:<index du verset> »
+    final parts = payload?.split(':') ?? const [];
+    final number = int.tryParse(parts.elementAtOrNull(1) ?? '');
     if (number == null) return;
     await _quranService.loadSurahs();
     final surah = _quranService.byNumber(number);
-    if (surah != null) AppRoutes.openSurah(surah);
+    if (surah != null) {
+      AppRoutes.openSurah(surah, verseIndex: int.tryParse(parts.elementAtOrNull(2) ?? ''));
+    }
   }
 
   /// Demande l'autorisation d'afficher des notifications. Renvoie false si refusée.
@@ -151,7 +155,7 @@ class ReminderService extends GetxService {
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           title: 'Maande hannde · ${daily.reference}',
           body: daily.verse.pulaar,
-          payload: 'surah:${daily.surah.number}',
+          payload: 'surah:${daily.surah.number}:${daily.surah.verses.indexOf(daily.verse)}',
         );
       }
     } catch (e) {

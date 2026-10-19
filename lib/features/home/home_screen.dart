@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/widgets/offline_banner.dart';
+import 'widgets/recent_reading_card.dart';
 import '../../core/services/reminder_service.dart';
 import '../../core/services/app_config_service.dart';
 import '../../core/routes/app_routes.dart';
@@ -84,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+          const OfflineBanner(),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -94,11 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         duration: const Duration(milliseconds: 300),
                         child: settingsService.isActivated
                             ? Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
                                 color: Colors.green.shade50,
                                 child: Row(
                                   children: [
-                                    Icon(Icons.verified, color: Colors.green.shade700),
+                                    Icon(Icons.verified,
+                                        color: Colors.green.shade700),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Yamre Huuɓtunde',
@@ -111,11 +116,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               )
                             : Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
                                 color: Colors.amber.shade50,
                                 child: Row(
                                   children: [
-                                    Icon(Icons.info_outline, color: Colors.amber.shade900),
+                                    Icon(Icons.info_outline,
+                                        color: Colors.amber.shade900),
                                     const SizedBox(width: 8),
                                     const Text(
                                       'Yamre Ɓolnde',
@@ -128,7 +135,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     TextButton.icon(
                                       icon: const Icon(Icons.lock_open),
                                       label: const Text('Huuɓnu'),
-                                      onPressed: () => Get.toNamed(AppRoutes.activation),
+                                      onPressed: () =>
+                                          Get.toNamed(AppRoutes.activation),
                                     ),
                                   ],
                                 ),
@@ -137,6 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Daily Verse Section
                   DailyVerseWidget(),
+
+                  // Reprendre la lecture
+                  const RecentReadingCard(),
 
                   // Navigation Cards
                   Padding(
