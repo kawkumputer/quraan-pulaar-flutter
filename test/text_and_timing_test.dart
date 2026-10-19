@@ -62,6 +62,15 @@ void main() {
       expect(withHarakat.startOf(1), without.startOf(1));
     });
 
+    test('pause fixe : un verset court dure plus que sa seule longueur', () {
+      final t = VerseTiming(
+          surah(1, [['ا', 'a'], ['ا' * 30, 'a' * 30]]), const Duration(seconds: 60));
+      final first = t.endOf(0) - t.startOf(0);
+      final second = t.endOf(1) - t.startOf(1);
+      // Sans pause le rapport serait ~30 ; avec la pause il est bien plus faible.
+      expect(second.inMilliseconds / first.inMilliseconds, lessThan(10));
+    });
+
     test('Basmala en plus hors Al-Fatiha', () {
       final verses = [['قل', 'Wiy']];
       final fatiha = VerseTiming(surah(1, verses), const Duration(seconds: 60));

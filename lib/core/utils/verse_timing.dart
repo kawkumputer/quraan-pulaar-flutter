@@ -13,6 +13,11 @@ class VerseTimingConfig {
   static const double arabicLetterWeight = 1.6;
   static const double pulaarCharWeight = 1.0;
 
+  /// Durée fixe par segment (pause après l'arabe et après le Pulaar), en
+  /// équivalent caractères Pulaar : sans elle, les versets courts sont
+  /// sous-estimés et le surlignage prend de l'avance au fil de la sourate.
+  static const double pausePerSegment = 14;
+
   /// Introduction avant la Basmala (« A'oudhou billahi… » et sa traduction).
   /// Textes utilisés seulement pour leur longueur (jamais affichés).
   static const String introArabic = 'أعوذ بالله من الشيطان الرجيم';
@@ -31,7 +36,8 @@ class VerseTiming {
     final letters = TextNormalizer.normalize(arabic).replaceAll(RegExp(r'\s'), '').length;
     final pulaarChars = pulaar.replaceAll(RegExp(r'\s'), '').length;
     return letters * VerseTimingConfig.arabicLetterWeight +
-        pulaarChars * VerseTimingConfig.pulaarCharWeight;
+        pulaarChars * VerseTimingConfig.pulaarCharWeight +
+        VerseTimingConfig.pausePerSegment;
   }
 
   factory VerseTiming(SurahModel surah, Duration total) {
