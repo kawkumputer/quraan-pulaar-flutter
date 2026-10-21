@@ -102,7 +102,7 @@ class S {
   // ---------------------------------------------------------------------------
   static String get hadithsTitle => _t('Njangtuuji', 'Hadiths', 'الأحاديث');
   static String hadithN(int n) => _t('Njangtuwol $n', 'Hadith $n', 'الحديث $n');
-  static String get noHadiths => _t('Alaa hadiisaaji goodɗi', 'Aucun hadith disponible', 'لا توجد أحاديث متاحة');
+  static String get noHadiths => _t('Alaa njangtuwol keɓingol', 'Aucun hadith disponible', 'لا توجد أحاديث متاحة');
   static String get hadithLocked =>
       _t('Uddit jaaɓngal ngal ngam heɗaade ngol njangtuwol', 'Activez pour écouter ce hadith', 'فعّل التطبيق للاستماع إلى هذا الحديث');
   static String get freeHadithsBanner => _t(
