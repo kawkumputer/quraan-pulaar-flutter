@@ -59,9 +59,14 @@ on conflict (code) do update
        legacy_seller       = excluded.legacy_seller,
        legacy_device_model = excluded.legacy_device_model,
        legacy_device_uid   = excluded.legacy_device_uid,
-       -- ne jamais « dé-activer » un code côté Supabase
-       is_used             = public.activation_codes.is_used or excluded.is_used,
-       activated_at        = coalesce(public.activation_codes.activated_at, excluded.activated_at)
+       -- Code rattaché à un appareil (client passé en 2.10+) : Supabase fait foi,
+       -- on ne le désactive jamais. Sinon on suit Spring (activation ou
+       -- réinitialisation faite dans l'ancienne app admin).
+       is_used             = case when public.activation_codes.device_id is not null
+                                  then true else excluded.is_used end,
+       activated_at        = case when public.activation_codes.device_id is not null
+                                  then public.activation_codes.activated_at
+                                  else excluded.activated_at end
 """
 
 
