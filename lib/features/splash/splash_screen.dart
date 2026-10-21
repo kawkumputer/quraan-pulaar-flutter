@@ -25,11 +25,12 @@ class _SplashScreenState extends State<SplashScreen> {
       // On attend le chargement des sourates (cache local en général : rapide),
       // avec un minimum pour l'écran d'accueil et un maximum en cas de lenteur.
       final quranService = Get.find<QuranService>();
-      final loaded = quranService.isInitialized.value
+      final Future<void> loaded = quranService.isInitialized.value
           ? Future<void>.value()
-          : quranService.isInitialized.stream.firstWhere((v) => v);
-      await Future.wait([
-        Future.delayed(const Duration(milliseconds: 1200)),
+          : quranService.isInitialized.stream.firstWhere((v) => v).then((_) {});
+      await Future.wait<void>([
+        Future<void>.delayed(const Duration(milliseconds: 1200)),
+        // En cas de lenteur, on continue quand même après 8 s.
         loaded.timeout(const Duration(seconds: 8), onTimeout: () {}),
       ]);
       if (mounted) {
