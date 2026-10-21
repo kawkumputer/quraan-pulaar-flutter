@@ -9,7 +9,6 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/controllers/activation_controller.dart';
 import 'widgets/daily_verse_widget.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 import '../../core/constants/strings.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -188,11 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-          ),
-          // Add banner at bottom with unique screen ID
-          const RespectfulBannerAd(
-            screenId: 'home_screen',
-            isQuranSection: false,
           ),
         ],
       ),

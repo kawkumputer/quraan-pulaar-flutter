@@ -3,9 +3,7 @@ import 'package:get/get.dart';
 import '../../core/controllers/audio_controller.dart';
 import '../../core/services/hadith_service.dart';
 import '../../core/services/settings_service.dart';
-import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 import 'models/hadith.dart';
 import 'widgets/hadith_card.dart';
 import '../../core/constants/strings.dart';
@@ -52,7 +50,6 @@ class HadithScreen extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
-        Get.find<AdService>().showInterstitialAd('hadith_screen');
         return true;
       },
       child: Scaffold(
@@ -69,7 +66,6 @@ class HadithScreen extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              Get.find<AdService>().showInterstitialAd('hadith_screen');
               Get.back();
             },
           ),
@@ -225,12 +221,6 @@ class HadithScreen extends StatelessWidget {
                     );
                   },
                 ),
-              ),
-              // Add banner at bottom, not showing during audio playback
-              const RespectfulBannerAd(
-                screenId: 'hadith_screen',
-                isQuranSection: false,
-                isAudioPlaying: false,
               ),
             ],
           );

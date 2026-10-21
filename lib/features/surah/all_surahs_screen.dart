@@ -4,9 +4,7 @@ import '../../core/widgets/offline_banner.dart';
 import '../../core/constants/strings.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
-import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 
 class AllSurahsScreen extends GetView<QuranService> {
   const AllSurahsScreen({super.key});
@@ -17,7 +15,6 @@ class AllSurahsScreen extends GetView<QuranService> {
 
     return WillPopScope(
       onWillPop: () async {
-        Get.find<AdService>().showInterstitialAd('all_surahs_screen');
         return true;
       },
       child: Scaffold(
@@ -25,7 +22,6 @@ class AllSurahsScreen extends GetView<QuranService> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Get.find<AdService>().showInterstitialAd('all_surahs_screen');
               Get.back();
             },
           ),
@@ -257,10 +253,6 @@ class AllSurahsScreen extends GetView<QuranService> {
                   ],
                 );
               }),
-            ),
-            const RespectfulBannerAd(
-              screenId: 'all_surahs_screen',
-              isQuranSection: false,
             ),
           ],
         ),

@@ -9,7 +9,6 @@ import '../../core/l10n/app_language.dart';
 import '../../core/services/reminder_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -200,10 +199,6 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          const RespectfulBannerAd(
-            screenId: 'settings_screen',
-            isQuranSection: false,
           ),
         ],
       ),

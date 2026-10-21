@@ -3,25 +3,16 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../models/device_info.dart';
-import 'tracking_permission_service.dart';
 
 class DeviceService extends GetxService {
   final _deviceInfo = DeviceInfoPlugin();
   // Implémenté dans android/app/src/main/kotlin/mr/quran_pulaar/MainActivity.kt
   static const _deviceChannel = MethodChannel('mr.quran_pulaar/device');
-  bool _hasRequestedPermission = false;
 
   Future<DeviceInfo> getDeviceInfo() async {
     try {
-      // Request tracking permission on iOS if not already requested
-      if (Platform.isIOS && !_hasRequestedPermission) {
-        _hasRequestedPermission = true;
-        final hasPermission = await TrackingPermissionService.requestTrackingPermission();
-        if (!hasPermission) {
-          print('Warning: Tracking permission denied, using fallback device ID');
-        }
-      }
-
+      // iOS : identifierForVendor ne nécessite aucune autorisation (pas d'ATT :
+      // l'identifiant sert seulement à l'activation, jamais au suivi publicitaire).
       String deviceId = '';
       String baseOs = '';
       String deviceName = '';

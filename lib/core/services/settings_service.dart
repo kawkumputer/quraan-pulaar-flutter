@@ -6,7 +6,6 @@ import '../constants/app_constants.dart';
 import '../l10n/app_language.dart';
 import 'activation_api_service.dart';
 import 'device_service.dart';
-import 'tracking_permission_service.dart';
 
 class SettingsService extends GetxService {
   static const String _themeKey = 'theme_mode';
@@ -95,10 +94,6 @@ class SettingsService extends GetxService {
     if (!_isActivated.value || !needsValidation) return;
 
     try {
-      // Request tracking permission before accessing device ID
-      final hasTrackingPermission = await TrackingPermissionService.requestTrackingPermission();
-      if (!hasTrackingPermission) return;
-
       final deviceInfo = await _deviceService.getDeviceInfo();
       final validityStatus = await _apiService.checkDeviceValidity(deviceInfo.uniqueId, _activationCode.value);
 

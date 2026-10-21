@@ -4,7 +4,6 @@ import '../services/bookmark_service.dart';
 import '../services/download_service.dart';
 import '../services/activation_api_service.dart';
 import '../services/device_service.dart';
-import '../services/ad_service.dart';
 import '../services/firebase_service.dart';
 import '../services/settings_service.dart';
 import '../services/cache_service.dart';
@@ -27,7 +26,6 @@ class InitialBinding extends Bindings {
     Get.put<DeviceService>(DeviceService(), permanent: true);
     Get.put<DownloadService>(DownloadService(), permanent: true);
     Get.put<BookmarkService>(BookmarkService(), permanent: true);
-    Get.put<AdService>(AdService(), permanent: true);
     
     // Register services that depend on core services
     Get.put<SettingsService>(SettingsService(), permanent: true);

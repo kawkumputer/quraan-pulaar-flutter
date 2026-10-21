@@ -6,22 +6,18 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/bookmark_service.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/settings_service.dart';
-import '../../core/services/ad_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 
 class BookmarksScreen extends GetView<BookmarkService> {
   BookmarksScreen({super.key});
 
   final _quranService = Get.find<QuranService>();
   final _settingsService = Get.find<SettingsService>();
-  final _adService = Get.find<AdService>();
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Get.find<AdService>().showInterstitialAd('bookmarks_screen');
         return true;
       },
       child: Scaffold(
@@ -30,7 +26,6 @@ class BookmarksScreen extends GetView<BookmarkService> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Get.find<AdService>().showInterstitialAd('bookmarks_screen');
               Get.back();
             },
           ),
@@ -135,8 +130,6 @@ class BookmarksScreen extends GetView<BookmarkService> {
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () async {
                             await controller.toggleBookmark(surahNumber);
-                            Get.find<AdService>()
-                                .showInterstitialAd('bookmarks_screen');
                             showMessage(S.surahUnbookmarked);
                           },
                         ),
@@ -148,12 +141,6 @@ class BookmarksScreen extends GetView<BookmarkService> {
                   },
                 );
               }),
-            ),
-            // Show ad since bookmarks screen only shows metadata, not sacred content
-            const RespectfulBannerAd(
-              screenId: 'bookmarks_screen',
-              isQuranSection: false,
-              isAudioPlaying: false,
             ),
           ],
         ),

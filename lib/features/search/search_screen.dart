@@ -5,9 +5,7 @@ import '../../core/models/surah_model.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/services/quran_service.dart';
 import '../../core/services/search_service.dart';
-import '../../core/services/ad_service.dart';
 import '../../core/utils/text_normalizer.dart';
-import '../../core/widgets/respectful_banner_ad.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -44,14 +42,10 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _leave() => Get.find<AdService>().showInterstitialAd('search_screen');
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) _leave();
-      },
       child: Scaffold(
         appBar: AppBar(title: Text(S.searchTitle)),
         body: Column(
@@ -88,11 +82,6 @@ class _SearchScreenState extends State<SearchScreen> {
                       result: _results[index], normalizedQuery: normalized),
                 );
               }),
-            ),
-            const RespectfulBannerAd(
-              screenId: 'search_screen',
-              isQuranSection: false,
-              isAudioPlaying: false,
             ),
           ],
         ),
