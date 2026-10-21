@@ -86,7 +86,7 @@ class S {
   static String get noBookmarksHint => _t('Cimooje e maandeeji ɓeydaaɗe to Ɓurnaaɗi ko ɗoo peeñata',
       'Les sourates et versets ajoutés aux favoris apparaîtront ici', 'ستظهر هنا السور والآيات التي تضيفها إلى المفضلة');
   static String get surahBookmarked =>
-      _t('Cimooje ɓeyditaaɗe to Ɓurnaaɗe', 'Sourate ajoutée aux favoris', 'أُضيفت السورة إلى المفضلة');
+      _t('Simoore ɓeyditaande to Ɓurnaaɗe', 'Sourate ajoutée aux favoris', 'أُضيفت السورة إلى المفضلة');
   static String get surahUnbookmarked =>
       _t('Simoore roostaande to Ɓurnaaɗe', 'Sourate retirée des favoris', 'أُزيلت السورة من المفضلة');
 
@@ -113,7 +113,7 @@ class S {
   // ---------------------------------------------------------------------------
   // Activation
   // ---------------------------------------------------------------------------
-  static String get activationTitle => _t('Walla udditgol', 'Activation', 'التفعيل');
+  static String get activationTitle => _t('Udditgol', 'Activation', 'التفعيل');
   static String get activationWelcome => _t(
       'A jaɓɓaama e Quraan Pulaar!\n\nHuuɓnu jaaɓnirgal ngal ngam heɓde cimooje ɗe fof. So a huuɓnaani, ko cimooje nay tan keɓataa.',
       "Bienvenue dans Quraan Pulaar !\n\nActivez l'application pour accéder à toutes les sourates. Sans activation, seules 4 sourates sont disponibles.",
