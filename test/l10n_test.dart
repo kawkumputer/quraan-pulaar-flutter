@@ -8,7 +8,7 @@ void main() {
 
   test('les textes suivent la langue courante', () {
     CurrentLanguage.value = AppLanguage.pulaar;
-    expect(S.retry, 'Fuɗɗito');
+    expect(S.retry, 'Etito');
     CurrentLanguage.value = AppLanguage.french;
     expect(S.retry, 'Réessayer');
     CurrentLanguage.value = AppLanguage.arabic;
