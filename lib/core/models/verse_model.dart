@@ -1,4 +1,3 @@
-import '../../features/surah/models/surah.dart';
 
 class VerseModel {
   final int number;
@@ -16,14 +15,6 @@ class VerseModel {
       number: json['number'],
       arabic: json['arabic'],
       pulaar: json['pulaar'],
-    );
-  }
-
-  factory VerseModel.fromFirebase(Verse verse) {
-    return VerseModel(
-      number: verse.number,
-      arabic: verse.arabic,
-      pulaar: verse.pulaar,
     );
   }
 

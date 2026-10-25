@@ -29,7 +29,6 @@ jobs:
           # webview_flutter_wkwebview. On reste en CocoaPods (comme avant la 2.11).
           flutter config --no-enable-swift-package-manager
           flutter pub get
-          dart run build_runner build --delete-conflicting-outputs
 
       - name: Restore GoogleService-Info.plist
         env:

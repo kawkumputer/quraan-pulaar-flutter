@@ -138,6 +138,32 @@ class S {
   static String get activateDevice => _t('Uddit cinndel ngel', "Activer l'appareil", 'تفعيل الجهاز');
 
   // ---------------------------------------------------------------------------
+  // Mon activation (Pulaar : brouillon, à relire)
+  // ---------------------------------------------------------------------------
+  static String get myActivation => _t('Coftingol am', 'Mon activation', 'تفعيلي');
+  static String get activatedOn => _t('Udditaama ñalnde', 'Activé le', 'تم التفعيل في');
+  static String get onDevice => _t('Cinndel', 'Appareil', 'الجهاز');
+  static String get showCode => _t('Hollu maantoode', 'Afficher le code', 'إظهار الرمز');
+  static String get keepCodeHint => _t(
+      'Reen maantoode maa. Ina waɗɗii so a waylii cinndel.',
+      'Gardez ce code : il vous sera demandé si vous changez de téléphone.',
+      'احتفظ بهذا الرمز: سيُطلب منك إذا غيّرت هاتفك.');
+  static String get changePhoneContact => _t(
+      'Waylugol cinndel walla naamnal: haalan Abuu Sih e WhatsApp',
+      'Changement de téléphone ou question : contactez Abou Sy sur WhatsApp',
+      'لتغيير الهاتف أو لأي سؤال: تواصل مع أبو سي عبر واتساب');
+  static String get buyCodeContact => _t(
+      'Soodugol maantoode coftingol: haalan Abuu Sih e WhatsApp',
+      "Pour obtenir un code d'activation : contactez Abou Sy sur WhatsApp",
+      'للحصول على رمز التفعيل: تواصل مع أبو سي عبر واتساب');
+  static String get contactWhatsapp => _t('Haalan e WhatsApp', 'Contacter sur WhatsApp', 'تواصل عبر واتساب');
+  static String whatsappMessage(String code) => code.isEmpty
+      ? _t('Jam, mi yiɗi soodude maantoode Quraan Pulaar.', 'Bonjour, je voudrais un code Quraan Pulaar.',
+          'السلام عليكم، أريد رمز تفعيل Quraan Pulaar.')
+      : _t('Jam, maantoode am Quraan Pulaar: $code', 'Bonjour, mon code Quraan Pulaar : $code',
+          'السلام عليكم، رمز Quraan Pulaar الخاص بي: $code');
+
+  // ---------------------------------------------------------------------------
   // À propos (écran bilingue : le Pulaar est conservé en interface arabe)
   // ---------------------------------------------------------------------------
   static String get aboutTranslation => _t(

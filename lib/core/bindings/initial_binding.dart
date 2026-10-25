@@ -4,9 +4,9 @@ import '../services/bookmark_service.dart';
 import '../services/download_service.dart';
 import '../services/activation_api_service.dart';
 import '../services/device_service.dart';
-import '../services/firebase_service.dart';
+import '../services/quran_sync_service.dart';
+import '../services/corrector_service.dart';
 import '../services/settings_service.dart';
-import '../services/cache_service.dart';
 import '../services/hadith_service.dart';
 import '../services/reminder_service.dart';
 import '../services/app_config_service.dart';
@@ -20,7 +20,6 @@ class InitialBinding extends Bindings {
   @override
   void dependencies() {
     // Initialize core services first
-    Get.put<CacheService>(CacheService(), permanent: true);
     Get.put<ConnectivityService>(ConnectivityService(), permanent: true);
     Get.put<ActivationApiService>(ActivationApiService(), permanent: true);
     Get.put<DeviceService>(DeviceService(), permanent: true);
@@ -29,18 +28,16 @@ class InitialBinding extends Bindings {
     
     // Register services that depend on core services
     Get.put<SettingsService>(SettingsService(), permanent: true);
-    Get.put<FirebaseService>(FirebaseService(
-      cacheService: Get.find<CacheService>(),
-    ), permanent: true);
+    Get.put<QuranSyncService>(QuranSyncService(), permanent: true);
     
     // Initialize QuranService before AudioController
     final quranService = QuranService(
-      firebaseService: Get.find<FirebaseService>(),
       settingsService: Get.find<SettingsService>(),
-      cacheService: Get.find<CacheService>(),
+      syncService: Get.find<QuranSyncService>(),
     );
     Get.put<QuranService>(quranService, permanent: true);
     
+    Get.put<CorrectorService>(CorrectorService(), permanent: true);
     Get.put<ReminderService>(ReminderService(), permanent: true);
     Get.put<AppConfigService>(AppConfigService(), permanent: true);
     Get.put<ReadingProgressService>(ReadingProgressService(), permanent: true);

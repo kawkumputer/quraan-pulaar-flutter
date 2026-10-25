@@ -1,4 +1,3 @@
-import '../../features/surah/models/surah.dart';
 import 'verse_model.dart';
 
 class SurahModel {
@@ -30,19 +29,6 @@ class SurahModel {
       verses: verses,
       versesCount: json['total_verses'] ?? verses.length,
       audioUrl: json['audio_url'] ?? '',
-    );
-  }
-
-  factory SurahModel.fromFirebase(Surah surah) {
-    final verses = surah.verses.map((verse) => VerseModel.fromFirebase(verse)).toList();
-    
-    return SurahModel(
-      number: surah.number,
-      nameArabic: surah.nameArabic,
-      namePulaar: surah.namePulaar,
-      verses: verses,
-      versesCount: verses.length,
-      audioUrl: surah.audioUrl ?? '',
     );
   }
 

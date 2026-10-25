@@ -1,11 +1,12 @@
 /// Sourates accessibles sans activation (présentes dans assets/data/surahs.json).
 const Set<int> kFreeSurahs = {1, 112, 113, 114};
 
-/// À incrémenter quand le format des boxes Hive change : le cache est alors vidé une fois.
-const int kCacheSchemaVersion = 2;
+/// Intervalle minimal entre deux synchronisations du texte au retour dans l'app
+/// (chaque synchro ne télécharge que les versets corrigés).
+const Duration kContentRefreshInterval = Duration(hours: 1);
 
-/// Durée après laquelle le contenu en cache est rafraîchi depuis Firestore.
-const Duration kContentRefreshInterval = Duration(hours: 24);
+/// WhatsApp d'Abou Sy (ventes, changement de téléphone).
+const String kContactWhatsapp = '221773091782';
 
 const String kPlayStoreUrl =
     'https://play.google.com/store/apps/details?id=mr.quran_pulaar';

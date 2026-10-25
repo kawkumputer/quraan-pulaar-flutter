@@ -4,25 +4,18 @@ import 'package:get/get.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/supabase_config.dart';
-import 'core/constants/app_constants.dart';
 import 'core/l10n/app_language.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/bindings/initial_binding.dart';
 import 'core/routes/route_observer.dart';
-import 'core/services/cache_service.dart';
 import 'core/services/settings_service.dart';
 import 'core/utils/messenger.dart';
 import 'core/widgets/mini_player.dart';
-import 'features/surah/models/surah.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await _initHive();
 
   await Firebase.initializeApp(
     options: Platform.isIOS
@@ -67,38 +60,6 @@ void main() async {
     initialThemeMode: settings.themeMode,
     initialLocale: (settings.language ?? AppLanguage.pulaar).materialLocale,
   ));
-}
-
-/// Ouvre les boxes Hive. Le cache n'est vidé que si son format change
-/// (kCacheSchemaVersion) ou s'il est illisible.
-Future<void> _initHive() async {
-  await Hive.initFlutter();
-  if (!Hive.isAdapterRegistered(0)) {
-    Hive.registerAdapter(SurahAdapter());
-  }
-  if (!Hive.isAdapterRegistered(1)) {
-    Hive.registerAdapter(VerseAdapter());
-  }
-
-  final prefs = await SharedPreferences.getInstance();
-  if (prefs.getInt('cache_schema_version') != kCacheSchemaVersion) {
-    await Hive.deleteBoxFromDisk(CacheService.surahsBoxName);
-    await Hive.deleteBoxFromDisk(CacheService.metadataBoxName);
-    await prefs.setInt('cache_schema_version', kCacheSchemaVersion);
-  }
-
-  await _openBox<Surah>(CacheService.surahsBoxName);
-  await _openBox<DateTime>(CacheService.metadataBoxName);
-}
-
-Future<void> _openBox<T>(String name) async {
-  try {
-    await Hive.openBox<T>(name);
-  } catch (e) {
-    debugPrint('Hive box $name unreadable, resetting: $e');
-    await Hive.deleteBoxFromDisk(name);
-    await Hive.openBox<T>(name);
-  }
 }
 
 class QuranApp extends StatelessWidget {

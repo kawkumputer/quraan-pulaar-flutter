@@ -7,6 +7,7 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/hadith/hadith_screen.dart';
 import '../../features/activation/activation_screen.dart';
+import '../../features/activation/my_activation_screen.dart';
 import '../../features/about/about_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/downloads/downloads_screen.dart';
@@ -24,6 +25,7 @@ class AppRoutes {
   static const String search = '/search';
   static const String hadith = '/hadith';
   static const String activation = '/activation';
+  static const String myActivation = '/my-activation';
   static const String about = '/about';
   static const String downloads = '/downloads';
   static const String language = '/language';
@@ -98,6 +100,11 @@ class AppRoutes {
     GetPage(
       name: activation,
       page: () => const ActivationScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: myActivation,
+      page: () => const MyActivationScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

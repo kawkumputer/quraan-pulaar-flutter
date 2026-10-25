@@ -6,12 +6,13 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../constants/app_constants.dart';
 import '../models/surah_model.dart';
-import '../services/firebase_service.dart';
+import '../models/verse_model.dart';
 import '../services/settings_service.dart';
-import '../services/cache_service.dart';
+import 'quran_sync_service.dart';
 
-/// Source unique des sourates affichées : chargement (cache d'abord), rafraîchissement
-/// et ordre d'affichage.
+/// Source unique des sourates affichées. Le texte vient de Supabase (quran_sync),
+/// gardé en copie locale : affichage immédiat depuis la copie, puis synchronisation
+/// légère en arrière-plan (seuls les versets corrigés sont téléchargés).
 class QuranService extends GetxService {
   /// Toutes les sourates disponibles, triées 1 → 114.
   List<SurahModel> _canonical = [];
@@ -23,22 +24,18 @@ class QuranService extends GetxService {
   final _error = Rx<String?>(null);
   final isInitialized = false.obs;
 
-  final FirebaseService _firebaseService;
   final SettingsService _settingsService;
-  final CacheService _cacheService;
+  final QuranSyncService _sync;
   final _connectivity = Connectivity();
 
   Future<void>? _loadFuture;
-  bool _refreshing = false;
+  Future<void>? _syncFuture;
+  DateTime? _lastSync;
   AppLifecycleListener? _lifecycleListener;
 
-  QuranService({
-    required FirebaseService firebaseService,
-    required SettingsService settingsService,
-    required CacheService cacheService,
-  }) : _firebaseService = firebaseService,
-       _settingsService = settingsService,
-       _cacheService = cacheService;
+  QuranService({required SettingsService settingsService, required QuranSyncService syncService})
+      : _settingsService = settingsService,
+        _sync = syncService;
 
   List<SurahModel> get surahs => _surahs;
   RxList<SurahModel> get surahsRx => _surahs;
@@ -52,7 +49,12 @@ class QuranService extends GetxService {
 
     ever(_settingsService.isActivatedRx, (_) => loadSurahs(force: true));
     ever(_settingsService.surahOrderRx, (_) => _applyOrder());
-    _lifecycleListener = AppLifecycleListener(onResume: _refreshIfStale);
+    _lifecycleListener = AppLifecycleListener(onResume: () {
+      final last = _lastSync;
+      if (last == null || DateTime.now().difference(last) > kContentRefreshInterval) {
+        _syncInBackground();
+      }
+    });
 
     _settingsService.ready.then((_) async {
       await loadSurahs();
@@ -77,31 +79,55 @@ class QuranService extends GetxService {
     _isLoading.value = true;
     _error.value = null;
     try {
-      if (_settingsService.isActivated) {
-        final local = await _firebaseService.getLocalSurahs();
-        if (local.isNotEmpty) {
-          _setSurahs(local.map(SurahModel.fromFirebase).toList());
-          _refreshIfStale();
-          return;
-        }
-        try {
-          final remote = await _firebaseService.fetchFromServer();
-          if (remote.isNotEmpty) {
-            _setSurahs(remote.map(SurahModel.fromFirebase).toList());
-            return;
-          }
-        } catch (e) {
-          debugPrint('Error loading surahs from Firestore: $e');
-        }
-        // Pas de cache ni de réseau : on retombe sur les sourates gratuites.
+      final local = await _sync.loadLocal();
+      final activated = _settingsService.isActivated;
+
+      // Copie locale à jour avec l'état d'activation : affichage immédiat.
+      if (!local.isEmpty && local.activated == activated) {
+        _setSurahs(local.toModels());
+        _syncInBackground();
+        return;
       }
 
-      _setSurahs(await _loadFreeSurahs());
+      // Première ouverture, ou activation qui vient de changer : synchro maintenant.
+      try {
+        await _syncNow();
+        if (!_sync.snapshot.isEmpty) return;
+      } catch (e) {
+        debugPrint('Quran sync failed: $e');
+      }
+
+      // Hors ligne : ce qu'on a localement, sans jamais montrer de contenu payant
+      // à un appareil qui n'est plus activé.
+      if (!local.isEmpty && (activated || !local.activated)) {
+        _setSurahs(local.toModels());
+      } else {
+        _setSurahs(await _loadFreeSurahs());
+      }
     } catch (e) {
       debugPrint('Error loading surahs: $e');
       _error.value = e.toString();
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  Future<void> _syncNow() => _syncFuture ??= () async {
+        try {
+          final changed = await _sync.sync();
+          _lastSync = DateTime.now();
+          if (changed || _canonical.isEmpty) _setSurahs(_sync.snapshot.toModels());
+        } finally {
+          _syncFuture = null;
+        }
+      }();
+
+  Future<void> _syncInBackground() async {
+    if (await _connectivity.checkConnectivity() == ConnectivityResult.none) return;
+    try {
+      await _syncNow();
+    } catch (e) {
+      debugPrint('Background Quran sync failed: $e');
     }
   }
 
@@ -112,23 +138,16 @@ class QuranService extends GetxService {
     return surahsJson.map((surah) => SurahModel.fromJson(surah)).toList();
   }
 
-  /// Rafraîchit depuis le serveur en arrière-plan si le cache date de plus de 24 h.
-  Future<void> _refreshIfStale() async {
-    if (_refreshing || !_settingsService.isActivated) return;
-    if (_cacheService.getTimeSinceLastSync() < kContentRefreshInterval) return;
-    if (await _connectivity.checkConnectivity() == ConnectivityResult.none) return;
-
-    _refreshing = true;
-    try {
-      final remote = await _firebaseService.fetchFromServer();
-      if (remote.isNotEmpty) {
-        _setSurahs(remote.map(SurahModel.fromFirebase).toList());
-      }
-    } catch (e) {
-      debugPrint('Background refresh failed: $e');
-    } finally {
-      _refreshing = false;
-    }
+  /// Mode correcteur : remplace la traduction d'un verset à l'écran et dans la copie
+  /// locale (la base est déjà à jour).
+  Future<void> applyCorrection(int surahNumber, int verseNumber, String pulaar) async {
+    await _sync.applyCorrection(surahNumber, verseNumber, pulaar);
+    final surah = byNumber(surahNumber);
+    final i = surah?.verses.indexWhere((v) => v.number == verseNumber) ?? -1;
+    if (surah == null || i < 0) return;
+    final old = surah.verses[i];
+    surah.verses[i] = VerseModel(number: old.number, arabic: old.arabic, pulaar: pulaar);
+    _surahs.refresh();
   }
 
   void _setSurahs(List<SurahModel> surahs) {

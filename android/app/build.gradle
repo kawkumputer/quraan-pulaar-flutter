@@ -45,8 +45,8 @@ android {
         applicationId "mr.quran_pulaar"
         minSdkVersion flutter.minSdkVersion // Minimum SDK for background service support
         targetSdkVersion flutter.targetSdkVersion // Android 16 (API 36) avec Flutter 3.44, exigé par Google Play
-        versionCode 2140
-        versionName "2.14.0"
+        versionCode 2150
+        versionName "2.15.0"
         multiDexEnabled true
         ndk {
             debugSymbolLevel 'FULL'

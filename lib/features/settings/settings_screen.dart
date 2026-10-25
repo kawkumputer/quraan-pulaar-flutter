@@ -7,7 +7,9 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/strings.dart';
 import '../../core/l10n/app_language.dart';
 import '../../core/services/reminder_service.dart';
+import '../../core/services/corrector_service.dart';
 import '../../core/services/settings_service.dart';
+import '../surah/widgets/corrector_dialogs.dart';
 import '../../core/routes/app_routes.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -39,7 +41,8 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.settings),
+        // 5 appuis sur le titre : connexion au mode correcteur (Abou Sy, développeur).
+        title: _TapCounter(onTriggered: CorrectorLoginDialog.show, child: Text(S.settings)),
       ),
       body: Column(
         children: [
@@ -181,15 +184,23 @@ class SettingsScreen extends StatelessWidget {
                         title: Text(S.share),
                         onTap: _shareApp,
                       ),
-                      Obx(() => !settingsService.isActivated
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.verified_user_outlined),
+                        title: Text(S.myActivation),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Get.toNamed(AppRoutes.myActivation),
+                      ),
+                      Obx(() => Get.find<CorrectorService>().isCorrector.value
                           ? Column(
                               children: [
                                 const Divider(),
                                 ListTile(
-                                  leading: const Icon(Icons.device_unknown),
-                                  title: Text(S.activateDevice),
-                                  trailing: const Icon(Icons.chevron_right),
-                                  onTap: () => Get.toNamed(AppRoutes.activation),
+                                  leading: const Icon(Icons.edit_note),
+                                  title: const Text('Mode correcteur'),
+                                  subtitle: Text(Get.find<CorrectorService>().email.value ?? ''),
+                                  trailing: const Icon(Icons.logout),
+                                  onTap: CorrectorLoginDialog.signOut,
                                 ),
                               ],
                             )
@@ -204,4 +215,34 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Déclenche [onTriggered] après 5 appuis rapprochés.
+class _TapCounter extends StatefulWidget {
+  final VoidCallback onTriggered;
+  final Widget child;
+
+  const _TapCounter({required this.onTriggered, required this.child});
+
+  @override
+  State<_TapCounter> createState() => _TapCounterState();
+}
+
+class _TapCounterState extends State<_TapCounter> {
+  int _count = 0;
+  DateTime _last = DateTime(0);
+
+  void _onTap() {
+    final now = DateTime.now();
+    _count = now.difference(_last) < const Duration(milliseconds: 700) ? _count + 1 : 1;
+    _last = now;
+    if (_count >= 5) {
+      _count = 0;
+      widget.onTriggered();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      GestureDetector(behavior: HitTestBehavior.opaque, onTap: _onTap, child: widget.child);
 }

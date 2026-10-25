@@ -6,7 +6,9 @@ import '../../../core/constants/strings.dart';
 import '../../../core/controllers/audio_controller.dart';
 import '../../../core/models/surah_model.dart';
 import '../../../core/services/bookmark_service.dart';
+import '../../../core/services/corrector_service.dart';
 import '../../../core/utils/messenger.dart';
+import 'corrector_dialogs.dart';
 
 /// Actions sur un verset : copier, partager, favori, lire à partir d'ici.
 class VerseActionsSheet extends StatelessWidget {
@@ -80,6 +82,16 @@ class VerseActionsSheet extends StatelessWidget {
               SharePlus.instance.share(ShareParams(text: _text));
             },
           ),
+          Obx(() => Get.find<CorrectorService>().isCorrector.value
+              ? ListTile(
+                  leading: const Icon(Icons.edit_note),
+                  title: const Text('Corriger la traduction'),
+                  onTap: () {
+                    Get.back();
+                    CorrectVerseDialog.show(surah, verse.number);
+                  },
+                )
+              : const SizedBox.shrink()),
         ],
       ),
     );
